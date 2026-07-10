@@ -34,3 +34,4 @@ Her evrak için:
 - Jürinin canlı çalıştırma talebine yanıt verilebilir
 - İnternet kesintisine karşı yerel çalışma yedek planı mevcuttur
 - Kullanılan veri setleri kurgu olup gerçek kamu verisi içermemektedir
+- Veri kaynağı ve kullanım hakları: [`../data/README.md`](../data/README.md) — takım üretimi sentetik veri, Apache 2.0

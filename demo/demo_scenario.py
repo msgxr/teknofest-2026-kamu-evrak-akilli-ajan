@@ -119,9 +119,38 @@ def _display_results(sonuc: dict) -> None:
         )
         console.print(Panel(eksik_text, title="⚠️ Eksik Bilgiler", border_style="yellow"))
 
+    # Mevzuat önerileri
+    if sonuc.get("mevzuat_eslestirme"):
+        mevzuat_text = "\n".join(
+            f"• {m.get('baslik', '?')} [dim](benzerlik: {m.get('benzerlik', 0):.0%})[/dim]"
+            for m in sonuc["mevzuat_eslestirme"][:3]
+        )
+        console.print(Panel(mevzuat_text, title="📚 Mevzuat Önerileri", border_style="blue"))
+
     # Özet
     if sonuc.get("ozet"):
         console.print(Panel(sonuc["ozet"], title="📝 Özet", border_style="cyan"))
+
+    # Yazı taslağı
+    if sonuc.get("yazi_taslagi"):
+        console.print(Panel(
+            sonuc["yazi_taslagi"],
+            title=f"✍️ Yazı Taslağı ({sonuc.get('yazi_turu', '?')})",
+            border_style="green",
+        ))
+
+    # Format denetimi
+    if sonuc.get("format_denetimi"):
+        fd = sonuc["format_denetimi"]
+        kontrol_text = "\n".join(
+            f"{'✅' if k.get('durum') else '❌'} {k.get('kural', '?')}"
+            for k in fd.get("kontroller", [])
+        )
+        console.print(Panel(
+            f"[bold]Skor:[/bold] {fd.get('skor', 0):.0%}\n{kontrol_text}",
+            title="📐 Resmî Yazışma Format Denetimi",
+            border_style="green" if fd.get("uygun") else "yellow",
+        ))
 
     # Yönlendirme
     if sonuc.get("yonlendirme"):
@@ -134,9 +163,31 @@ def _display_results(sonuc: dict) -> None:
             border_style="magenta",
         ))
 
+    # Eksik bilgi talepleri (Görev 2: "gerekli durumlarda eksik bilgi talep edebilmesi")
+    if sonuc.get("eksik_bilgi_talepleri"):
+        talep_text = "\n".join(
+            f"❓ {t.get('soru', '?')}" for t in sonuc["eksik_bilgi_talepleri"]
+        )
+        console.print(Panel(talep_text, title="💬 Eksik Bilgi Talepleri", border_style="red"))
+
+    # İşlem adımları ve süreleri (gerçek zamana yakın çalışma kanıtı)
+    if sonuc.get("islem_adimlari"):
+        adim_table = Table(title="⏱️ İşlem Adımları")
+        adim_table.add_column("Adım", style="cyan")
+        adim_table.add_column("Durum", style="bold")
+        adim_table.add_column("Süre (sn)", justify="right")
+        for adim in sonuc["islem_adimlari"]:
+            durum = "✅" if adim.get("status") == "success" else "❌"
+            adim_table.add_row(
+                adim.get("description", "?"),
+                durum,
+                f"{adim.get('sure_saniye', 0):.3f}",
+            )
+        console.print(adim_table)
+
     # İşlem süresi
     if sonuc.get("islem_suresi_saniye"):
-        console.print(f"\n⏱️  İşlem süresi: {sonuc['islem_suresi_saniye']:.2f} saniye")
+        console.print(f"\n⏱️  Toplam işlem süresi: {sonuc['islem_suresi_saniye']:.2f} saniye")
 
 
 if __name__ == "__main__":
