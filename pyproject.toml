@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "TEKNOFEST 2026 Yapay Zeka Dil Ajanları Yarışması - Kamu Evrak ve Yazışma Süreçleri için Akıllı Agent Destek Sistemi"
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 authors = [
     {name = "Teknofest 2026 Takımı"},
 ]
@@ -27,6 +27,8 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -50,13 +52,13 @@ python_functions = ["test_*"]
 addopts = "-v --tb=short"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py39"
 line-length = 100
 
 [tool.ruff.lint]

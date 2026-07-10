@@ -21,24 +21,40 @@ PROJECT_ROOT = Path(__file__).parent.parent
 class LLMSettings(BaseSettings):
     """LLM model ayarları."""
 
-    model_name: str = "meta-llama/Llama-3.1-8B-Instruct"
+    # Backend seçimi: '' (otomatik), 'openai', 'ollama', 'offline'
+    backend: str = ""
+
+    # OpenAI-uyumlu API ayarları (OpenAI, OpenRouter, Groq, vLLM, LM Studio...)
+    model_name: str = "gpt-4o-mini"
+    base_url: Optional[str] = None
+    openai_api_key: Optional[str] = None
+
+    # Ollama (yerel) ayarları
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:7b"
+
+    # Üretim parametreleri
     temperature: float = 0.1
     max_tokens: int = 4096
-    openai_api_key: Optional[str] = None
+    timeout_seconds: int = 90
     hf_token: Optional[str] = None
 
     class Config:
         env_prefix = "LLM_"
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        # Geriye dönük uyumluluk: OPENAI_API_KEY doğrudan da okunabilsin
+        if not self.openai_api_key:
+            self.openai_api_key = os.getenv("OPENAI_API_KEY") or None
+
 
 class OCRSettings(BaseSettings):
     """OCR motor ayarları."""
 
+    # Alan adları TESSERACT_CMD / TESSERACT_LANG ortam değişkenleriyle eşleşir
     tesseract_cmd: str = "tesseract"
     tesseract_lang: str = "tur"
-
-    class Config:
-        env_prefix = "TESSERACT_"
 
 
 class EmbeddingSettings(BaseSettings):
