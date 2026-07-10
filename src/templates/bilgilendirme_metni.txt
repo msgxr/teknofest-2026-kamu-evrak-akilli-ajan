@@ -1,0 +1,19 @@
+T.C.
+{kurum_adi}
+{birim_adi}
+
+Sayı   : {sayi}
+Konu   : {konu}
+
+{muhatap}
+
+{metin}
+
+Bilgilerinize rica ederim.
+
+                                                        {imza_sahibi}
+                                                        {unvan}
+
+Dağıtım:
+Gereği :
+Bilgi  :

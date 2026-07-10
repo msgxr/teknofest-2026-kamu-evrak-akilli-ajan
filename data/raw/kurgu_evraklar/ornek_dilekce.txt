@@ -1,0 +1,24 @@
+T.C.
+BİLİŞİM VADİSİ BAŞKANLIĞI
+Bilgi İşlem Müdürlüğü
+
+Sayın Bilişim Vadisi Başkanlığı,
+
+Kurumunuzda görev yapan personel olarak, bilgi işlem altyapısında yaşanan sorunları ve çözüm önerilerimi bilgilerinize sunmak isterim.
+
+Son bir ay içerisinde, kurum içi ağ bağlantısında sık sık kesintiler yaşanmaktadır. Bu durum, özellikle evrak takip sistemi (EBYS) üzerinden yürütülen yazışma süreçlerini olumsuz etkilemektedir. Yazışma sürelerinde ortalama %40 oranında gecikme gözlemlenmiştir.
+
+Ayrıca, mevcut antivirüs yazılımının lisans süresinin 15/08/2026 tarihinde dolacağı tespit edilmiştir. Bu konuda gerekli bütçe tahsisi ve yenileme işlemlerinin zamanında yapılması büyük önem taşımaktadır.
+
+Çözüm önerilerim şunlardır:
+1. Ağ altyapısının güncellenmesi ve yedekli hat kurulması
+2. Antivirüs lisansının yenilenmesi için bütçe talebi yapılması
+3. EBYS sisteminin bulut tabanlı yedekleme sistemine taşınması
+
+Yukarıda belirtilen hususların değerlendirilmesini saygılarımla arz ederim.
+
+Tarih: 10/07/2026
+
+Ad Soyad: Ahmet Yılmaz
+Unvan: Bilgi İşlem Uzmanı
+İmza: [İMZA]

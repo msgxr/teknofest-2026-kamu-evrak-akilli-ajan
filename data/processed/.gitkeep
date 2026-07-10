@@ -1,0 +1,2 @@
+# İşlenmiş veri dosyaları bu dizine kaydedilir.
+# Bu dizin Git tarafından takip edilir ancak veri dosyaları .gitignore ile hariç tutulabilir.

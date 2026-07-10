@@ -1,0 +1,19 @@
+T.C.
+{kurum_adi}
+{birim_adi}
+
+Sayı   : {sayi}
+Konu   : {konu}
+
+{muhatap} MAKAMINA
+
+İlgi   : {ilgi}
+
+İlgide kayıtlı yazınız incelenmiş olup, konu hakkında aşağıdaki hususlar bilgilerinize sunulur:
+
+{metin}
+
+Bilgilerinize arz ederim.
+
+                                                        {imza_sahibi}
+                                                        {unvan}

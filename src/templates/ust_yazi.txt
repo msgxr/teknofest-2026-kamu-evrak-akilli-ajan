@@ -1,0 +1,22 @@
+T.C.
+{kurum_adi}
+{birim_adi}
+
+Sayı   : {sayi}
+Konu   : {konu}
+
+{muhatap} MAKAMINA
+
+İlgi   : {ilgi}
+
+{metin}
+
+Bilgilerinize arz ederim.
+
+                                                        {imza_sahibi}
+                                                        {unvan}
+
+Ek     : {ekler}
+Dağıtım:
+Gereği :
+Bilgi  :
