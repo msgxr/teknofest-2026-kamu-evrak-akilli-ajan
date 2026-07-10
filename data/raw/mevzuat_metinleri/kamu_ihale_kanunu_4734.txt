@@ -1,0 +1,18 @@
+# Başlık: 4734 Sayılı Kamu İhale Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: ihale, satın alma, satınalma, alım, mal alımı, hizmet alımı, yapım işi, yazılım alımı, teklif, yaklaşık maliyet, açık ihale, pazarlık usulü, doğrudan temin, ihale komisyonu, şikâyet, itirazen şikâyet, Kamu İhale Kurumu, sözleşme, teknik şartname
+
+## Kapsam ve Temel İlkeler
+Kanun, kamu hukukuna tabi olan veya kamu kaynağı kullanan idarelerin yapacakları mal veya hizmet alımları ile yapım işlerinin ihalelerini düzenler (m. 1-2). İdareler ihalelerde saydamlığı, rekabeti, eşit muameleyi, güvenirliği, gizliliği, kamuoyu denetimini, ihtiyaçların uygun şartlarla ve zamanında karşılanmasını ve kaynakların verimli kullanılmasını sağlamakla sorumludur (m. 5). Satın alma konulu evrak bu ilkeler çerçevesinde değerlendirilir.
+
+## İhale Hazırlık Süreci
+İhale konusu işin yaklaşık maliyeti, ihale yapılmadan önce idarece her türlü fiyat araştırması yapılarak belirlenir ve gizli tutulur (m. 9). İhale, ihale yetkilisince görevlendirilen üyelerden oluşan ihale komisyonu tarafından yürütülür (m. 6). İhale dokümanı; idari şartname, teknik şartname, sözleşme tasarısı ve gerekli diğer belgelerden oluşur (m. 27); yazılım ve donanım alımlarında teknik şartnamenin ihtiyacı tam tanımlaması özellikle önemlidir.
+
+## İhale Usulleri
+Kanunda temel ihale usulleri açık ihale usulü ve belli istekliler arasında ihale usulü olarak belirlenmiş, pazarlık usulü belirli hâllere özgülenmiştir (m. 18-21). Küçük ölçekli veya özellik arz eden alımlar için doğrudan temin yolu öngörülmüştür (m. 22); doğrudan temin bir ihale usulü olmayıp ilan ve teminat zorunluluğu bulunmaz. Alım talep yazılarında tutar ve niteliğe göre hangi usulün uygulanacağı belirlenir.
+
+## İlan ve Teklif Değerlendirme
+İhale ilanları, ihale tarihinden önce Kanunda öngörülen sürelere uyularak yapılır (m. 13). Teklifler, ihale dokümanında belirtilen saate kadar sıra numaralı alındılar karşılığında idareye verilir (m. 30). Tekliflerin değerlendirilmesinde belge eksikliği ve yeterlik kriterleri kontrol edilir; ihale, ekonomik açıdan en avantajlı teklifi veren istekli üzerinde bırakılır (m. 36-40).
+
+## Şikâyet ve İtirazen Şikâyet Başvuruları
+İhale sürecindeki hukuka aykırı işlem veya eylemler nedeniyle aday, istekli veya istekli olabilecekler, öncelikle idareye şikâyet başvurusunda bulunur (m. 54-55); idare başvuru üzerine gerekçeli bir karar alır ve bildirir. İdareye şikâyet sonucundan tatmin olmayanlar Kamu İhale Kurumuna itirazen şikâyet başvurusu yapabilir (m. 56). Bu başvurular süreye tabi olduğundan, ihale konulu itiraz evrakının tarih bilgisi işlem açısından kritiktir.

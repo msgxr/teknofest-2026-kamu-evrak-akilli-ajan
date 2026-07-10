@@ -1,0 +1,18 @@
+# Başlık: CİMER ve Vatandaş Başvuruları Hakkında Bilgi Notu
+# Kaynak: cimer.gov.tr (kamuya açık bilgi notu)
+# Anahtar-Kelimeler: CİMER, Cumhurbaşkanlığı İletişim Merkezi, vatandaş başvurusu, şikâyet, ihbar, öneri, talep, görüş, başvuru takibi, havale, cevap süresi, halkla ilişkiler, dilekçe hakkı, bilgi edinme
+
+## CİMER Nedir
+Cumhurbaşkanlığı İletişim Merkezi (CİMER), vatandaşların istek, şikâyet, ihbar, görüş ve önerilerini kamu kurumlarına iletebildiği merkezî elektronik başvuru sistemidir. Başvurular internet, telefon, mektup veya şahsen müracaat yoluyla yapılabilir. Sistem, vatandaş ile idare arasındaki iletişimi tek noktadan izlenebilir hâle getirir.
+
+## Hukuki Dayanak
+CİMER başvuruları esas olarak 3071 sayılı Dilekçe Hakkının Kullanılmasına Dair Kanun ile 4982 sayılı Bilgi Edinme Hakkı Kanunu çerçevesinde işleme alınır. Başvurunun niteliğine göre hangi kanunun uygulanacağı belirlenir; şikâyet ve talepler dilekçe hakkı, bilgi ve belge istekleri bilgi edinme mevzuatı kapsamında değerlendirilir. Kişisel verilere ilişkin talepler ayrıca 6698 sayılı Kanuna tabidir.
+
+## Kurum İçi İşleyiş
+CİMER üzerinden gelen başvuru, ilgili kurumun koordinasyon birimince kaydedilir ve konusuna göre yetkili birime havale edilir. Havale edilen birim, başvuruyu inceleyerek cevabını hazırlar ve cevap CİMER üzerinden başvuru sahibine iletilir. Başvurunun yanlış birime havalesi cevap süresini uzattığından, konu tespiti ve birim yönlendirmesinin doğruluğu süreç kalitesini doğrudan etkiler.
+
+## Cevap Süreleri ve Takip
+Dilekçe niteliğindeki başvurulara en geç otuz gün içinde, bilgi edinme niteliğindeki başvurulara ise kural olarak on beş iş günü içinde cevap verilmesi gerekir. Başvuru sahibi, başvurusunun hangi aşamada olduğunu sistem üzerinden takip edebilir. Süresi yaklaşan başvurular için kurum içi hatırlatma ve izleme mekanizması işletilmesi önerilir.
+
+## Cevap Yazısı Kalitesi
+CİMER cevaplarının gerekçeli, anlaşılır ve başvurunun tüm hususlarını karşılayacak nitelikte olması beklenir. Cevapta ilgili mevzuata atıf yapılması, yapılan işlem veya işlem yapılamıyorsa nedeninin açıklanması gerekir. Şablon niteliğinde, gerekçesiz veya konuyla ilgisiz cevaplar başvurunun yeniden açılmasına ve idari yükün artmasına yol açar.

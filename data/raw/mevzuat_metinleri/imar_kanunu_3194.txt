@@ -1,0 +1,18 @@
+# Başlık: 3194 Sayılı İmar Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: imar, imar planı, yapı ruhsatı, ruhsatsız yapı, kaçak yapı, ruhsata aykırı, yapı kullanma izni, iskân, parsel, ada, yıkım, yapı tatil tutanağı, idari para cezası, belediye, mücavir alan, inşaat, tadilat, vatandaş şikâyeti
+
+## Amaç ve Kapsam
+Kanun; yerleşme yerleri ile bu yerlerdeki yapılaşmaların plan, fen, sağlık ve çevre şartlarına uygun oluşmasını sağlamak amacıyla düzenlenmiştir (m. 1) ve belediye ve mücavir alan sınırları içinde veya dışında kalan tüm yapıları kapsar. Kaçak yapı, izinsiz tadilat ve imar uygulaması konulu vatandaş şikâyetlerinin değerlendirilmesinde temel çerçevedir.
+
+## İmar Planları ve İtiraz
+Nüfusça belirli büyüklüğü aşan yerleşimlerde nazım imar planı ve uygulama imar planı yapılması zorunludur; planlar onaylanarak yürürlüğe girer ve bir ay süreyle ilan edilir (m. 8). İlan süresi içinde planlara itiraz edilebilir; itirazlar ilgili idarece değerlendirilerek karara bağlanır. Plan değişikliği ve plana itiraz dilekçeleri imar birimlerinin görev alanına girer.
+
+## Yapı Ruhsatı
+Kanun kapsamındaki yapılar için, istisnalar dışında, belediye veya valilikten yapı ruhsatiyesi alınması zorunludur (m. 21). Ruhsat başvurusunda tapu kaydı ile mimari, statik ve tesisat projeleri gibi belgeler aranır (m. 22); ruhsat alınan yapıya iki yıl içinde başlanması ve beş yıl içinde tamamlanması gerekir (m. 29). Ruhsat ve ekleri idare arşivinde saklandığından, geçmiş yıllara ait ruhsat örneği talepleri kurum arşiv kayıtlarından karşılanır.
+
+## Ruhsatsız veya Ruhsata Aykırı Yapı
+Ruhsat alınmadan ya da ruhsat ve eklerine aykırı yapıldığı tespit edilen yapı, durumu belirten yapı tatil tutanağı düzenlenerek mühürlenir ve inşaat durdurulur (m. 32). Aykırılık ilgilisince en çok bir ay içinde giderilmez veya ruhsat alınmazsa yapı, kararla yıktırılır; ayrıca sorumlulara idari para cezası uygulanır (m. 42). Kaçak yapı ihbar ve şikâyetleri bu hükümler çerçevesinde incelenir.
+
+## Yapı Kullanma İzni
+Tamamlanan yapının kullanılabilmesi için, yapının ruhsat ve eklerine uygun biçimde bitirildiğinin tespitiyle yapı kullanma izni (iskân) alınması gerekir (m. 30). Yapı kullanma izni alınmadan kullanılan yapılar hakkında yaptırım uygulanabilir ve abonelik gibi hizmetlerin bağlanmasında bu izin aranır. İskân belgesi talepleri de imar birimlerince sonuçlandırılır.

@@ -1,0 +1,18 @@
+# Başlık: e-Yazışma Teknik Rehberi Hakkında Bilgi Notu
+# Kaynak: Cumhurbaşkanlığı Dijital Dönüşüm Ofisi (kamuya açık bilgi notu)
+# Anahtar-Kelimeler: e-yazışma, e-Yazışma Paketi, EYP, EBYS, elektronik belge yönetim sistemi, üstveri, KEP, kayıtlı elektronik posta, elektronik imza, belge doğrulama, DETSİS, haberleşme kodu, kurumlar arası yazışma
+
+## e-Yazışma Projesinin Amacı
+e-Yazışma Projesi, kamu kurumları arasındaki resmî yazışmaların elektronik ortamda güvenli ve standart bir biçimde yapılmasını sağlamak amacıyla yürütülmektedir. Proje kapsamında hazırlanan e-Yazışma Teknik Rehberi, elektronik belgelerin oluşturulması, imzalanması ve iletilmesine ilişkin ortak teknik kuralları tanımlar. Bu standartlara uyum, farklı kurumların EBYS'leri arasında birlikte çalışabilirliği sağlar.
+
+## e-Yazışma Paketi (EYP)
+Kurumlar arasında iletilen elektronik belgeler, e-Yazışma Paketi (EYP) adı verilen standart bir paket yapısı içinde taşınır. Paket; belgenin kendisini, belge üstverisini, ek dosyaları ve elektronik imza bileşenlerini bir arada içerir. Bu yapı sayesinde alıcı kurum, belgeyi ve imzasını otomatik olarak doğrulayıp kendi EBYS'sine kaydedebilir.
+
+## Üstveri Alanları
+EYP üstverisi; belgenin sayısı, tarihi, konusu, üreticisi olan idare, muhatabı, ilgi bilgileri ve dağıtım listesi gibi alanları içerir. Üstverinin eksiksiz ve doğru doldurulması, gelen evrakın otomatik kaydı, sınıflandırılması ve doğru birime havalesi için ön koşuldur. Evrak analiz sistemleri, üstveri alanlarını eksik bilgi tespitinde referans olarak kullanabilir.
+
+## Güvenlik ve İmza
+e-Yazışma kapsamındaki belgeler, 5070 sayılı Elektronik İmza Kanununa uygun güvenli elektronik imza ile imzalanır. Gerektiğinde paket içeriği şifrelenerek yalnızca yetkili muhatabın erişimine açılır. İmza doğrulaması, hem imzalayanın kimliğini hem de belgenin bütünlüğünü teyit eder.
+
+## İletim Kanalları ve Adresleme
+EYP'ler, kurumlar arasında kayıtlı elektronik posta (KEP) gibi güvenli iletim kanallarıyla veya doğrudan sistem entegrasyonlarıyla iletilir. Adreslemede, idarelerin Devlet Teşkilatı Merkezi Kayıt Sistemi'nde (DETSİS) tanımlı haberleşme kodları kullanılır. Doğru haberleşme kodunun kullanılması, belgenin muhatap idarenin doğru birimine ulaşmasını güvence altına alır.

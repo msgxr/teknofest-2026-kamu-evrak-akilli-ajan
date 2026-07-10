@@ -1,0 +1,18 @@
+# Başlık: 5070 Sayılı Elektronik İmza Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: elektronik imza, e-imza, güvenli elektronik imza, ıslak imza, nitelikli elektronik sertifika, elektronik sertifika hizmet sağlayıcısı, elektronik belge, imza doğrulama, onaylı belge, EBYS
+
+## Amaç ve Temel Kavramlar
+Kanun, elektronik imzanın hukuki ve teknik yönleri ile kullanımına ilişkin esasları düzenler (m. 1). Elektronik imza, başka bir elektronik veriye eklenen veya onunla mantıksal bağlantısı bulunan ve kimlik doğrulama amacıyla kullanılan elektronik veriyi ifade eder (m. 3). Elektronik sertifika hizmet sağlayıcıları, sertifika üretimi ve doğrulama hizmeti veren kuruluşlardır.
+
+## Güvenli Elektronik İmzanın Şartları
+Güvenli elektronik imza; münhasıran imza sahibine bağlı olan, sadece imza sahibinin tasarrufunda bulunan güvenli imza oluşturma aracı ile oluşturulan, nitelikli elektronik sertifikaya dayanarak imza sahibinin kimliğinin tespitini sağlayan ve imzalanmış veride sonradan değişiklik yapılıp yapılmadığının tespitine imkân veren imzadır (m. 4). Bu dört şartın birlikte sağlanması gerekir. Resmî yazışmalarda kullanılan e-imzaların bu nitelikte olması aranır.
+
+## Hukuki Sonuç
+Güvenli elektronik imza, elle atılan imza ile aynı hukuki sonucu doğurur (m. 5). Ancak kanunların resmî şekle veya özel bir merasime tabi tuttuğu hukuki işlemler ile banka teminat mektupları dışındaki teminat sözleşmeleri güvenli elektronik imza ile gerçekleştirilemez. Elektronik ortamda güvenli e-imza ile imzalanmış resmî yazılar, ıslak imzalı belge ile eşdeğer kabul edilir; bu durum onaylı belge doğrulamasında esas alınır.
+
+## Nitelikli Elektronik Sertifika
+Nitelikli elektronik sertifikada imza sahibinin kimlik bilgileri, sertifikanın geçerlilik süresi ve varsa kullanım sınırlamaları yer alır (m. 9). Sertifikanın geçerlilik süresinin dolması veya iptal edilmesi hâlinde imza doğrulaması olumsuz sonuçlanır. Gelen elektronik imzalı evrakın doğrulanmasında sertifika geçerliliği ve belge bütünlüğü birlikte kontrol edilmelidir.
+
+## Kamu Kurumlarında Uygulama
+Kamu kurum ve kuruluşları resmî yazışmalarını esas olarak EBYS üzerinden güvenli elektronik imza ile yürütür; bu uygulamanın hukuki temeli 5070 sayılı Kanun ile resmî yazışma mevzuatının birlikte değerlendirilmesine dayanır. Elektronik imzalı belgelerin çıktısı üzerinde belge doğrulama kodu bulunması, belgenin elektronik aslına erişimi sağlar. Onay ve imza süreçlerinin elektronik yürütülmesi, evrak işlem sürelerini kısaltır.

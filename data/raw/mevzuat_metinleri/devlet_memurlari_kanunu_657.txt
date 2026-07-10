@@ -1,0 +1,21 @@
+# Başlık: 657 Sayılı Devlet Memurları Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: memur, personel, özlük, atama, nakil, tayin, yıllık izin, mazeret izni, hastalık izni, aylıksız izin, doğum izni, izin talebi, disiplin, terfi, derece, kadro, görevden çekilme, personel yazışmaları, insan kaynakları
+
+## Kapsam ve İstihdam Şekilleri
+Kanun, genel ve özel bütçeli idareler ile bunlara bağlı kurumlarda çalışan memurların hizmet şartlarını, niteliklerini, atanma ve yetiştirilmelerini, ilerleme ve yükselmelerini, ödev, hak, yüküm ve sorumluluklarını düzenler (m. 1). Kamu hizmetleri memurlar, sözleşmeli personel ve işçiler eliyle gördürülür (m. 4). Personel konulu evrakın hangi istihdam türüne ilişkin olduğunun tespiti, uygulanacak hükümleri belirler.
+
+## Atama ve Yer Değiştirme Yazışmaları
+Memurların derece yükselmesi ve kadro atamalarına ilişkin şartlar Kanunda düzenlenmiştir (m. 68). Memurlar, kurumlarınca lüzum görüldüğünde aynı veya başka yerlerdeki kadrolara naklen atanabilir (m. 76); karşılıklı yer değiştirme (becayiş) talepleri de ilgili hükümlere göre değerlendirilir (m. 73). Atama, nakil ve görevlendirme onayları resmî yazı ile tebliğ edilir; bu tür evrak insan kaynakları birimlerinin görev alanına girer.
+
+## Yıllık İzin
+Devlet memurlarının yıllık izin süresi, hizmeti bir yıldan on yıla kadar olanlar için yirmi gün, on yıldan fazla olanlar için otuz gündür (m. 102). Yıllık izinler, amirin uygun bulacağı zamanlarda toptan veya ihtiyaca göre kısım kısım kullanılabilir (m. 103). İzin talep dilekçelerinde talep edilen izin türü, başlangıç-bitiş tarihleri ve iletişim bilgilerinin bulunması, işlemin gecikmeden yürütülmesi için gereklidir.
+
+## Mazeret, Hastalık ve Aylıksız İzinler
+Doğum, evlenme ve ölüm gibi hâllerde memura mazeret izni verilir (m. 104). Hastalık ve refakat izinleri raporla belgelendirilir ve süreleri Kanunda gösterilmiştir (m. 105). Belirli koşullarda memura aylıksız izin de verilebilir (m. 108). İzin konulu başvurularda mazeretin türüne göre eklenmesi gereken belgeler (rapor, doğum belgesi vb.) eksik bilgi kontrolünde dikkate alınmalıdır.
+
+## Özlük Dosyası ve Disiplin
+Her memur için bir özlük dosyası tutulur; memurun başarı, disiplin ve cezalarına ilişkin belgeler bu dosyada saklanır (m. 109). Disiplin cezaları uyarma, kınama, aylıktan kesme, kademe ilerlemesinin durdurulması ve devlet memurluğundan çıkarma olarak sayılmıştır (m. 125). Disiplin soruşturmalarına ilişkin yazışmalar gizlilik dereceli yürütülür ve tebligat usullerine uyulur.
+
+## Görevden Çekilme ve Görevden Uzaklaştırma
+Memur, yazılı olarak müracaat etmek suretiyle memurluktan çekilme isteğinde bulunabilir (m. 94). Görevden uzaklaştırma, kamu hizmetlerinin gerektirdiği hâllerde görevi başında kalması sakıncalı görülen memurlar hakkında uygulanan ihtiyati bir tedbirdir (m. 137). Bu işlemlere ilişkin onay ve tebliğ yazıları özlük haklarını doğrudan etkilediğinden usulüne uygun düzenlenmelidir.

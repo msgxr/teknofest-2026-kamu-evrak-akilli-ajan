@@ -1,0 +1,18 @@
+# Başlık: Devlet Arşiv Hizmetleri Hakkında Yönetmelik
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: arşiv, arşivleme, saklama süresi, birim arşivi, kurum arşivi, ayıklama, imha, saklama planı, Devlet Arşivleri Başkanlığı, belge devri, elektronik arşiv, tutanak, dosya planı
+
+## Amaç ve Kapsam
+Yönetmelik, kamu kurum ve kuruluşlarında oluşan her türlü belgenin ayıklanması, saklanması, imhası ve Devlet Arşivleri Başkanlığına devrine ilişkin usul ve esasları düzenler. Amaç, arşiv belgelerinin kaybını önlemek, düzenli biçimde saklanmasını sağlamak ve gelecek kuşaklara aktarılacak belgeleri korumaktır. Fiziksel belgelerin yanı sıra elektronik ortamda üretilen belgeler de arşiv mevzuatına tabidir.
+
+## Birim Arşivi ve Kurum Arşivi
+Belgeler, güncelliğini kaybettikten sonra önce üretildikleri birimin birim arşivinde, ardından kurumun kurum arşivinde saklanır. Birim arşivinde saklama süresi görece kısa tutulur; işlemi tamamlanan belgeler belirli aralıklarla kurum arşivine devredilir. Devir işlemleri, dosya planına uygun olarak ve devir-teslim kayıtları tutularak yapılır.
+
+## Saklama Süreleri ve Saklama Planı
+Her belge türü için saklama süreleri, kurumlarca hazırlanan ve Devlet Arşivleri Başkanlığınca uygun görülen saklama planlarında belirlenir. Saklama süresi dolmayan hiçbir belge imha edilemez. Evrak yönetim sistemlerinde belgenin türüne göre saklama kodunun doğru atanması, arşiv sürecinin sağlıklı işlemesi için gereklidir.
+
+## Ayıklama ve İmha
+Saklama süresi dolan ve arşivlik değeri taşımayan belgeler, kurumlarda oluşturulan ayıklama ve imha komisyonlarının kararıyla imha edilir. İmha işlemi tutanağa bağlanır ve imha listeleri belirli süre muhafaza edilir. Devlet arşivi niteliği taşıyan belgeler hiçbir şekilde imha edilemez; bunlar Devlet Arşivleri Başkanlığına devredilir.
+
+## Elektronik Belgelerin Arşivlenmesi
+Elektronik Belge Yönetim Sistemi içinde üretilen belgeler, üstverileriyle birlikte bütünlüğü ve okunabilirliği korunarak arşivlenir. Elektronik arşivlemede belgenin özgünlüğünü ve uzun dönem erişilebilirliğini sağlayacak format ve güvenlik tedbirleri uygulanır. Tutanak, rapor ve üst yazı gibi işlemi tamamlanan evrakın arşiv kaydının eksiksiz üstveriyle oluşturulması gerekir.

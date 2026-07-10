@@ -1,0 +1,21 @@
+# Başlık: 4982 Sayılı Bilgi Edinme Hakkı Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: bilgi edinme, bilgi talebi, belge talebi, başvuru, on beş iş günü, otuz iş günü, itiraz, Bilgi Edinme Değerlendirme Kurulu, şeffaflık, açıklık, istisna, devlet sırrı, özel hayat
+
+## Bilgi Edinme Hakkı ve Kurumların Yükümlülüğü
+Herkes, kamu kurum ve kuruluşlarının faaliyetlerinde uygulanan bilgi edinme hakkına sahiptir (m. 4). Kurumlar, Kanunda sayılan istisnalar dışındaki her türlü bilgi veya belgeyi başvuranların yararlanmasına sunmak ve bilgi edinme başvurularını etkin, süratli ve doğru sonuçlandırmak üzere gerekli idari ve teknik tedbirleri almakla yükümlüdür (m. 5). Bu kanun, idarenin şeffaflığı ilkesinin temel dayanaklarındandır.
+
+## Başvuru Usulü ve Zorunlu Bilgiler
+Bilgi edinme başvurusu; gerçek kişilerce ad-soyad, imza ve oturma yeri veya iş adresini, tüzel kişilerce unvan ve adresini içeren dilekçeyle yapılır (m. 6). Başvuru elektronik ortamda da yapılabilir; bu durumda kimlik doğrulamaya ilişkin usuller uygulanır. İstenen bilgi veya belgenin başvuruda açıkça belirtilmesi gerekir; bu unsurların eksikliği evrak analizinde eksik bilgi olarak işaretlenmelidir.
+
+## İstenecek Bilgi veya Belgenin Niteliği
+Başvuru, kurumların ellerinde bulunan veya görevleri gereği bulunması gereken bilgi veya belgelere ilişkin olmalıdır (m. 7). Kurumların ayrı veya özel bir çalışma, araştırma, inceleme ya da analiz neticesinde oluşturulabilecek türden bir bilgi veya belge için başvuru reddedilebilir. Yayımlanmış veya kamuya açıklanmış bilgiler için ayrıca başvuru yolu işletilmeyebilir; başvurana kaynağı gösterilir.
+
+## Cevap Süreleri
+Kurumlar, başvuru üzerine istenen bilgi veya belgeye erişimi on beş iş günü içinde sağlar (m. 11). Bilgi veya belgenin başka bir birimden sağlanması, başvuruyla ilgili birden fazla kurumun görüşünün alınması gibi hâllerde süre otuz iş gününe kadar uzayabilir; bu durumda uzama gerekçesi başvurana yazılı olarak bildirilir. Süre yönetimi, bilgi edinme niteliğindeki evrakın işlem takibinde kritik önemdedir.
+
+## Ret Kararı ve İtiraz Yolu
+Bilgi edinme istemi reddedilen başvuru sahibi, yargı yoluna başvurmadan önce kararın tebliğinden itibaren on beş gün içinde Bilgi Edinme Değerlendirme Kuruluna itiraz edebilir (m. 13). Ret kararlarının gerekçeli olarak ve itiraz yolları gösterilerek bildirilmesi gerekir. Bu nedenle bilgi edinme başvurularına verilecek olumsuz cevap yazılarında gerekçe ve başvuru yolları mutlaka yer almalıdır.
+
+## Bilgi Edinme Hakkının Sınırları
+Kanunun dördüncü bölümünde bilgi edinme hakkının istisnaları sayılmıştır; devlet sırrına ilişkin bilgiler (m. 16), istihbarata ilişkin bilgiler (m. 18), özel hayatın gizliliğini ihlal edecek bilgiler (m. 21) ve haberleşmenin gizliliği kapsamındaki bilgiler (m. 22) bu kapsamdadır. Cevap yazısı taslaklanırken talep edilen bilginin istisna kapsamına girip girmediği değerlendirilmelidir.

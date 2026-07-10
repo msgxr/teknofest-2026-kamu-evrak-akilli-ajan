@@ -1,0 +1,18 @@
+# Başlık: 5393 Sayılı Belediye Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: belediye, belediye başkanlığı, belediye meclisi, encümen, zabıta, hemşehri hukuku, imar, su ve kanalizasyon, ulaşım, çevre, temizlik, katı atık, park, yeşil alan, aydınlatma, mahalle, muhtar, ruhsat, belediye hizmetleri, vatandaş başvurusu
+
+## Belediyenin Görev ve Sorumlulukları
+Belediye; imar, su ve kanalizasyon, ulaşım gibi kentsel altyapı; çevre ve çevre sağlığı, temizlik ve katı atık; zabıta, itfaiye ve acil yardım; şehir içi trafik; defin ve mezarlıklar; ağaçlandırma, park ve yeşil alanlar; kültür ve sanat ile sosyal hizmet ve yardım hizmetlerini yapar veya yaptırır (m. 14). Park bakımı, sokak aydınlatması, temizlik ve gürültü gibi mahalle ölçekli vatandaş şikâyetleri bu görev alanının tipik konularıdır ve ilgili belediye birimine yönlendirilir.
+
+## Belediyenin Yetki ve İmtiyazları
+Belediye; beldenin düzeni ve sakinlerin sağlık ve esenliği için yönetmelik çıkarmak, emir vermek ve yasak koymak, gerçek ve tüzel kişilerin faaliyetlerine izin ve ruhsat vermek, ücret tarifelerini belirlemek ve kanunlarda belirtilen cezaları vermek yetkisine sahiptir (m. 15). İşyeri ruhsatı, denetim ve yaptırım taleplerini içeren başvuruların hukuki dayanağı bu maddedir.
+
+## Hemşehri Hukuku
+Herkes ikamet ettiği beldenin hemşehrisidir; hemşehriler belediyenin karar ve hizmetlerine katılma, belediye faaliyetleri hakkında bilgilenme ve belediye idaresinin yardımlarından yararlanma hakkına sahiptir (m. 13). Belediyeye verilen dilekçe ve şikâyetlerin cevaplanması yükümlülüğü, dilekçe hakkı mevzuatıyla birlikte bu hükümle de desteklenir.
+
+## Belediyenin Organları
+Belediyenin karar organı belediye meclisi, günlük yürütme işlerinde görevli organı belediye encümeni, en üst amiri ise belediye başkanıdır. Meclis kararları ve encümen işlemleri yazılı olarak yürütülür; belediye yazışmalarında kararın hangi organca alındığının belirtilmesi gerekir. Vatandaş taleplerinin sonuçlandırılması çoğunlukla başkanlık makamı adına ilgili müdürlüklerce yapılır.
+
+## Zabıtanın Görevleri
+Belediye zabıtası; beldede esenlik, huzur, sağlık ve düzenin sağlanmasıyla görevli olup belediye meclisince alınan ve zabıta tarafından yerine getirilmesi gereken emir ve yasaklarla bunlara uymayanlar hakkında öngörülen cezaları uygular (m. 51). Seyyar satıcı, işgal, gürültü ve ruhsatsız faaliyet şikâyetlerinde saha denetimi zabıta birimince yapılır; tespitler tutanağa bağlanır.

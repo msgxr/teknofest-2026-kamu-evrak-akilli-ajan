@@ -1,0 +1,24 @@
+# Başlık: Resmî Yazışmalarda Uygulanacak Usul ve Esaslar Hakkında Yönetmelik
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: resmî yazışma, üst yazı, cevap yazısı, bilgilendirme yazısı, genelge, belge formatı, sayı, tarih, konu, ilgi, muhatap, imza, ek, dağıtım, paraf, EBYS, elektronik belge, güvenli elektronik imza, ivedi, günlüdür, standart yazışma kuralları
+
+## Amaç ve Kapsam
+Yönetmeliğin amacı, güvenli elektronik imza kullanılarak elektronik ortamda veya el yazısıyla atılan imza ile fiziksel ortamda yapılan resmî yazışmalara ilişkin kuralları belirlemektir (m. 1). Bilgi ve belge alışverişinin sağlıklı, hızlı ve güvenli bir biçimde yürütülmesi hedeflenir. Yönetmelik, bütün kamu kurum ve kuruluşlarının kendi aralarında, gerçek veya tüzel kişilerle yaptıkları resmî yazışmaları kapsar (m. 2).
+
+## Belge Oluşturma Ortamı ve Nüsha
+Resmî yazışmalarda esas olan, belgenin elektronik ortamda Elektronik Belge Yönetim Sistemi (EBYS) üzerinden ve güvenli elektronik imza ile oluşturulmasıdır; fiziksel ortamda belge oluşturulması istisnai durumlarla sınırlıdır. Elektronik ortamda oluşturulan belge, güvenli elektronik imza ile imzalandığında hukuken el yazısıyla imzalanmış belge hükmündedir. Fiziksel ortamda hazırlanan belgelerde nüsha sayısı ve paraf düzenine ilişkin kurallara uyulur.
+
+## Belgenin Şeklî Özellikleri
+Belgeler A4 boyutundaki kâğıda veya elektronik şablona göre hazırlanır; yazı tipi ve punto büyüklüğü Yönetmelikte belirlenen standartlara uygun olmalıdır. Belge alanının çevresinde üst, alt, sol ve sağ taraflardan belirli boşluklar bırakılır. Bu şeklî standartlar, tüm kamu kurumlarında tek tip ve okunabilir belge üretimini güvence altına alır.
+
+## Belgenin Bölümleri
+Bir resmî yazı sırasıyla başlık, sayı, tarih, konu, muhatap, ilgi, metin, imza, ek, dağıtım gibi bölümlerden oluşur. Başlık bölümünde belgeyi gönderen idarenin adı yer alır; sayı bölümünde idarenin DETSİS'te tanımlı haberleşme kodu kullanılır. Konu bölümü belgenin içeriğini kısa ve öz biçimde yansıtır; ilgi bölümünde belgenin önceki bir yazıyla bağlantısı belirtilir. İmza bölümünde imzalayanın adı, soyadı ve unvanı bulunur; belge vekâleten imzalanıyorsa bu durum belirtilir.
+
+## Metin Kuralları ve Resmî Üslup
+Metin bölümü ilgiyle başlayıp uygun bir ifadeyle bitirilir; anlatım açık, sade, anlaşılır ve resmî üsluba uygun olmalıdır. Yazımda Türk Dil Kurumu tarafından hazırlanan Yazım Kılavuzu ve Türkçe Sözlük esas alınır. Muhatabın durumuna göre yazı "Arz ederim.", "Rica ederim." veya "Arz ve rica ederim." gibi uygun bir ifadeyle sonlandırılır. Kısaltmalar ilk geçtikleri yerde açık biçimde yazılır.
+
+## Süreli Yazışmalar ve İvedilik Dereceleri
+Süreli resmî yazışmalarda belgeye "ÇOK İVEDİ", "İVEDİ" veya "GÜNLÜDÜR" ibaresi eklenir ve cevap verilmesi gereken tarih belirtilir. "ÇOK İVEDİ" ibareli belgelere derhal, "İVEDİ" ibareli belgelere öncelikle cevap verilir. Süreli belgelerde öngörülen süreye uyulamayacaksa gecikme nedeni ve ne zaman cevap verileceği muhataba bildirilir.
+
+## Belgenin Gönderilmesi, Alınması ve Kayıt
+Belgeler elektronik ortamda güvenli iletim kanallarıyla, fiziksel ortamda ise posta veya kurye ile gönderilir. Gelen evrak kayıt altına alınır, ilgili birime havale edilir ve gerektiğinde muhataba alındı bilgisi verilir. Yanlış muhataba gönderilen belge, doğru muhataba iletilmek üzere iade edilir veya yönlendirilir; bu işlem gönderen idareye bildirilir.

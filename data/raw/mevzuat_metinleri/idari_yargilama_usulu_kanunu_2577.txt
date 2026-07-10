@@ -1,0 +1,18 @@
+# Başlık: 2577 Sayılı İdari Yargılama Usulü Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: idari başvuru, itiraz, dava açma süresi, zımni ret, idari işlem, iptal davası, üst makama başvuru, altmış gün, otuz gün, idare mahkemesi, hukuk müşavirliği, savunma, tebligat
+
+## Kapsam
+Kanun; Danıştay, bölge idare mahkemeleri, idare mahkemeleri ve vergi mahkemelerinin görevine giren uyuşmazlıkların çözümünde uygulanacak usulleri düzenler (m. 1). İdari işlemlere karşı açılacak iptal davaları ve idari eylemlerden doğan tam yargı davaları bu usule tabidir. Kurumlara gelen itiraz ve başvuru evrakının değerlendirilmesinde bu Kanundaki süreler doğrudan sonuç doğurur.
+
+## Dava Açma Süreleri
+Dava açma süresi, özel kanunlarında ayrı süre gösterilmeyen hâllerde Danıştayda ve idare mahkemelerinde altmış gün, vergi mahkemelerinde otuz gündür (m. 7). Süre, yazılı bildirimin yapıldığı tarihi izleyen günden itibaren işlemeye başlar. İdari işlem tesis eden yazılarda tebliğ tarihinin belgelendirilmesi, sürelerin hesabı bakımından önemlidir.
+
+## İdari Makamların Sükûtu (Zımni Ret)
+İlgililer, haklarında idari davaya konu olabilecek bir işlem veya eylemin yapılması için idari makamlara başvurabilir (m. 10). Başvuruya otuz gün içinde cevap verilmezse istek reddedilmiş sayılır ve ilgili dava açma hakkını kullanabilir. Bu nedenle vatandaş ve kurum başvurularının süresi içinde, yazılı ve gerekçeli biçimde cevaplanması idare açısından hukuki bir zorunluluktur.
+
+## Üst Makamlara Başvurma
+İlgililer, idari dava açmadan önce idari işlemin kaldırılması, geri alınması, değiştirilmesi veya yeni bir işlem yapılmasını üst makamdan, üst makam yoksa işlemi yapan makamdan isteyebilir (m. 11). Bu başvuru, işlemeye başlamış olan dava açma süresini durdurur; başvuruya süresi içinde cevap verilmezse istek reddedilmiş sayılır. İtiraz niteliğindeki evrakın doğru makama ve süresinde havalesi bu bakımdan önemlidir.
+
+## Dilekçeler ve İdarenin Savunması
+İdari davalar, görevli mahkemeye hitaben yazılmış, tarafların ad ve adreslerini, davanın konusunu ve sebeplerini içeren dilekçelerle açılır (m. 3). Dava açıldığında idareye tebliğ edilen dava dilekçesine karşı idare, belirlenen süre içinde savunma verir. Kurum aleyhine açılan davalara ilişkin evrak, savunma hazırlığı için hukuk müşavirliğine yönlendirilmelidir.

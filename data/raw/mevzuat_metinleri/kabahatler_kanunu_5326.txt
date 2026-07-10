@@ -1,0 +1,21 @@
+# Başlık: 5326 Sayılı Kabahatler Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: kabahat, idari para cezası, idari yaptırım, mülkiyetin kamuya geçirilmesi, zabıta, kolluk, gürültü, çevreyi kirletme, işgal, emre aykırı davranış, afiş asma, dilencilik, tutanak, itiraz, sulh ceza hâkimliği, belediye, vatandaş şikâyeti
+
+## Amaç ve Kabahat Kavramı
+Kanun; toplum düzenini, genel ahlakı, genel sağlığı, çevreyi ve ekonomik düzeni korumak amacıyla kabahatlere ilişkin genel ilkeleri, idari yaptırım türlerini ve karar sürecini düzenler (m. 1). Kabahat, kanunun karşılığında idari yaptırım uygulanmasını öngördüğü haksızlıktır (m. 2). Vatandaşlardan gelen gürültü, çevre kirliliği, işgal gibi şikâyet dilekçelerinin işleme alınmasında bu Kanun temel dayanaklardan biridir.
+
+## İdari Yaptırım Türleri ve Karar Verme Yetkisi
+Kabahatler karşılığında uygulanacak idari yaptırımlar, idari para cezası ve mülkiyetin kamuya geçirilmesidir (m. 16). İdari yaptırım kararı vermeye, ilgili kanunda açıkça gösterilen idari kurul, makam veya kamu görevlileri yetkilidir; kanunda hüküm bulunmayan hâllerde bu yetki ilgisine göre kolluk ve belediye zabıtası gibi görevlilerce kullanılır (m. 22-23). Belediyeye ulaşan şikâyetlerde yaptırım süreci çoğunlukla zabıta birimince yürütülür.
+
+## İdari Yaptırım Kararının İçeriği ve Tebliği
+İdari yaptırım kararında; hakkında yaptırım uygulanan kişinin kimlik ve adres bilgileri, kabahati oluşturan fiil, işlendiği yer ve zaman, deliller ile karar tarihi ve kararı veren görevlinin kimliği yer alır (m. 25). Karar ilgiliye derhâl tefhim edilir veya tebliğ olunur. Bu unsurlar, yaptırıma esas tutanakların eksik bilgi kontrolünde ölçüt olarak kullanılabilir.
+
+## Karara Karşı Başvuru Yolu
+İdari para cezası ve mülkiyetin kamuya geçirilmesine ilişkin karara karşı, kararın tebliği veya tefhimi tarihinden itibaren en geç on beş gün içinde sulh ceza hâkimliğine başvurulabilir; bu süre içinde başvuru yapılmazsa karar kesinleşir (m. 27). Yaptırım kararlarına ilişkin cevap yazılarında bu başvuru yolunun ve süresinin ilgiliye bildirilmesi iyi uygulama gereğidir.
+
+## Gürültü ve Rahatsız Etme
+Başkalarının huzur ve sükûnunu bozacak şekilde gürültüye neden olan kişiye idari para cezası verilir; fiilin bir ticari işletmenin faaliyeti çerçevesinde işlenmesi hâlinde ceza daha yüksektir (m. 36). Bu kabahat dolayısıyla yaptırım uygulama yetkisi kolluk veya belediye zabıtasındadır. Park, işyeri ve eğlence mekânı kaynaklı gürültü şikâyetlerinin değerlendirilmesinde uygulanan temel hükümdür.
+
+## Çevreyi Kirletme, İşgal ve Afiş Asma
+Evsel atık ve artıkları belirlenen yerler dışına atmak gibi çevreyi kirletici fiiller idari para cezasını gerektirir (m. 41). Yetkili makamların açık izni olmaksızın meydan, cadde, kaldırım gibi kamuya ait yerleri işgal edenler (m. 38) ile izin verilen yerler dışına afiş, ilan ve benzerini asanlar (m. 42) hakkında da idari para cezası uygulanır. Bu fiillere ilişkin şikâyetler belediye zabıtasının görev alanına girer.

@@ -1,0 +1,18 @@
+# Başlık: 5018 Sayılı Kamu Malî Yönetimi ve Kontrol Kanunu
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: bütçe, ödenek, harcama, harcama yetkilisi, ödeme emri, gerçekleştirme görevlisi, mali hizmetler, muhasebe, ön mali kontrol, iç denetim, taşınır, taşınmaz, mali yazışma, strateji geliştirme, hesap verebilirlik
+
+## Amaç ve Sorumluluk Çerçevesi
+Kanun, kamu kaynaklarının etkili, ekonomik ve verimli bir şekilde elde edilmesi ve kullanılmasını, hesap verebilirliği ve malî saydamlığı sağlamak üzere kamu malî yönetiminin yapısını ve işleyişini düzenler (m. 1). Bakanlıklarda müsteşar (üst yönetici), idarelerin malî yönetiminden meclise ve bakana karşı sorumludur (m. 11). Mali konulu evrakın işlem zinciri bu sorumluluk yapısına göre kurulur.
+
+## Harcama Yetkisi ve Harcama Talimatı
+Bütçeyle ödenek tahsis edilen her bir harcama biriminin en üst yöneticisi harcama yetkilisidir (m. 31). Harcama yetkilileri, harcama talimatlarının bütçe ilke ve esaslarına, kanun ve diğer mevzuata uygun olmasından sorumludur (m. 32). Harcama talimatlarında hizmet gerekçesi, yapılacak işin konusu, tutarı, süresi ve kullanılabilir ödenek gibi bilgilerin yer alması gerekir; bu unsurlar mali evrakın eksik bilgi kontrolünde ölçüt alınabilir.
+
+## Giderin Gerçekleştirilmesi
+Giderin gerçekleştirilmesi, harcama yetkilisinin ödeme emri belgesini imzalaması ve tutarın hak sahibine ödenmesiyle tamamlanır (m. 33). Gerçekleştirme görevlileri, harcama talimatı üzerine işin yaptırılması, mal veya hizmetin alınması, teslim almaya ilişkin işlemlerin yapılması ve belgelendirilmesinden sorumludur. Ödeme emri belgesi ve eki kanıtlayıcı belgelerin tam olması, ödeme sürecinin ön şartıdır.
+
+## Malî Hizmetler Birimi ve Muhasebe Yetkilisi
+İdarelerde malî hizmetler birimi; bütçenin hazırlanması, izlenmesi, ön malî kontrol ve malî istatistiklerin oluşturulması gibi görevleri yürütür (m. 60). Muhasebe yetkilisi, ödeme aşamasında belgelerde yetkililerin imzası, ödemenin ilgili mevzuatına uygunluğu ve maddi hata bulunup bulunmadığı yönlerinden kontrol yapmakla yükümlüdür (m. 61). Bütçe, ödenek ve ödeme konulu yazışmalar mali hizmetler birimine yönlendirilmelidir.
+
+## Ön Malî Kontrol ve İç Denetim
+Ön malî kontrol, idarelerin gelir, gider, varlık ve yükümlülüklerine ilişkin malî karar ve işlemlerinin mevzuata uygunluğu yönünden kontrolünü kapsar (m. 58). İç denetim, sertifikalı iç denetçiler tarafından nesnel güvence sağlama ve danışmanlık faaliyeti olarak yürütülür (m. 63-64). Denetim raporları ve kontrol görüş yazıları, mali süreç evrakının önemli türlerindendir.

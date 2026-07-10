@@ -1,0 +1,18 @@
+# Başlık: 3071 Sayılı Dilekçe Hakkının Kullanılmasına Dair Kanun
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: dilekçe, dilekçe hakkı, vatandaş başvurusu, talep, şikâyet, istek, imza, adres, otuz gün, cevap süresi, yetkili makam, havale, TBMM, başvuru sahibi
+
+## Dilekçe Hakkının Kapsamı
+Türk vatandaşları ve Türkiye'de ikamet eden yabancılar, kendileriyle veya kamu ile ilgili dilek ve şikâyetleri hakkında yetkili makamlara ve Türkiye Büyük Millet Meclisine yazılı olarak başvurma hakkına sahiptir (m. 3). Bu hak, anayasal bir hak olan dilekçe hakkının kullanım usulünü düzenler. Yabancıların bu haktan yararlanabilmesi karşılıklılık esasına bağlıdır.
+
+## Dilekçede Bulunması Zorunlu Bilgiler
+Dilekçede, dilekçe sahibinin adı ve soyadı, imzası ile iş veya ikametgâh adresinin bulunması zorunludur (m. 4). Bu unsurlardan herhangi biri eksik olan dilekçeler işleme konulamayacağından, evrak ön incelemesinde bu bilgilerin tam olup olmadığı kontrol edilmelidir. Eksik bilgi tespit edilen başvurularda başvuru sahibinden tamamlama istenmesi uygulamada yaygın bir yaklaşımdır.
+
+## İncelenemeyecek Dilekçeler
+Belli bir konuyu içermeyen, yargı mercilerinin görev alanına giren konularla ilgili olan veya m. 4'te öngörülen zorunlu şartları taşımayan dilekçeler incelenemez (m. 5). Bu nedenle evrak analizi aşamasında dilekçenin konusunun belirli olup olmadığı ve yargıya intikal etmiş bir konu içerip içermediği değerlendirilmelidir.
+
+## Yetkili Makama Gönderme (Yönlendirme)
+Dilekçe, konusuyla ilgili olmayan bir idari makama verilmişse, bu makam dilekçeyi yetkili idari makama gönderir ve durumu ayrıca dilekçe sahibine bildirir (m. 6). Bu hüküm, kamu kurumlarında gelen evrakın doğru birime yönlendirilmesinin yasal dayanağıdır. Yanlış birime gelen dilekçe reddedilmez, doğru muhataba havale edilir.
+
+## Cevap Verme Yükümlülüğü ve Süresi
+Dilekçe sahibine, yapılmakta olan işlemin safahatı veya sonucu hakkında yetkili makamlarca gerekçeli olarak en geç otuz gün içinde cevap verilir (m. 7). İşlem safahatının duyurulması hâlinde alınan sonuç ayrıca bildirilir. Bu süre, dilekçe niteliğindeki evraka verilecek cevap yazılarının hazırlanmasında dikkate alınması gereken temel süredir.

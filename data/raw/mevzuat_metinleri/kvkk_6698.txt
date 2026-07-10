@@ -1,0 +1,18 @@
+# Başlık: 6698 Sayılı Kişisel Verilerin Korunması Kanunu (KVKK)
+# Kaynak: mevzuat.gov.tr (kamuya açık)
+# Anahtar-Kelimeler: kişisel veri, KVKK, veri sorumlusu, açık rıza, aydınlatma yükümlülüğü, veri güvenliği, ilgili kişi, TC kimlik numarası, özel nitelikli veri, veri işleme, silme, anonim, Kişisel Verileri Koruma Kurulu, veri aktarımı
+
+## Genel İlkeler
+Kişisel veriler ancak hukuka ve dürüstlük kurallarına uygun, doğru ve gerektiğinde güncel olarak, belirli, açık ve meşru amaçlar için işlenebilir (m. 4). Veriler işlendikleri amaçla bağlantılı, sınırlı ve ölçülü olmalı; ilgili mevzuatta öngörülen veya işleme amacı için gerekli süre kadar muhafaza edilmelidir. Evrak içinde yer alan kimlik, iletişim ve benzeri kişisel bilgilerin işlenmesinde bu ilkeler gözetilir.
+
+## Kişisel Verilerin İşlenme Şartları
+Kişisel veriler kural olarak ilgili kişinin açık rızası olmaksızın işlenemez; ancak kanunlarda açıkça öngörülmesi, veri sorumlusunun hukuki yükümlülüğünü yerine getirmesi için zorunlu olması gibi hâllerde açık rıza aranmaz (m. 5). Kamu kurumlarının görevleri kapsamında evrak üzerinde yürüttüğü işlemler çoğunlukla kanuni yükümlülük istisnasına dayanır. Sağlık, ceza mahkûmiyeti gibi özel nitelikli kişisel verilerin işlenmesi daha sıkı şartlara bağlıdır (m. 6).
+
+## Aydınlatma Yükümlülüğü ve İlgili Kişinin Hakları
+Veri sorumlusu, kişisel verilerin elde edilmesi sırasında ilgili kişiyi işleme amacı, aktarım, toplama yöntemi ve hukuki sebep konularında bilgilendirmekle yükümlüdür (m. 10). İlgili kişi; verisinin işlenip işlenmediğini öğrenme, düzeltme, silinmesini isteme ve zararın giderilmesini talep etme gibi haklara sahiptir (m. 11). Vatandaş başvurularında bu haklara ilişkin taleplerin ayrı bir başvuru türü olarak tanınması gerekir.
+
+## Veri Güvenliği ve Evrak İşlemleri
+Veri sorumlusu, kişisel verilerin hukuka aykırı işlenmesini ve erişilmesini önlemek, muhafazasını sağlamak için uygun güvenlik düzeyini temin etmeye yönelik her türlü teknik ve idari tedbiri almak zorundadır (m. 12). Evrak paylaşımı, tarama, arşivleme ve birimler arası havale süreçlerinde kişisel veri içeren belgelerin yetkisiz erişime karşı korunması bu yükümlülüğün parçasıdır. Belgelerin özetlenmesi ve raporlanması sırasında gereksiz kişisel veri ifşasından kaçınılmalıdır.
+
+## Veri Sorumlusuna Başvuru ve Kurula Şikâyet
+İlgili kişi, Kanunun uygulanmasına ilişkin taleplerini yazılı olarak veri sorumlusuna iletir; veri sorumlusu talebi en geç otuz gün içinde ücretsiz olarak sonuçlandırır (m. 13). Başvurunun reddedilmesi, verilen cevabın yetersiz bulunması veya süresinde cevap verilmemesi hâllerinde ilgili kişi Kişisel Verileri Koruma Kuruluna şikâyette bulunabilir (m. 14). KVKK kapsamındaki başvurulara verilecek cevap yazılarında bu süre ve usuller dikkate alınmalıdır.
