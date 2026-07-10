@@ -1,0 +1,96 @@
+{
+  "zaman_damgasi": "2026-07-11T02:09:19",
+  "veri_dizini": "/Users/seymanur/Desktop/teknofest-2026-kamu-evrak-akilli-ajan/data/raw/kurgu_evraklar",
+  "set_adi": "kurgu_evraklar",
+  "llm": {
+    "backend": "offline",
+    "model": "gpt-4o-mini",
+    "kullanilabilir": false
+  },
+  "degerlendirilen_dosya_sayisi": 35,
+  "siniflandirma": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "sinif_bazinda": {
+      "bilgilendirme": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 4
+      },
+      "cevap_yazisi": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 4
+      },
+      "dilekce": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 5
+      },
+      "genelge": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 4
+      },
+      "onayli_belge": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 4
+      },
+      "rapor": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 4
+      },
+      "tutanak": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 5
+      },
+      "ust_yazi": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 5
+      }
+    },
+    "yanlis_siniflananlar": []
+  },
+  "yonlendirme": {
+    "accuracy": 1.0,
+    "yanlis_yonlendirilenler": []
+  },
+  "eksik_bilgi_tespiti": {
+    "micro_precision": 1.0,
+    "micro_recall": 1.0,
+    "micro_f1": 1.0,
+    "tp": 16,
+    "fp": 0,
+    "fn": 0
+  },
+  "performans": {
+    "evrak_basina_ortalama_sure_saniye": 0.0124,
+    "evrak_basina_medyan_sure_saniye": 0.01,
+    "adim_bazinda_ortalama_sure_saniye": {
+      "ocr": 0.0,
+      "classification": 0.001,
+      "info_extraction": 0.0041,
+      "missing_info": 0.0002,
+      "legislation": 0.0019,
+      "summarization": 0.001,
+      "draft_writer": 0.0001,
+      "routing": 0.0041,
+      "user_info": 0.0
+    }
+  },
+  "islenemeyen_dosyalar": []
+}

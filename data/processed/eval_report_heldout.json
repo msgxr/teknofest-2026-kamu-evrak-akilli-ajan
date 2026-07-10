@@ -1,0 +1,96 @@
+{
+  "zaman_damgasi": "2026-07-11T02:09:19",
+  "veri_dizini": "data/raw/kurgu_evraklar_heldout",
+  "set_adi": "kurgu_evraklar_heldout",
+  "llm": {
+    "backend": "offline",
+    "model": "gpt-4o-mini",
+    "kullanilabilir": false
+  },
+  "degerlendirilen_dosya_sayisi": 16,
+  "siniflandirma": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "sinif_bazinda": {
+      "bilgilendirme": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "cevap_yazisi": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "dilekce": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "genelge": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "onayli_belge": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "rapor": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "tutanak": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "ust_yazi": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      }
+    },
+    "yanlis_siniflananlar": []
+  },
+  "yonlendirme": {
+    "accuracy": 1.0,
+    "yanlis_yonlendirilenler": []
+  },
+  "eksik_bilgi_tespiti": {
+    "micro_precision": 1.0,
+    "micro_recall": 1.0,
+    "micro_f1": 1.0,
+    "tp": 5,
+    "fp": 0,
+    "fn": 0
+  },
+  "performans": {
+    "evrak_basina_ortalama_sure_saniye": 0.0173,
+    "evrak_basina_medyan_sure_saniye": 0.0105,
+    "adim_bazinda_ortalama_sure_saniye": {
+      "ocr": 0.0,
+      "classification": 0.0012,
+      "info_extraction": 0.007,
+      "missing_info": 0.0006,
+      "legislation": 0.0021,
+      "summarization": 0.0011,
+      "draft_writer": 0.0001,
+      "routing": 0.0051,
+      "user_info": 0.0
+    }
+  },
+  "islenemeyen_dosyalar": []
+}
