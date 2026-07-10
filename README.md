@@ -2,8 +2,8 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![LangGraph](https://img.shields.io/badge/LangGraph-Agent_Framework-FF6F00?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Mimari](https://img.shields.io/badge/Mimari-Özgün_Çok--Ajanlı_Orkestrasyon_(saf_Python)-FF6F00?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Apache_2.0-green?style=for-the-badge)
 ![TEKNOFEST](https://img.shields.io/badge/TEKNOFEST-2026-red?style=for-the-badge)
 
@@ -59,65 +59,76 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 
 | Özellik | Açıklama |
 |---------|----------|
-| 📄 **OCR Desteği** | PDF, görüntü ve metin dosyalarından evrak okuma |
-| 🏷️ **Otomatik Sınıflandırma** | Evrak türünü (dilekçe, üst yazı, cevap, tutanak vb.) belirleme |
+| 📄 **Metin/PDF/Görüntü Okuma** | TXT ve metin katmanlı PDF çekirdekte; taranmış PDF/görüntü için opsiyonel OCR (Tesseract) |
+| 🏷️ **Otomatik Sınıflandırma** | Evrak türünü (dilekçe, üst yazı, cevap, tutanak vb.) kural tabanlı skorlama ile belirleme; düşük güvende opsiyonel LLM eskalasyonu |
 | 🔍 **Bilgi Çıkarımı** | Tarih, kurum, konu, muhatap gibi anahtar bilgileri çıkarma |
 | ⚠️ **Eksik Bilgi Tespiti** | Evrakta olması gereken ancak eksik alanları tespit etme |
-| 📚 **Mevzuat Önerisi** | İlgili yönetmelik ve yazışma kurallarını önerme (RAG tabanlı) |
+| 📚 **BM25 Mevzuat RAG** | Saf Python BM25-Okapi indeksiyle ilgili yönetmelik/yazışma kuralı önerisi; opsiyonel chromadb ile semantik arama |
 | 📝 **Özet Oluşturma** | Evrakın kısa ve öz özetini üretme |
-| ✍️ **Yazı Taslaklama** | Resmi üsluba uygun yazı taslağı oluşturma |
-| 🏢 **Birim Yönlendirme** | İçeriğe göre doğru birime yönlendirme önerisi |
-| 💬 **Kullanıcı Bilgilendirme** | Süreç hakkında açık bilgilendirme ve eksik bilgi talebi |
-| 🤖 **Çok Ajanlı Mimari** | Uzmanlaşmış agent'ların orkestrasyon ile koordinasyonu |
+| ✍️ **Yazı Taslaklama + Format Öz-Denetimi** | Resmi üsluba uygun taslak üretme ve taslağı resmî yazışma kurallarına göre kendi kendine denetleme (kontrol listesi + skor) |
+| ❓ **Eksik Bilgi Talep Yazısı** | Taslak tamamlanamıyorsa eksik bilgileri gerekçeli sorularla talep eden yazı üretme |
+| 🏢 **Birim Yönlendirme** | Ağırlıklı sinyal skorlaması ile doğru birime yönlendirme; gerekçe + alternatifler; yakın skorda opsiyonel LLM ayrıştırması |
+| 💬 **Kullanıcı Bilgilendirme** | Süreç hakkında açık bilgilendirme mesajları |
+| 🔌 **Offline-First Çalışma** | LLM/İnternet olmadan tüm ajanlar kural tabanlı yollarla uçtan uca tam işlevli |
+| ⏱️ **Adım Süreleri** | Her ajan adımının süresi ölçülüp raporlanır (gerçek zamana yakın çalışma kanıtı) |
+| 🤖 **Çok Ajanlı Mimari** | 9 uzman ajanın framework bağımsız, saf Python orkestratör ile koordinasyonu |
 
 ---
 
 ## 🏗️ Sistem Mimarisi
 
+Sistem, **framework bağımsız, stdlib tabanlı özgün bir orkestrasyon** üzerine kuruludur: LangGraph/LangChain gibi bir agent framework'ü **kullanılmaz**. Orkestratör (`src/agents/orchestrator.py`), 9 uzman ajanı paylaşılan bir durum nesnesi (`AgentState`) üzerinde sırayla çalıştırır, her adımın süresini ve güven skorunu izler. LLM **opsiyoneldir**: OpenAI-uyumlu bir API veya yerel Ollama bulunursa yalnızca düşük güvenli kararlarda devreye girer; bulunmazsa sistem tamamen kural tabanlı modda uçtan uca çalışır.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    📥 EVRAK GİRİŞİ                          │
-│              (PDF / Görüntü / Metin Dosyası)                │
+│                    📥 EVRAK GİRİŞİ                           │
+│   (TXT / PDF metin katmanı; taranmış PDF-görüntü için        │
+│    opsiyonel OCR)                                            │
 └─────────────────┬───────────────────────────────────────────┘
-                  │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              🧠 ORKESTRATÖR AGENT                            │
-│         (İş Akışı Yönetimi ve Koordinasyon)                 │
-└───┬──────────┬──────────┬──────────┬──────────┬─────────────┘
-    │          │          │          │          │
-    ▼          ▼          ▼          ▼          ▼
-┌────────┐┌────────┐┌────────┐┌────────┐┌────────┐
-│🔤 OCR  ││🏷️ Sınıf││🔍 Bilgi││⚠️ Eksik││📚 Mevz.│
-│ Agent  ││ Agent  ││Çıkarım ││ Bilgi  ││ Agent  │
-│        ││        ││ Agent  ││ Agent  ││        │
-└────────┘└────────┘└────────┘└────────┘└────────┘
-    │          │          │          │          │
-    └──────────┴──────────┴──────────┴──────────┘
-                          │
-                  ┌───────┴───────┐
-                  ▼               ▼
-           ┌───────────┐   ┌───────────┐
-           │📝 Özet    │   │✍️ Taslak  │
-           │  Agent    │   │  Agent    │
-           └───────────┘   └─────┬─────┘
-                                 │
-                     ┌───────────┼───────────┐
-                     ▼           ▼           ▼
-              ┌───────────┐┌───────────┐┌───────────┐
-              │🏢 Yönlen. ││💬 Bilgil. ││❓ Eksik   │
-              │  Agent    ││  Agent    ││Bilgi Talep│
-              └───────────┘└───────────┘└───────────┘
-                     │           │           │
-                     └───────────┴───────────┘
-                                 │
-                                 ▼
+│   🧠 ORKESTRATÖR (saf Python, paylaşılan AgentState)         │
+│   Adım süresi + güven izleme, hata toleransı                 │
+└─────────────────┬───────────────────────────────────────────┘
+                  ▼
+        🔤 OCR / Metin Okuma Agent
+                  │
+        🚦 KOŞULLU KAPILAR
+        ├─ Boş/okunamayan metin → süreç erken sonlanır,
+        │  kullanıcı bilgilendirilir
+        ├─ Dil sezimi → Türkçe olmayan girdi için uyarı
+        └─ Düşük sınıflandırma güveni → insan onayı işareti
+                  ▼
+  GÖREV 1 — Sınıflandırma ve İçerik Analizi (sırayla)
+  🏷️ Sınıflandırma (kural tabanlı skorlama;
+      güven < 0.6 ve LLM varsa → LLM eskalasyonu)
+  🔍 Bilgi Çıkarım → ⚠️ Eksik Bilgi Tespiti
+  📚 Mevzuat Önerisi (saf Python BM25 RAG) → 📝 Özet
+                  ▼
+  GÖREV 2 — Taslak ve Yönlendirme (sırayla)
+  ✍️ Taslak Agent (+ format öz-denetimi: kontrol listesi + skor)
+  🏢 Yönlendirme (ağırlıklı sinyal skorlaması;
+      skorlar yakın ve LLM varsa → LLM ayrıştırması)
+  💬 Kullanıcı Bilgilendirme + ❓ Eksik Bilgi Talebi
+                  ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      📤 ÇIKTILAR                             │
-│  Sınıflandırma | Bilgi Çıkarım | Özet | Yazı Taslağı      │
-│  Mevzuat Önerisi | Birim Yönlendirme | Bilgilendirme       │
+│  Sınıflandırma | Bilgi Çıkarım | Eksik Bilgi | Özet          │
+│  Mevzuat Önerisi | Yazı Taslağı + Format Denetimi            │
+│  Birim Yönlendirme | Bilgilendirme | Adım Süreleri           │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Teknoloji Yığını
+
+| Katman | Gerçekleşme |
+|--------|-------------|
+| Orkestrasyon | Özgün, saf Python (stdlib `dataclasses` + `time`); agent framework'ü **yok** |
+| LLM erişimi (opsiyonel) | stdlib `urllib` ile OpenAI-uyumlu API (varsayılan `gpt-4o-mini`) veya yerel Ollama (varsayılan `qwen2.5:7b`); SDK bağımlılığı yok |
+| Mevzuat RAG | Saf Python BM25-Okapi (`src/utils/bm25.py`); opsiyonel chromadb + sentence-transformers ile semantik arama |
+| Evrak okuma | TXT + PyPDF2 (çekirdek); pytesseract/pdf2image/easyocr (opsiyonel OCR) |
+| Arayüz | Streamlit (web) + rich (konsol) |
+| Bağımlılık ayrımı | `requirements.txt` (çekirdek — sistem bunlarla TAM çalışır) / `requirements-optional.txt` (OCR, semantik arama, yerel model) — LangChain/LangGraph/torch çekirdekte **yer almaz** |
 
 ---
 
@@ -125,14 +136,14 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 
 ### Gereksinimler
 
-- Python 3.11 veya üzeri
-- pip veya poetry
+- Python 3.9 veya üzeri
+- pip
 
 ### Adımlar
 
 ```bash
 # 1. Depoyu klonlayın
-git clone https://github.com/TAKP/teknofest-2026-kamu-evrak-akilli-ajan.git
+git clone https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan.git
 cd teknofest-2026-kamu-evrak-akilli-ajan
 
 # 2. Sanal ortam oluşturun
@@ -144,15 +155,19 @@ venv\Scripts\activate
 # Linux/macOS
 source venv/bin/activate
 
-# 3. Bağımlılıkları yükleyin
+# 3. Çekirdek bağımlılıkları yükleyin (sistem bunlarla TAM çalışır)
 pip install -r requirements.txt
 
-# 4. Ortam değişkenlerini ayarlayın
-copy .env.example .env
-# .env dosyasını düzenleyerek API anahtarlarınızı ekleyin
+# 3b. (Opsiyonel) OCR, semantik arama, yerel model yetenekleri için
+pip install -r requirements-optional.txt
 
-# 5. Uygulamayı başlatın
-python -m src.main
+# 4. (Opsiyonel) LLM kullanacaksanız ortam değişkenlerini ayarlayın
+#    LLM tanımlanmazsa sistem kural tabanlı modda tam işlevli çalışır.
+cp .env.example .env    # Windows: copy .env.example .env
+# .env içinde OPENAI_API_KEY tanımlayın veya yerel Ollama başlatın
+
+# 5. Örnek bir evrak işleyerek kurulumu doğrulayın
+python -m src.main --input data/raw/kurgu_evraklar/dilekce_01.txt
 ```
 
 ---
@@ -162,17 +177,28 @@ python -m src.main
 ### Komut Satırı
 
 ```bash
-# Tek bir evrak işleme
-python -m src.main --input data/raw/kurgu_evraklar/ornek_dilekce.pdf
+# Tek bir evrak işleme (etiketli kurgu evraklar data/raw/kurgu_evraklar/ altındadır)
+python -m src.main --input data/raw/kurgu_evraklar/dilekce_01.txt
 
-# Demo senaryosu çalıştırma
+# Çalışma modu seçimi: full (varsayılan) / classify (Görev 1) / draft (Görev 2)
+python -m src.main --input data/raw/kurgu_evraklar/ust_yazi_01.txt --mode classify
+
+# Demo senaryosu çalıştırma (3 farklı evrak türü, uçtan uca)
+python -m src.main --demo
+# veya doğrudan:
 python demo/demo_scenario.py
 
-# Streamlit arayüzü ile çalıştırma
+# Streamlit web arayüzü
 streamlit run src/app.py
+
+# Ölçülebilir başarım raporu (35 etiketli evrak üzerinde
+# sınıflandırma / yönlendirme / eksik bilgi / süre metrikleri)
+python scripts/evaluate.py
 ```
 
 ### Python API
+
+`pipeline.process()` bir **sözlük (dict)** döndürür; tüm sonuç alanlarına anahtarla erişilir.
 
 ```python
 from src.pipelines.end_to_end_pipeline import EndToEndPipeline
@@ -180,14 +206,22 @@ from src.pipelines.end_to_end_pipeline import EndToEndPipeline
 # Pipeline oluştur
 pipeline = EndToEndPipeline()
 
-# Evrak işle
-sonuc = pipeline.process("evrak_dosyasi.pdf")
+# Dosyadan evrak işle (TXT / PDF; OCR bağımlılıkları kuruluysa PNG/JPG)
+sonuc = pipeline.process("data/raw/kurgu_evraklar/dilekce_01.txt")
 
-# Sonuçları görüntüle
-print(sonuc.siniflandirma)    # Evrak türü
-print(sonuc.ozet)             # Evrak özeti
-print(sonuc.yazi_taslagi)     # Resmi yazı taslağı
-print(sonuc.yonlendirme)      # Birim yönlendirme önerisi
+# Sonuçları görüntüle (dict erişimi)
+print(sonuc["siniflandirma"]["tur_adi"])   # Evrak türü (ör. "Dilekçe")
+print(sonuc["siniflandirma"]["guven"])     # Güven skoru (0-1)
+print(sonuc["ozet"])                       # Evrak özeti
+print(sonuc["yazi_taslagi"])               # Resmi yazı taslağı
+print(sonuc["yonlendirme"]["birim"])       # Birim yönlendirme önerisi
+print(sonuc["islem_adimlari"])             # Adım adım süre/durum kaydı
+
+# Dosya olmadan doğrudan metin işleme
+sonuc = pipeline.orchestrator.process_text(
+    "Sayın Yazı İşleri Müdürlüğüne,\n\nDilekçeme ilişkin bilgi talep ediyorum. Arz ederim."
+)
+print(sonuc["siniflandirma"]["tur"])
 ```
 
 ---
@@ -198,21 +232,24 @@ print(sonuc.yonlendirme)      # Birim yönlendirme önerisi
 teknofest-2026-kamu-evrak-akilli-ajan/
 ├── README.md                       # Bu dosya
 ├── LICENSE                         # Apache 2.0 Lisansı
-├── requirements.txt                # Python bağımlılıkları
+├── requirements.txt                # Çekirdek bağımlılıklar (sistem bunlarla TAM çalışır)
+├── requirements-optional.txt       # Opsiyonel bağımlılıklar (OCR, semantik arama, yerel model)
 ├── pyproject.toml                  # Proje konfigürasyonu
 ├── .gitignore                      # Git ignore kuralları
-├── .env.example                    # Ortam değişkenleri örneği
-├── docs/                           # Dokümantasyon
+├── .env.example                    # Ortam değişkenleri örneği (LLM opsiyonel)
+├── docs/                           # Dokümantasyon (teknik rapor, model bilgileri)
 ├── src/                            # Kaynak kodu
-│   ├── agents/                     # Agent modülleri
-│   ├── models/                     # Model wrapper'ları
+│   ├── agents/                     # Agent modülleri (orkestratör + 9 uzman ajan)
+│   ├── models/                     # LLM wrapper (stdlib, OpenAI-uyumlu/Ollama)
 │   ├── pipelines/                  # İş akışları
-│   ├── utils/                      # Yardımcı araçlar
-│   └── templates/                  # Yazı şablonları
-├── data/                           # Veri setleri
+│   ├── utils/                      # Yardımcı araçlar (BM25, Türkçe NLP)
+│   ├── templates/                  # Yazı şablonları
+│   ├── app.py                      # Streamlit web arayüzü
+│   └── main.py                     # Komut satırı giriş noktası
+├── data/                           # Veri setleri (35 etiketli kurgu evrak + mevzuat)
+├── scripts/                        # Değerlendirme aracı (evaluate.py)
 ├── tests/                          # Test dosyaları
 ├── demo/                           # Demo senaryoları
-├── notebooks/                      # Jupyter notebook'lar
 └── presentations/                  # Sunumlar
 ```
 
@@ -268,6 +305,24 @@ pytest tests/ --cov=src --cov-report=html
 
 ---
 
+## 📈 Başarım
+
+Etiketli sentetik setlerde, tamamen çevrimdışı (kural tabanlı) modda ölçülmüştür
+(`python scripts/evaluate.py`; ayrıntı ve metodolojik notlar: [docs/teknik_rapor.md](docs/teknik_rapor.md)):
+
+| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) |
+|---|---|---|
+| Sınıflandırma doğruluğu | 1.000 | 1.000 |
+| Birim yönlendirme doğruluğu | 1.000 | 1.000 |
+| Eksik bilgi tespiti (micro-F1) | 1.000 | 1.000 |
+| Evrak başına ortalama süre | 0.012 sn | 0.017 sn |
+
+> Not: Geliştirme seti kural kalibrasyonunda kullanılmıştır; tutulmuş set bağımsız
+> yazılmıştır. Sentetik set ölçeği sınırlıdır; düşük güvenli kararlar sistemde
+> "insan onayı gerekli" işaretiyle döner.
+
+---
+
 ## 🎬 Demo
 
 Demo senaryosu farklı evrak türleri üzerinde sistemin uçtan uca çalışmasını gösterir:
@@ -282,7 +337,7 @@ Demo hakkında detaylı bilgi için `demo/README.md` dosyasına bakınız.
 
 ## 🤝 Katkıda Bulunma
 
-Katkılarınızı bekliyoruz! Lütfen `CONTRIBUTING.md` dosyasını inceleyiniz.
+Katkılarınızı bekliyoruz! Hata bildirimi ve önerileriniz için GitHub üzerinden issue açabilir, değişiklikleriniz için pull request gönderebilirsiniz.
 
 ---
 
@@ -294,12 +349,7 @@ Bu proje [Apache License 2.0](LICENSE) ile lisanslanmıştır.
 
 ## 👥 Takım
 
-| İsim | Rol | İletişim |
-|------|------|----------|
-| TBD | Takım Kaptanı | - |
-| TBD | Geliştirici | - |
-| TBD | Geliştirici | - |
-| TBD | Geliştirici | - |
+Takım bilgileri başvuru sonrası eklenecektir.
 
 ---
 
@@ -308,7 +358,7 @@ Bu proje [Apache License 2.0](LICENSE) ile lisanslanmıştır.
 - [TEKNOFEST](https://www.teknofest.org) — Yarışma organizasyonu
 - [Bilişim Vadisi](https://www.bilisimvadisi.com.tr) — Yarışma yürütücüsü
 - [Türksat](https://www.turksat.com.tr) — Yarışma destekçisi
-- [Türkiye Açık Kaynak Platformu (TAKP)](https://github.com/nicetry-oss) — Açık kaynak altyapı
+- [Türkiye Açık Kaynak Platformu (TAKP)](https://github.com/Turkiye-Acik-Kaynak-Platformu) — Açık kaynak altyapı
 
 ---
 
