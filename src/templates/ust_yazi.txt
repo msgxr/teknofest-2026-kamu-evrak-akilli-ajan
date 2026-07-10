@@ -2,21 +2,22 @@ T.C.
 {kurum_adi}
 {birim_adi}
 
-Sayı   : {sayi}
+Sayı   : {sayi}                                                {tarih}
 Konu   : {konu}
 
-{muhatap} MAKAMINA
+{muhatap}
 
 İlgi   : {ilgi}
 
 {metin}
 
-Bilgilerinize arz ederim.
+{kapanis}
 
                                                         {imza_sahibi}
                                                         {unvan}
 
 Ek     : {ekler}
+
 Dağıtım:
-Gereği :
-Bilgi  :
+Gereği : {dagitim_geregi}
+Bilgi  : {dagitim_bilgi}

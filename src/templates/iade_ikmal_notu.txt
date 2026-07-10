@@ -7,13 +7,19 @@ Konu   : {konu}
 
 {muhatap}
 
+İlgi   : {ilgi}
+
 {metin}
+
+İkmali gereken eksiklikler aşağıda belirtilmiştir:
+
+{eksik_liste}
+
+{talep_metni}
 
 {kapanis}
 
                                                         {imza_sahibi}
                                                         {unvan}
 
-Dağıtım:
-Gereği : {dagitim_geregi}
-Bilgi  : {dagitim_bilgi}
+Ek     : {ekler}
