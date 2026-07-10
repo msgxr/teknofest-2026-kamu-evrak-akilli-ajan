@@ -5,6 +5,8 @@ Kamu Evrak ve Yazışma Süreçleri için Akıllı Agent Destek Sistemi'ni
 başlatır ve uçtan uca evrak işleme pipeline'ını çalıştırır.
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
