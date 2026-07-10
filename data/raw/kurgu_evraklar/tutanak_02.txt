@@ -1,0 +1,38 @@
+T.C.
+GÖKPINAR ÜNİVERSİTESİ REKTÖRLÜĞÜ
+Bilgi İşlem Müdürlüğü
+
+ARIZA TESPİT TUTANAĞI
+
+Saat : 03.40 - 06.15
+Yer  : Rektörlük veri merkezi, B blok sunucu odası
+
+Konu : Kurumsal uygulama sunucusunda meydana gelen arızanın tespiti
+
+Katılımcılar:
+1. Fatih ÖZTÜRK - Bilgi İşlem Müdürü
+2. Gamze IŞIKLI - Sistem Yöneticisi (nöbetçi personel)
+3. Volkan EGE - Ağ ve Güvenlik Sorumlusu
+
+Tespitler:
+
+Gece nöbeti sırasında saat 03.40 sularında izleme sisteminden gelen alarm üzerine sunucu odasına gidilmiştir. Kurumsal uygulama sunucusunun (SRV-APP-02) kapalı durumda olduğu, cihazın güç kaynağından yanık kokusu geldiği tespit edilmiştir.
+
+Yapılan ilk incelemede;
+
+1. Sunucunun yedek güç kaynağının da devreye giremediği,
+2. Kabinet içi sıcaklık değerinin gece boyunca normalin üzerinde seyrettiği,
+3. Klima cihazlarından birinin arızalı olduğu ve kompresörünün çalışmadığı,
+
+görülmüştür.
+
+Uygulama hizmetleri, saat 05.20 itibarıyla yedek sunucu (SRV-APP-03) üzerinden yeniden başlatılmış olup veri kaybı yaşanmadığı ilk kontrollerde doğrulanmıştır. Arızalı güç kaynağı ve klima cihazı için garanti kapsamında servis çağrısı açılmasına, kesin hasar raporunun yetkili servis incelemesinden sonra düzenlenmesine karar verilmiştir.
+
+Sunucu odası ortam koşullarının iyileştirilmesi ve yedek klima temini hususunun ayrı bir değerlendirme yazısıyla üst yönetime sunulması uygun görülmüştür.
+
+İş bu tutanak olay yerinde düzenlenerek hazır bulunanlarca imzalanmıştır.
+
+İmzalar:
+Fatih ÖZTÜRK     (imzalıdır)
+Gamze IŞIKLI     (imzalıdır)
+Volkan EGE       (imzalıdır)

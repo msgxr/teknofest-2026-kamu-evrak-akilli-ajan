@@ -1,0 +1,29 @@
+T.C.
+MİLLİ TEKNOLOJİ BAKANLIĞI
+Güvenli Altyapı Dairesi
+
+Konu  : Siber güvenlik tedbirlerinin uygulanması
+Tarih : 08/07/2026
+
+BİLGİ İŞLEM MÜDÜRLÜĞÜNE
+
+İlgi : Ulusal Siber Olaylara Müdahale Merkezinin 01/07/2026 tarihli uyarı bülteni
+
+İlgi bültende, kamu kurumlarına yönelik oltalama saldırılarında son haftalarda belirgin bir artış yaşandığı, saldırganların kurum personeline sahte e-posta iletileri göndererek kullanıcı hesap kimlik doğrulama verilerini ele geçirmeye çalıştığı duyurulmuştur.
+
+Bu kapsamda kurumumuz bünyesinde aşağıdaki tedbirlerin ivedilikle hayata geçirilmesi gerekmektedir:
+
+1. Tüm personel e-posta hesaplarında çok faktörlü kimlik doğrulamanın zorunlu hale getirilmesi,
+2. Kurum dışından gelen iletilerde uyarı etiketi uygulamasının devreye alınması,
+3. Son altı ayda parola değişikliği yapmamış hesaplar için zorunlu parola yenileme sürecinin başlatılması,
+4. Sunucu ve uç nokta koruma yazılımlarının güncel sürüme yükseltilmesi,
+5. Personele yönelik farkındalık eğitiminin temmuz ayı içinde çevrim içi olarak düzenlenmesi.
+
+Alınan tedbirlere ilişkin uygulama raporunun 22/07/2026 tarihine kadar Dairemize gönderilmesi hususunda gereğini rica ederim.
+
+                                                        Osman TEKİN
+                                                        Güvenli Altyapı Dairesi Yöneticisi
+                                                        (e-imzalıdır)
+
+Dağıtım:
+Gereği : Bilgi İşlem Müdürlüğü

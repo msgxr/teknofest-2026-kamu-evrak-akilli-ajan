@@ -1,0 +1,212 @@
+{
+  "ornek_dilekce.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": ["tc_kimlik", "adres"],
+    "aciklama": "Kurum personelinin ağ altyapısı sorunlarına ilişkin dilekçesi; T.C. kimlik numarası ve adres bilgisi bulunmuyor."
+  },
+  "ornek_ust_yazi.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": ["tarih"],
+    "aciklama": "Dijital dönüşüm eylem planının birimlere duyurulduğu üst yazı; evrakın kendi tarih alanı eksik."
+  },
+  "ornek_tutanak.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Personel alım planı ve uzaktan çalışma politikasının görüşüldüğü tam alanlı toplantı tutanağı."
+  },
+  "dilekce_01.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Vatandaşın park aydınlatması ve gürültü şikayetine ilişkin, geçerli T.C. kimlik numarası içeren tam alanlı dilekçesi."
+  },
+  "dilekce_02.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Bakanlık personelinin intibak, kademe ilerlemesi ve hizmet belgesi talebine ilişkin tam alanlı dilekçesi."
+  },
+  "dilekce_03.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": ["imza", "tc_kimlik"],
+    "aciklama": "Kaymakamlık arşivinden yapı ruhsatı örneği talebi; imza ve T.C. kimlik numarası kasıtlı olarak eksik."
+  },
+  "dilekce_04.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": ["adres", "tc_kimlik"],
+    "aciklama": "Mükerrer tahsil edilen emlak vergisinin iadesi talebi; adres ve T.C. kimlik numarası kasıtlı olarak eksik."
+  },
+  "ust_yazi_01.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": [],
+    "aciklama": "Valilikten temizlik hizmeti alımı ihalesi teknik şartname hazırlığını isteyen tam alanlı üst yazı."
+  },
+  "ust_yazi_02.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Üniversitede açılan idari davaya karşı savunma hazırlanması için Hukuk Müşavirliğine gönderilen tam alanlı üst yazı."
+  },
+  "ust_yazi_03.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": ["sayi"],
+    "aciklama": "Siber güvenlik tedbirlerinin uygulanmasını isteyen üst yazı; sayı (belge kayıt numarası) alanı kasıtlı olarak eksik."
+  },
+  "ust_yazi_04.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Yol bakım çalışmaları için ek ödenek aktarımı talep eden tam alanlı üst yazı."
+  },
+  "cevap_yazisi_01.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Vatandaşın bilgi edinme başvurusuna park yenileme projesi hakkında verilen tam alanlı cevap yazısı."
+  },
+  "cevap_yazisi_02.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Personelin eş durumu nedeniyle naklen atanma talebine verilen tam alanlı cevap yazısı."
+  },
+  "cevap_yazisi_03.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": ["ilgi"],
+    "aciklama": "Hizmet alımı sözleşmesinin feshine ilişkin hukuki görüş cevabı; ilgi (referans) bölümü kasıtlı olarak eksik."
+  },
+  "cevap_yazisi_04.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Yüklenicinin hakediş ödemesi talebine eksik belgelerin bildirildiği tam alanlı cevap yazısı."
+  },
+  "bilgilendirme_01.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [],
+    "aciklama": "EBYS ve e-posta hizmetlerindeki planlı bakım kesintisini duyuran tam alanlı bilgilendirme yazısı."
+  },
+  "bilgilendirme_02.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Halk Günü uygulaması ve basın tanıtım toplantısını duyuran tam alanlı bilgilendirme yazısı."
+  },
+  "bilgilendirme_03.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": ["dagitim"],
+    "aciklama": "Ek hizmet binasına taşınma ve servis güzergahlarını duyuran bilgilendirme; dağıtım listesi kasıtlı olarak eksik."
+  },
+  "bilgilendirme_04.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Genel evrak kabul saatleri ve elden evrak teslimi uygulamasını duyuran tam alanlı bilgilendirme yazısı."
+  },
+  "tutanak_01.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": [],
+    "aciklama": "Satın alınan kırtasiye malzemelerinin muayene ve kabul işlemlerine ilişkin tam alanlı komisyon tutanağı."
+  },
+  "tutanak_02.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": ["tarih"],
+    "aciklama": "Uygulama sunucusu arızasının tespitine ilişkin tutanak; tarih alanı kasıtlı olarak eksik."
+  },
+  "tutanak_03.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Saklama süresi dolan dosyaların kurum arşivine devrine ilişkin tam alanlı devir teslim tutanağı."
+  },
+  "tutanak_04.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Hizmet aracına üçüncü şahsın verdiği hasarın tespiti ve yasal işlem önerisine ilişkin tam alanlı tutanak."
+  },
+  "rapor_01.txt": {
+    "tur": "rapor",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": [],
+    "aciklama": "Stratejik plan performans göstergelerinin yıllık gerçekleşmesini değerlendiren tam alanlı rapor."
+  },
+  "rapor_02.txt": {
+    "tur": "rapor",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Belediye bütçesinin ilk altı aylık gelir-gider gerçekleşmelerini sunan tam alanlı rapor."
+  },
+  "rapor_03.txt": {
+    "tur": "rapor",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": ["tarih", "imza"],
+    "aciklama": "İdari personel eğitim ihtiyaç analizi raporu; tarih ve imza alanları kasıtlı olarak eksik."
+  },
+  "rapor_04.txt": {
+    "tur": "rapor",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Vatandaş memnuniyeti anketi sonuçlarını değerlendiren tam alanlı rapor."
+  },
+  "genelge_01.txt": {
+    "tur": "genelge",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "İl genelinde uygulanacak tasarruf tedbirlerini belirleyen tam alanlı valilik genelgesi."
+  },
+  "genelge_02.txt": {
+    "tur": "genelge",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Resmi yazışma usulleri ve EBYS kullanım kurallarını düzenleyen tam alanlı genelge."
+  },
+  "genelge_03.txt": {
+    "tur": "genelge",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": ["sayi", "dagitim"],
+    "aciklama": "Kurumsal parola politikası ve erişim güvenliği genelgesi; sayı ve dağıtım alanları kasıtlı olarak eksik."
+  },
+  "genelge_04.txt": {
+    "tur": "genelge",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": [],
+    "aciklama": "2027-2031 dönemi stratejik plan hazırlık çalışmalarını başlatan tam alanlı genelge."
+  },
+  "onayli_belge_01.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "genel_mudurluk",
+    "eksik_alanlar": [],
+    "aciklama": "Proje saha çalışması için personel görevlendirmesine ilişkin makam oluru; tüm onay alanları tam."
+  },
+  "onayli_belge_02.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "genel_mudurluk",
+    "eksik_alanlar": [],
+    "aciklama": "İmza yetkileri yönergesi değişikliğinin yürürlüğe konulmasına ilişkin tam alanlı makam oluru."
+  },
+  "onayli_belge_03.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": ["tarih"],
+    "aciklama": "Özel güvenlik hizmeti alımına ilişkin ihale onay belgesi; tarih alanı kasıtlı olarak eksik."
+  },
+  "onayli_belge_04.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "genel_mudurluk",
+    "eksik_alanlar": [],
+    "aciklama": "Üniversite ile kültürel miras iş birliği protokolünün imzalanmasına ilişkin tam alanlı başkanlık oluru."
+  }
+}

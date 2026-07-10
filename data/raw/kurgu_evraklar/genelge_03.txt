@@ -1,0 +1,27 @@
+T.C.
+GÖKPINAR ÜNİVERSİTESİ REKTÖRLÜĞÜ
+
+Konu  : Kurumsal parola politikası ve erişim güvenliği
+Tarih : 07/07/2026
+
+GENELGE
+
+Üniversitemiz ağında son dönemde tespit edilen oltalama girişimleri ve hesap ele geçirme denemeleri üzerine, kurumsal veri varlıklarının korunması amacıyla aşağıdaki kuralların uygulanması zorunlu hale getirilmiştir.
+
+1. Tüm kurumsal hesap parolaları en az on iki karakter uzunluğunda olacak; büyük harf, küçük harf, rakam ve özel karakter birlikte kullanılacaktır. Parolalar en geç yüz seksen günde bir yenilenecektir.
+
+2. Kurumsal e-posta ve uzaktan erişim hizmetlerinde çok faktörlü kimlik doğrulama, ağustos ayı başına kadar tüm personel için etkinleştirilecektir.
+
+3. Personel, kurumsal parolalarını hiçbir platformda üçüncü kişilerle paylaşmayacak; şüpheli e-posta iletilerini açmadan siber olay bildirim adresine iletecektir.
+
+4. Kurum cihazlarına yetkisiz yazılım kurulmayacak; taşınabilir bellek kullanımı yalnızca şifreli ve kayıtlı cihazlarla mümkün olacaktır.
+
+5. Görevden ayrılan personelin tüm erişim yetkileri, ayrılış tarihinde birim amirinin bildirimi üzerine aynı gün kapatılacaktır.
+
+6. Uygulamanın takibi Rektörlük adına bünyemizdeki teknik ekip tarafından yapılacak; kurallara aykırılık tespit edilen hesaplar geçici olarak askıya alınacaktır.
+
+Yukarıda belirtilen kurallara eksiksiz uyulmasını önemle rica ederim.
+
+                                                        Prof. Dr. Lale ERDEMSOY
+                                                        Rektör
+                                                        (e-imzalıdır)

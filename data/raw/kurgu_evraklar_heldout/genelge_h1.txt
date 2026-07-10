@@ -1,0 +1,26 @@
+T.C.
+DENİZOVA VALİLİĞİ
+İl Sağlık Müdürlüğü
+
+Sayı  : E-71934825-010.06-2026/1489
+Konu  : Kişisel sağlık verilerinin korunması ve sistem erişim yetkileri
+Tarih : 06.07.2026
+
+GENELGE
+2026/7
+
+İl genelindeki sağlık tesislerinde yürütülen denetimlerde, hastane bilgi yönetim sistemlerinde görev tanımıyla uyumsuz geniş erişim yetkilerinin tanımlandığı, ayrılan personelin kullanıcı hesaplarının zamanında kapatılmadığı ve ortak kullanıcı hesabı uygulamasına rastlandığı tespit edilmiştir. Kişisel sağlık verilerinin gizliliğinin korunması, bu verilere erişimin görevin gerektirdiği ölçüyle sınırlandırılmasını zorunlu kılmaktadır.
+
+Bu itibarla il genelindeki tüm sağlık tesislerinde, bilgi sistemi kullanıcı yetkileri her birim için görev tanımı esas alınarak yeniden düzenlenecek ve yetki matrisleri 31.07.2026 tarihine kadar tesis bilgi işlem birimlerince güncellenecektir. Görevden ayrılan ya da birim değiştiren personelin hesabı, ayrılış işlemiyle eş zamanlı olarak kapatılacak veya yeni görevine göre yeniden tanımlanacak; hiçbir birimde ortak kullanıcı hesabı kullanılmayacaktır. Sistem yöneticisi yetkisine sahip hesaplar için çok faktörlü doğrulama uygulanacak, hasta kayıtlarına yapılan tüm erişimler günlük kayıtlarında izlenebilir şekilde tutulacak ve bu kayıtlar en az iki yıl saklanacaktır. Kurumsal bilgisayarlarda şifrelenmemiş taşınabilir bellek kullanımına izin verilmeyecektir.
+
+Uygulamanın izlenmesinden tesis bilgi işlem birimleri, denetiminden Müdürlüğümüz sorumludur. Bu genelge hükümlerine aykırılığı tespit edilen işlemler hakkında idari ve adli yönden gereği yapılacaktır.
+
+Bilgilerinizi ve gereğini önemle rica ederim.
+
+                                                        Uzm. Dr. Feride TANSEL
+                                                        İl Sağlık Müdürü
+                                                        (e-imzalıdır)
+
+Dağıtım:
+Gereği : İl genelindeki tüm sağlık tesisleri
+Bilgi  : Denizova Valiliği
