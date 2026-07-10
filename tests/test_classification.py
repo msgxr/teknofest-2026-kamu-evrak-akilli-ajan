@@ -37,7 +37,7 @@ class TestClassificationAgent:
         """Üst yazı metnini doğru sınıflandırmalı."""
         state = AgentState(raw_text="""
         T.C.
-        Bilişim Vadisi Başkanlığı
+        Gökpınar Teknokent Başkanlığı
         İlgi: 05/01/2026 tarihli yazı
         Ekte sunulmuştur.
         Makamınıza arz ederim.

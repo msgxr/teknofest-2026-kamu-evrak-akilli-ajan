@@ -4,66 +4,414 @@ Sınıflandırma Agent — Evrak türü belirleme.
 Evrak metnini analiz ederek türünü (dilekçe, üst yazı, cevap yazısı,
 tutanak, rapor vb.) belirleyen agent.
 
+Yöntem:
+    1. Ağırlıklı kural tabanlı skorlama:
+       - Ağırlıklı anahtar kelimeler (tür başına kalibre edilmiş katkılar)
+       - Yapısal sinyaller (regex çapaları): "TUTANAK" başlığı, "GENELGE"
+         başlığı, "İlgi :" satırı, "Sayı :"/"Konu :" alanları, T.C. antet,
+         dilekçe hitap kalıpları, tutanak imza blokları vb.
+       - Skorlar softmax benzeri normalize edilir; en yüksek olasılık
+         güven skoru (0-1) olarak raporlanır.
+    2. LLM eskalasyonu: kural tabanlı güven < 0.6 ve bir LLM backend'i
+       kullanılabilir ise `generate_json` ile sınıflandırma doğrulanır.
+       LLM hatasında kural tabanlı sonuç korunur (offline modda sistem
+       tamamen kural tabanlı çalışır).
+
 Şartname Referansı (Görev 1):
     "Metni anlamlandırarak evrakın türünü belirleme"
 """
 
+from __future__ import annotations
+
 import logging
+import math
+import re
 from typing import TYPE_CHECKING
+
+from src.utils.turkish_nlp import turkish_lower
 
 if TYPE_CHECKING:
     from src.agents.orchestrator import AgentState
 
 logger = logging.getLogger("kamu_evrak_ajan.classification")
 
-# Desteklenen evrak türleri
+# Desteklenen evrak türleri (anahtarlar tüm modüllerle ortak sözlüktür).
+# Skorlamada kullanılan anahtar kelimeler AGIRLIKLI_KELIMELER'de tanımlıdır;
+# buradaki girdiler yalnızca ad/açıklama meta bilgisini taşır.
 EVRAK_TURLERI = {
     "dilekce": {
         "ad": "Dilekçe",
         "aciklama": "Vatandaş veya kurumlardan gelen talep/şikayet belgesi",
-        "anahtar_kelimeler": ["dilekçe", "talep", "başvuru", "rica ederim", "arz ederim"],
     },
     "ust_yazi": {
         "ad": "Üst Yazı",
         "aciklama": "Bir evrakın üst makama sunulması için hazırlanan yazı",
-        "anahtar_kelimeler": ["üst yazı", "ilgi", "ekte sunulmuştur", "makamınıza"],
     },
     "cevap_yazisi": {
         "ad": "Cevap Yazısı",
         "aciklama": "Gelen bir evrak veya yazıya yanıt olarak hazırlanan resmi yazı",
-        "anahtar_kelimeler": ["ilgide kayıtlı", "cevaben", "yanıt olarak", "karşılık"],
     },
     "bilgilendirme": {
         "ad": "Bilgilendirme Yazısı",
         "aciklama": "Bilgi aktarımı veya duyuru amaçlı yazı",
-        "anahtar_kelimeler": ["bilgi", "bilgilerinize", "duyuru", "bilgilendirme"],
     },
     "tutanak": {
         "ad": "Tutanak",
         "aciklama": "Toplantı veya inceleme sonuçlarını belgeleyen yazı",
-        "anahtar_kelimeler": ["tutanak", "toplantı", "katılımcılar", "gündem"],
     },
     "rapor": {
         "ad": "Rapor",
         "aciklama": "İnceleme, araştırma veya değerlendirme sonuçlarını içeren belge",
-        "anahtar_kelimeler": ["rapor", "inceleme", "değerlendirme", "sonuç", "bulgular"],
     },
     "genelge": {
         "ad": "Genelge",
         "aciklama": "Tüm birimlere yönelik genel talimat veya bilgilendirme",
-        "anahtar_kelimeler": ["genelge", "tüm birimlere", "genel talimat"],
     },
     "onayli_belge": {
         "ad": "Onaylı Belge",
         "aciklama": "Resmi onay veya tasdik içeren belge",
-        "anahtar_kelimeler": ["onay", "tasdik", "uygun görülmüştür", "onaylanmıştır"],
     },
     "diger": {
         "ad": "Diğer",
         "aciklama": "Yukarıdaki kategorilere girmeyen evrak",
-        "anahtar_kelimeler": [],
     },
 }
+
+# ----------------------------------------------------------------------
+# Ağırlıklı anahtar kelimeler (turkish_lower uygulanmış metinde alt dizi
+# eşleşmesi yapılır; ağırlıklar tür başına kalibre edilmiştir)
+# ----------------------------------------------------------------------
+AGIRLIKLI_KELIMELER = {
+    "dilekce": {
+        # "dilekçe" sözcüğü cevap yazılarında da geçer ("ilgi dilekçeniz");
+        # ağırlığı tek başına belirleyici olmayacak şekilde tutulur.
+        "dilekçe": 2.2,
+        "arz ederim": 1.2,
+        "rica ederim": 0.8,
+        "talep": 1.2,
+        "taleb": 1.2,
+        # Birinci tekil şahıs talep dili: dilekçe vatandaşın kendi ağzından
+        # yazılır ("talep ediyorum"), kurum yazıları edilgen/3. şahıs kullanır.
+        "talep ediyorum": 1.5,
+        "başvuru": 1.2,
+        "istirham": 2.0,
+        "şikayet": 1.5,
+        "mağdur": 1.2,
+        # Vatandaşın kendini tanıtma kalıpları (3071 sayılı Dilekçe Hakkı
+        # Kanunu'na uygun dilekçelerde başvuran kendini ikametiyle tanıtır).
+        "ikamet": 1.0,
+        "vatandaş olarak": 1.5,
+        "gereğinin yapılması": 1.8,
+        "saygılarımla": 0.8,
+    },
+    "ust_yazi": {
+        "üst yazı": 2.0,
+        "ekte sunul": 2.5,
+        "ekte gönderil": 2.0,
+        "makamınıza": 2.0,
+        "makamlarınıza": 2.0,
+        "arz ederim": 0.8,
+        "gereğini rica ederim": 1.5,
+        "havale": 0.8,
+    },
+    "cevap_yazisi": {
+        "ilgide kayıtlı": 3.0,
+        "cevaben": 2.5,
+        "yanıt olarak": 2.0,
+        "cevap olarak": 2.0,
+        "yazınıza istinaden": 2.5,
+        "istinaden": 1.0,
+        "ilgi yazı": 1.5,
+        "sayılı yazınız": 1.8,
+        # İkinci şahıs iyelikli belge atıfları: cevap yazısı, MUHATABIN
+        # belgesine atıf yapar ("başvurunuz", "dilekçeniz", "yazınız").
+        # Üst yazı ise kendi belgesine atıf yapar ("yazımız") — bu ek,
+        # cevap yazısını üst yazıdan ayıran temel resmî yazışma sinyalidir.
+        "başvurunuz": 1.8,
+        "dilekçeniz": 2.0,
+        "yazınız": 1.8,
+        "talebiniz": 1.5,
+        "müracaatınız": 1.8,
+        "itirazınız": 1.8,
+        # Birinci çoğul iyelikli görüş/değerlendirme bildirme: cevap yazısı
+        # sorulan hususa kurumun görüşünü/cevabını iletir.
+        "görüşümüz": 1.5,
+        "değerlendirmemiz": 1.0,
+        "cevabımız": 1.8,
+        # Başvurunun incelenip sonuçlandırıldığını bildiren kalıplar.
+        "yapılan inceleme sonucunda": 1.0,
+        "yapılan değerlendirme sonucunda": 1.0,
+        # Muhatabın kuruma SUNDUĞU talebe atıf: İlgi bloğu olmayan cevap
+        # yazılarında gelen başvuruya atıf bu kalıplarla yapılır
+        # ("Başkanlığımıza sunduğunuz talep ... görüşülmüştür").
+        "sunduğunuz talep": 2.0,
+        "sunduğunuz başvuru": 2.0,
+        "iletmiş olduğunuz": 1.5,
+    },
+    "bilgilendirme": {
+        "bilgilerinize sunulur": 2.5,
+        "bilgilerinize arz": 1.5,
+        "bilgilerinize": 1.0,
+        # "Bilgilerinizi ... rica ederim" kapanışı (bilgi verme amaçlı yazı).
+        "bilgilerinizi": 1.0,
+        "duyurulur": 2.5,
+        "duyuru": 1.5,
+        # "duyurulması/duyurulacaktır" çekimleri: içeriğin ilgililere
+        # duyurulması amacı bilgilendirme yazısının tanımlayıcı işlevidir.
+        "duyurul": 1.0,
+        "bilgilendirme": 2.0,
+        "bilginize": 1.5,
+        "hatırlatma": 1.0,
+    },
+    "tutanak": {
+        "tutanak": 2.5,
+        "tutanağı": 2.0,
+        "iş bu tutanak": 3.0,
+        "işbu tutanak": 3.0,
+        "toplantı": 1.0,
+        "katılımcılar": 1.5,
+        "gündem": 1.2,
+        "hazır bulunan": 1.5,
+        "imza altına alın": 1.8,
+    },
+    "rapor": {
+        "rapor": 2.5,
+        "inceleme": 1.0,
+        "değerlendirme": 0.8,
+        "bulgular": 1.5,
+        "tespitler": 1.2,
+        "sonuç ve öneriler": 2.0,
+        "yönetici özeti": 2.0,
+        "analiz": 0.8,
+        # Raporun kendine atıf yapan giriş kalıbı ("Bu rapor, ... amacıyla
+        # hazırlanmıştır") — rapor metinlerinin standart açılışıdır.
+        "bu rapor": 1.5,
+        "işbu rapor": 2.0,
+    },
+    "genelge": {
+        "genelge": 3.0,
+        "tamim": 2.5,
+        "genel talimat": 2.0,
+        "tüm birimlere": 1.5,
+        "talimat": 1.0,
+        "uyulması": 1.0,
+        "yürürlüğe": 1.0,
+    },
+    "onayli_belge": {
+        "uygun görülmüştür": 2.5,
+        "onaylanmıştır": 2.5,
+        "tasdik": 2.0,
+        "makam oluru": 2.5,
+        "onay": 1.2,
+        # Makam oluru kapanış kalıbı: teklif "olurlarınıza arz" edilir
+        # (Resmî Yazışma Usulleri Yönetmeliği'ndeki olur yazısı biçimi).
+        "olurlarınıza": 3.0,
+        # Ara kademe onay şerhi: olur belgelerinde amirin katıldığını
+        # gösteren standart ifade.
+        "uygun görüşle arz": 2.5,
+        # Olur/onay bloğundaki imza rolü etiketi.
+        "onaylayan": 1.5,
+        # "İhale onay belgesi" gibi başlıklar: belgenin kendisi onay belgesidir.
+        "onay belgesi": 2.5,
+        "onayına sunul": 1.2,
+    },
+    "diger": {},
+}
+
+# ----------------------------------------------------------------------
+# Yapısal sinyaller: (derlenmiş regex, {tur: ağırlık}, etiket)
+# Regex'ler orijinal metin üzerinde MULTILINE modda çalışır.
+# ----------------------------------------------------------------------
+# Dilekçe hitap ekleri: vatandaş dilekçeleri makam ADINA değil kurum/birime
+# yönelme haliyle hitap eder ("… MÜDÜRLÜĞÜNE"). "MAKAMINA" hitabı kurum içi
+# sunuş/olur yazılarına özgü olduğundan bu listeden çıkarılmıştır (aşağıda
+# ayrı bir yapısal sinyal olarak ele alınır).
+_HITAP_EKLERI = (
+    "MÜDÜRLÜĞÜNE|MÜDÜRLÜĞÜNÜZE|BAŞKANLIĞINA|BAŞKANLIĞINIZA|"
+    "VALİLİĞİNE|KAYMAKAMLIĞINA|REKTÖRLÜĞÜNE|DEKANLIĞINA|BAKANLIĞINA|"
+    "Müdürlüğüne|Müdürlüğünüze|Başkanlığına|Başkanlığınıza|"
+    "Valiliğine|Kaymakamlığına|Rektörlüğüne|Dekanlığına|Bakanlığına"
+)
+
+_YAPISAL_SINYALLER = [
+    (
+        re.compile(r"^\s*(?:TOPLANTI\s+|İNCELEME\s+|TESPİT\s+)?TUTANA(?:ĞI(?:DIR)?|KTIR|K)\s*$", re.MULTILINE),
+        {"tutanak": 3.0},
+        "TUTANAK başlığı",
+    ),
+    (
+        re.compile(r"^\s*GENELGE(?:\s*[(\[]?\s*(?:NO|SAYI|\d).{0,20})?\s*$", re.MULTILINE),
+        {"genelge": 3.0},
+        "GENELGE başlığı",
+    ),
+    (
+        # Rapor başlıkları çoğunlukla "… DEĞERLENDİRME RAPORU" gibi uzun
+        # niteleyiciler taşır; önek payı 60 karaktere çıkarıldı.
+        re.compile(r"^\s*(?:.{0,60}\s)?RAPOR(?:U|UDUR)?\s*$", re.MULTILINE),
+        {"rapor": 2.5},
+        "RAPOR başlığı",
+    ),
+    (
+        # Rapor üst bilgi alanları: kurumsal rapor formatında belge,
+        # "Rapor Tarihi/No" ve "Hazırlayan" alanlarıyla tanımlanır.
+        re.compile(r"^\s*(?:Rapor\s+(?:Tarihi|No)|Haz[ıi]rlayan[ıi]?)\s*:", re.MULTILINE),
+        {"rapor": 1.5},
+        "rapor üst bilgi alanları (Rapor Tarihi/No, Hazırlayan)",
+    ),
+    (
+        # Rapor gövdesinin standart BÜYÜK HARFLİ bölüm başlıkları
+        # (ÖZET / BULGULAR / SONUÇ [VE ÖNERİLER] / DEĞERLENDİRME / GİRİŞ).
+        re.compile(
+            r"^\s*(?:ÖZET|GİRİŞ|BULGULAR|TESPİTLER|DEĞERLENDİRME|ÖNERİLER|"
+            r"SONUÇ(?:\s+VE\s+ÖNERİLER)?)\s*$",
+            re.MULTILINE,
+        ),
+        {"rapor": 1.5},
+        "rapor bölüm başlığı (ÖZET/BULGULAR/SONUÇ…)",
+    ),
+    (
+        re.compile(r"^\s*DUYURU\s*$", re.MULTILINE),
+        {"bilgilendirme": 2.5},
+        "DUYURU başlığı",
+    ),
+    (
+        # Olur (onay) bloğu: makam olurlarında "OLUR" ibaresi genellikle
+        # harf araları açılarak ("O L U R") ayrı satırda yazılır.
+        re.compile(r"^\s*O\s*L\s*U\s*R\s*$", re.MULTILINE),
+        {"onayli_belge": 3.5},
+        "OLUR (olur bloğu) bölümü",
+    ),
+    (
+        # "… MAKAMINA" hitabı: bir hususun üst makamın onayına/bilgisine
+        # sunulduğu kurum içi yazıların (özellikle olur yazılarının) hitabıdır.
+        re.compile(r"^\s*[^\n]{0,50}MAKAMINA\s*$", re.MULTILINE),
+        {"onayli_belge": 1.2, "ust_yazi": 0.6, "dilekce": 0.5},
+        "'… MAKAMINA' hitabı",
+    ),
+    (
+        # Genel dağıtımlı hitap ("TÜM BİRİMLERE/MÜDÜRLÜKLERE/PERSONELE"):
+        # kuruluş genelini muhatap alan duyuru/bilgilendirme yazısı işareti.
+        re.compile(r"^\s*TÜM\s+[A-ZÇĞİÖŞÜ]+E\s*$", re.MULTILINE),
+        {"bilgilendirme": 2.0, "genelge": 0.5},
+        "'TÜM …E' genel hitap satırı",
+    ),
+    (
+        # "İlgi :" bloğu belge zinciri kurar: yazışma trafiğinin (üst yazı /
+        # cevap yazısı) ayırt edici alanıdır; duyuru niteliğindeki
+        # bilgilendirme yazılarında bulunmaz.
+        re.compile(r"^\s*[İI]lgi\s*:", re.MULTILINE),
+        {"ust_yazi": 2.0, "cevap_yazisi": 1.2},
+        "'İlgi :' satırı",
+    ),
+    (
+        # İlgi satırında muhatabın belgesine ikinci şahıs iyelikli atıf
+        # ("İlgi : … başvurunuz/dilekçeniz/yazınız"): gelen belgeye cevap
+        # verildiğinin en güçlü yapısal kanıtıdır.
+        re.compile(
+            r"^\s*[İI]lgi\s*:[^\n]*(?:başvurunuz|dilekçeniz|yazınız|"
+            r"talebiniz|müracaatınız|itirazınız)",
+            re.MULTILINE,
+        ),
+        {"cevap_yazisi": 3.0},
+        "İlgi satırında muhatap belgesine atıf (…nız/…niz)",
+    ),
+    (
+        # Talep üzerine görüş bildiren yazı: "istenen/sorulan … görüş"
+        # kalıbı, bir soruya karşılık verildiğini (cevap yazısı) gösterir.
+        re.compile(r"(?:istenen|istenilen|sorulan|talep edilen)\s+[^\n]{0,40}görüş"),
+        {"cevap_yazisi": 2.5},
+        "istenen/sorulan görüşe karşılık verme kalıbı",
+    ),
+    (
+        # Konu satırında "cevap/cevabı/yanıt" ifadesi: belge, konusunu
+        # bizzat bir talebe/başvuruya CEVAP olarak tanımlıyor demektir
+        # ("Konu : ... talebinize cevap"). İlgi bloğu olmayan cevap
+        # yazılarının en güçlü yapısal işaretidir.
+        re.compile(r"^\s*Konu\s*:[^\n]*(?:cevap|cevabı|yanıt)", re.MULTILINE | re.IGNORECASE),
+        {"cevap_yazisi": 3.0},
+        "Konu satırında 'cevap/yanıt' ifadesi",
+    ),
+    (
+        # "Sayı :" kurum kayıt numarasıdır; vatandaş dilekçesi kurumsal
+        # antet ve sayı taşımaz — bu alanın varlığı dilekçe ihtimalini düşürür.
+        re.compile(r"^\s*Say[ıi]\s*:", re.MULTILINE),
+        {
+            "ust_yazi": 0.8,
+            "cevap_yazisi": 0.8,
+            # Genelge "GENELGE" başlığıyla tanımlanır; genel antet alanları
+            # genelge lehine düşük tutulur ki her antetli yazı genelgeye kaymasın.
+            "genelge": 0.5,
+            "bilgilendirme": 0.6,
+            "dilekce": -1.8,
+        },
+        "'Sayı :' alanı",
+    ),
+    (
+        re.compile(r"^\s*Konu\s*:", re.MULTILINE),
+        {"ust_yazi": 0.6, "cevap_yazisi": 0.6, "genelge": 0.6, "bilgilendirme": 0.6},
+        "'Konu :' alanı",
+    ),
+    (
+        re.compile(r"^\s*T\.\s?C\.?\s*$", re.MULTILINE),
+        {"ust_yazi": 0.5, "cevap_yazisi": 0.5, "genelge": 0.4, "bilgilendirme": 0.4},
+        "T.C. antet yapısı",
+    ),
+    (
+        re.compile(r"^\s*(?:Sayın\s+|SAYIN\s+)?[^\n]{0,60}(?:" + _HITAP_EKLERI + r")\s*[,;]?\s*$", re.MULTILINE),
+        {"dilekce": 2.0},
+        "dilekçe hitap kalıbı (…Müdürlüğüne/Başkanlığına)",
+    ),
+    (
+        re.compile(r"^\s*Sayın\s+[^\n]{2,60},\s*$", re.MULTILINE),
+        {"dilekce": 1.5},
+        "'Sayın …,' hitap satırı",
+    ),
+    (
+        re.compile(r"^\s*Dağıtım\s*:?", re.MULTILINE),
+        {"ust_yazi": 0.8, "genelge": 0.6, "bilgilendirme": 0.6},
+        "'Dağıtım' bölümü",
+    ),
+    (
+        re.compile(r"^\s*Gereği\s*:", re.MULTILINE),
+        {"ust_yazi": 0.6, "genelge": 0.6},
+        "'Gereği :' satırı",
+    ),
+    (
+        re.compile(r"^\s*Ek(?:ler)?\s*:", re.MULTILINE),
+        {"ust_yazi": 1.2},
+        "'Ek :' bölümü",
+    ),
+    (
+        re.compile(r"Toplantı\s+(?:[Tt]arihi|[Ss]aati|[Yy]eri)", re.MULTILINE),
+        {"tutanak": 1.0},
+        "toplantı tarih/saat/yer alanları",
+    ),
+    (
+        re.compile(r"^\s*(?:İmzalar|İMZALAR)\s*:?\s*$", re.MULTILINE),
+        {"tutanak": 1.5},
+        "'İmzalar' bölümü",
+    ),
+]
+
+# ----------------------------------------------------------------------
+# Dilekçe kimlik/iletişim bloğu alanları: 3071 sayılı Dilekçe Hakkı Kanunu
+# uyarınca dilekçede başvuranın adı-soyadı, imzası ve adresi bulunur.
+# Belge sonunda bu etiketli alanlardan EN AZ İKİSİNİN birlikte bulunması,
+# metnin bir vatandaş dilekçesi olduğuna dair güçlü yapısal kanıttır
+# (kurum yazılarında imza bloğu unvan/e-imza şerhi ile kurulur, bu etiketli
+# kişisel alanlar yer almaz).
+# ----------------------------------------------------------------------
+_KIMLIK_ALANLARI = [
+    re.compile(r"^\s*Ad[ıi]?\s+Soyad[ıi]?\s*:", re.MULTILINE),
+    re.compile(r"^\s*T\.?\s?C\.?\s*Kimlik\s*No[^\n:]*:", re.MULTILINE),
+    re.compile(r"^\s*Adres[i]?\s*:", re.MULTILINE),
+    re.compile(r"^\s*Telefon[u]?\s*:", re.MULTILINE),
+    re.compile(r"^\s*[İI]mza\s*:", re.MULTILINE),
+]
+
+# Eskalasyon eşiği ve softmax sıcaklığı (kalibrasyon parametreleri)
+_ESKALASYON_ESIGI = 0.6
+_SOFTMAX_SICAKLIK = 2.0
 
 
 class ClassificationAgent:
@@ -71,8 +419,8 @@ class ClassificationAgent:
     Evrak sınıflandırma agent'ı.
 
     Gelen evrakın türünü belirler. İki yöntem kullanılabilir:
-    1. Kural tabanlı (anahtar kelime eşleştirme) — hızlı, basit
-    2. LLM tabanlı (prompt ile sınıflandırma) — daha doğru, yavaş
+    1. Kural tabanlı (ağırlıklı anahtar kelime + yapısal sinyal skorlaması)
+    2. LLM eskalasyonlu (kural tabanlı güven < 0.6 ise LLM ile doğrulama)
     """
 
     def __init__(self, method: str = "llm") -> None:
@@ -80,7 +428,9 @@ class ClassificationAgent:
         Sınıflandırma agent'ını başlatır.
 
         Args:
-            method: Sınıflandırma yöntemi ('rule_based' veya 'llm')
+            method: Sınıflandırma yöntemi ('rule_based' veya 'llm').
+                'llm' modunda da önce kural tabanlı skorlama yapılır;
+                LLM yalnızca düşük güvende eskalasyon olarak devreye girer.
         """
         self.method = method
         logger.info(f"Sınıflandırma Agent başlatıldı (yöntem: {method})")
@@ -103,116 +453,197 @@ class ClassificationAgent:
                 "tur_adi": "Bilinmiyor",
                 "guven": 0.0,
                 "aciklama": "Metin çıkarılamadı",
+                "yontem": "kural_tabanli",
             }
             return state
 
-        if self.method == "rule_based":
-            result = self._classify_rule_based(text)
-        else:
-            result = self._classify_with_llm(text)
+        result = self._classify_rule_based(text)
+        result["yontem"] = "kural_tabanli"
+
+        # ESKALASYON: kural tabanlı güven düşükse ve LLM erişilebilirse
+        if self.method != "rule_based" and result["guven"] < _ESKALASYON_ESIGI:
+            try:
+                from src.models.llm_wrapper import get_default_llm
+
+                llm = get_default_llm()
+                if llm.is_available():
+                    logger.info(
+                        f"Kural tabanlı güven düşük ({result['guven']:.2f} < "
+                        f"{_ESKALASYON_ESIGI}); LLM eskalasyonu deneniyor."
+                    )
+                    llm_result = self._classify_with_llm(text, result)
+                    llm_result["yontem"] = "llm_eskalasyon"
+                    llm_result["tum_skorlar"] = result.get("tum_skorlar", {})
+                    llm_result["ham_skorlar"] = result.get("ham_skorlar", {})
+                    result = llm_result
+            except Exception as exc:  # LLM hatasında kural sonucu korunur
+                logger.warning(f"LLM eskalasyonu başarısız, kural tabanlı sonuç korunuyor: {exc}")
 
         state.classification = result
-        logger.info(f"Sınıflandırma sonucu: {result['tur_adi']} (güven: {result['guven']:.2f})")
+        logger.info(
+            f"Sınıflandırma sonucu: {result['tur_adi']} "
+            f"(güven: {result['guven']:.2f}, yöntem: {result['yontem']})"
+        )
         return state
+
+    # ------------------------------------------------------------------
+    # Kural tabanlı skorlama
+    # ------------------------------------------------------------------
 
     def _classify_rule_based(self, text: str) -> dict:
         """
-        Kural tabanlı sınıflandırma — anahtar kelime eşleştirmesi.
+        Ağırlıklı kural tabanlı sınıflandırma.
+
+        Anahtar kelime ağırlıkları ve yapısal regex sinyalleri toplanır,
+        skorlar softmax benzeri normalize edilir ve en yüksek olasılık
+        güven skoru olarak raporlanır.
 
         Args:
             text: Evrak metni
 
         Returns:
-            Sınıflandırma sonucu
+            Sınıflandırma sonucu sözlüğü
         """
-        text_lower = text.lower()
-        scores: dict[str, int] = {}
+        text_lower = turkish_lower(text)
+        raw_scores: dict = {tur: 0.0 for tur in EVRAK_TURLERI}
+        eslesmeler: dict = {tur: [] for tur in EVRAK_TURLERI}
 
-        for tur_key, tur_info in EVRAK_TURLERI.items():
-            score = 0
-            for keyword in tur_info["anahtar_kelimeler"]:
-                if keyword.lower() in text_lower:
-                    score += 1
-            scores[tur_key] = score
+        # 1) Ağırlıklı anahtar kelimeler
+        for tur, kelimeler in AGIRLIKLI_KELIMELER.items():
+            for kelime, agirlik in kelimeler.items():
+                if kelime in text_lower:
+                    raw_scores[tur] += agirlik
+                    eslesmeler[tur].append(f"anahtar kelime '{kelime}' (+{agirlik:.1f})")
 
-        if not scores or max(scores.values()) == 0:
+        # 2) Yapısal sinyaller (regex çapaları; ağırlık negatif olabilir —
+        #    ör. "Sayı :" antetinin dilekçe skorunu düşürmesi)
+        for pattern, katkılar, etiket in _YAPISAL_SINYALLER:
+            if pattern.search(text):
+                for tur, agirlik in katkılar.items():
+                    raw_scores[tur] += agirlik
+                    eslesmeler[tur].append(f"yapısal: {etiket} ({agirlik:+.1f})")
+
+        # 3) Tutanak imza blokları (birden fazla altçizgi dizisi)
+        imza_cizgileri = re.findall(r"_{4,}", text)
+        if len(imza_cizgileri) >= 2:
+            raw_scores["tutanak"] += 2.0
+            eslesmeler["tutanak"].append(
+                f"yapısal: {len(imza_cizgileri)} adet imza çizgisi bloğu (+2.0)"
+            )
+
+        # 4) Dilekçe kimlik/iletişim bloğu: etiketli kişisel alanlardan
+        #    (Ad Soyad / T.C. Kimlik No / Adres / Telefon / İmza) en az iki
+        #    FARKLI alanın bulunması vatandaş dilekçesi göstergesidir.
+        #    Tek alan (ör. yalnız "İmza :") kurum belgelerinde de görülebilir,
+        #    bu yüzden puanlanmaz.
+        kimlik_alan_sayisi = sum(1 for p in _KIMLIK_ALANLARI if p.search(text))
+        if kimlik_alan_sayisi >= 2:
+            bonus = min(0.9 * kimlik_alan_sayisi, 2.7)
+            raw_scores["dilekce"] += bonus
+            eslesmeler["dilekce"].append(
+                f"yapısal: {kimlik_alan_sayisi} adet kişisel kimlik/iletişim alanı (+{bonus:.1f})"
+            )
+
+        # 5) Softmax benzeri normalizasyon
+        probs = self._softmax(raw_scores)
+
+        if max(raw_scores.values()) <= 0:
             best_type = "diger"
             confidence = 0.1
+            gerekce = "Belirleyici anahtar kelime veya yapısal sinyal bulunamadı."
         else:
-            best_type = max(scores, key=scores.get)
-            total_keywords = len(EVRAK_TURLERI[best_type]["anahtar_kelimeler"])
-            confidence = scores[best_type] / max(total_keywords, 1)
+            best_type = max(raw_scores, key=lambda t: raw_scores[t])
+            confidence = probs[best_type]
+            gerekce = "; ".join(eslesmeler[best_type][:6])
 
         tur_info = EVRAK_TURLERI[best_type]
         return {
             "tur": best_type,
             "tur_adi": tur_info["ad"],
-            "guven": min(confidence, 1.0),
+            "guven": round(min(max(confidence, 0.0), 1.0), 3),
             "aciklama": tur_info["aciklama"],
-            "tum_skorlar": scores,
+            "gerekce": gerekce,
+            "tum_skorlar": {t: round(p, 3) for t, p in probs.items()},
+            "ham_skorlar": {t: round(s, 2) for t, s in raw_scores.items()},
         }
 
-    def _classify_with_llm(self, text: str) -> dict:
+    @staticmethod
+    def _softmax(scores: dict) -> dict:
+        """Ham skorları softmax benzeri olasılık dağılımına çevirir."""
+        exps = {t: math.exp(s / _SOFTMAX_SICAKLIK) for t, s in scores.items()}
+        total = sum(exps.values()) or 1.0
+        return {t: v / total for t, v in exps.items()}
+
+    # ------------------------------------------------------------------
+    # LLM eskalasyonu
+    # ------------------------------------------------------------------
+
+    def _classify_with_llm(self, text: str, rule_result: dict) -> dict:
         """
-        LLM tabanlı sınıflandırma.
+        LLM tabanlı sınıflandırma (yapılandırılmış JSON çıktısıyla).
 
         Args:
             text: Evrak metni
+            rule_result: Kural tabanlı ön değerlendirme (bağlam için)
 
         Returns:
             Sınıflandırma sonucu
-        """
-        from src.models.llm_wrapper import LLMWrapper
 
-        llm = LLMWrapper()
+        Raises:
+            Exception: LLM erişilemezse veya geçersiz yanıt dönerse
+            (çağıran taraf kural tabanlı sonuca düşer).
+        """
+        from src.models.llm_wrapper import get_default_llm
+
+        llm = get_default_llm()
 
         turler_listesi = "\n".join(
             f"- {key}: {info['ad']} — {info['aciklama']}"
             for key, info in EVRAK_TURLERI.items()
         )
 
-        prompt = f"""Aşağıdaki evrak metnini analiz et ve evrak türünü belirle.
+        schema_hint = (
+            '{"tur": "<evrak_turu_key>", "guven": <0.0-1.0 arası sayı>, '
+            '"gerekce": "<tek cümlelik sınıflandırma gerekçesi>"}'
+        )
 
-Desteklenen evrak türleri:
+        prompt = f"""Aşağıdaki kamu evrakı metnini analiz et ve evrak türünü belirle.
+
+Desteklenen evrak türleri (yalnızca bu key'lerden birini kullan):
 {turler_listesi}
+
+Kural tabanlı ön değerlendirme: {rule_result['tur']} (güven: {rule_result['guven']:.2f})
+Bu ön değerlendirme düşük güvenli olduğu için senden kesin karar isteniyor.
 
 Evrak Metni:
 ---
 {text[:3000]}
----
+---"""
 
-Yanıtını aşağıdaki formatta ver:
-TÜR: <evrak_turu_key>
-GÜVEN: <0.0 ile 1.0 arası güven skoru>
-GEREKÇE: <sınıflandırma gerekçesi>
-"""
+        data = llm.generate_json(
+            prompt,
+            schema_hint=schema_hint,
+            system_prompt=(
+                "Sen kamu kurumlarında resmî yazışma ve evrak yönetimi "
+                "konusunda uzman bir sınıflandırma asistanısın."
+            ),
+        )
 
-        response = llm.generate(prompt)
-        return self._parse_llm_response(response)
+        tur_key = str(data.get("tur", "")).strip().lower()
+        if tur_key not in EVRAK_TURLERI:
+            raise ValueError(f"LLM geçersiz evrak türü döndürdü: {tur_key!r}")
 
-    def _parse_llm_response(self, response: str) -> dict:
-        """LLM yanıtını ayrıştırır."""
-        lines = response.strip().split("\n")
-        result = {
-            "tur": "diger",
-            "tur_adi": "Diğer",
-            "guven": 0.5,
-            "aciklama": "",
+        try:
+            guven = float(data.get("guven", 0.7))
+        except (TypeError, ValueError):
+            guven = 0.7
+        guven = min(max(guven, 0.0), 1.0)
+
+        tur_info = EVRAK_TURLERI[tur_key]
+        return {
+            "tur": tur_key,
+            "tur_adi": tur_info["ad"],
+            "guven": round(guven, 3),
+            "aciklama": tur_info["aciklama"],
+            "gerekce": str(data.get("gerekce", "")).strip(),
         }
-
-        for line in lines:
-            if line.startswith("TÜR:"):
-                tur_key = line.split(":", 1)[1].strip().lower()
-                if tur_key in EVRAK_TURLERI:
-                    result["tur"] = tur_key
-                    result["tur_adi"] = EVRAK_TURLERI[tur_key]["ad"]
-                    result["aciklama"] = EVRAK_TURLERI[tur_key]["aciklama"]
-            elif line.startswith("GÜVEN:"):
-                try:
-                    result["guven"] = float(line.split(":", 1)[1].strip())
-                except ValueError:
-                    pass
-            elif line.startswith("GEREKÇE:"):
-                result["gerekce"] = line.split(":", 1)[1].strip()
-
-        return result
