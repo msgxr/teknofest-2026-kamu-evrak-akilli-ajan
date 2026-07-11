@@ -133,7 +133,7 @@ class SummarizationAgent:
             Özet gövde metni
         """
         try:
-            from src.models.llm_wrapper import get_default_llm
+            from src.models.llm_wrapper import GUVENLIK_SISTEM_EKI, belge_blogu, get_default_llm
 
             llm = get_default_llm()
             if not llm.is_available():
@@ -144,6 +144,8 @@ class SummarizationAgent:
             muhatap = extracted.get("muhatap") or "-"
             konu = extracted.get("konu") or "Belirtilmemiş"
 
+            # GÜVENLİK: evrak metni belge_blogu ile "yalnızca veri" olarak
+            # işaretlenir (dolaylı prompt injection savunması, OWASP LLM01)
             prompt = f"""Aşağıdaki resmî evrakın kısa bir özetini yaz.
 
 Evrak Türü: {evrak_turu or 'Bilinmiyor'}
@@ -152,10 +154,7 @@ Tespit Edilen Tarihler: {tarihler}
 Muhatap: {muhatap}
 Referans No: {referanslar}
 
-Evrak Metni:
----
-{text[:4000]}
----
+{belge_blogu(text, 4000)}
 
 Kurallar:
 1. Özet 2-4 cümle olsun ve tek paragraf halinde yazılsın.
@@ -171,6 +170,7 @@ Kurallar:
                     "Sen kamu kurumlarında resmî yazışma ve evrak yönetimi "
                     "konusunda uzman bir asistansın. Yanıtlarını resmî, "
                     "nesnel ve açık bir Türkçe ile verirsin."
+                    + GUVENLIK_SISTEM_EKI
                 ),
             )
             summary = re.sub(r"\s+", " ", summary).strip()

@@ -14,6 +14,14 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("kamu_evrak_ajan.ocr")
 
+# GÜVENLİK (CWE-400/CWE-409): güvenilmeyen evrak ayrıştırmada kaynak
+# tüketimi/decompression-bomb sınırları. Değerler tipik resmî evrağın çok
+# üzerindedir; olağan işlevi etkilemez, yalnızca aşırı/kötü niyetli girdiyi
+# sınırlar.
+MAX_PDF_SAYFA = 50            # işlenecek azami PDF sayfa sayısı
+MAX_GORUNTU_PIKSEL = 40_000_000  # ~40 MP; görüntü bombasına karşı üst sınır
+OCR_DPI = 150                 # taranmış PDF görüntüye çevirme çözünürlüğü
+
 
 class OCRAgent:
     """
@@ -93,15 +101,21 @@ class OCRAgent:
         """PDF dosyasından metin çıkarır."""
         logger.debug(f"PDF dosyası okunuyor: {file_path}")
         try:
-            from PyPDF2 import PdfReader
+            from pypdf import PdfReader
 
             reader = PdfReader(str(file_path))
             text_parts = []
-            for page_num, page in enumerate(reader.pages, 1):
+            # GÜVENLİK: yalnızca ilk MAX_PDF_SAYFA sayfa işlenir (kaynak
+            # tüketimi / çok-sayfalı PDF bombası sınırı)
+            for page_num, page in enumerate(reader.pages[:MAX_PDF_SAYFA], 1):
                 page_text = page.extract_text()
                 if page_text:
                     text_parts.append(page_text)
                     logger.debug(f"Sayfa {page_num}: {len(page_text)} karakter")
+            if len(reader.pages) > MAX_PDF_SAYFA:
+                logger.warning(
+                    f"PDF {len(reader.pages)} sayfa; ilk {MAX_PDF_SAYFA} sayfa işlendi."
+                )
 
             full_text = "\n\n".join(text_parts)
 
@@ -113,7 +127,7 @@ class OCRAgent:
             return full_text
 
         except ImportError:
-            logger.warning("PyPDF2 yüklü değil, OCR ile deneniyor...")
+            logger.warning("pypdf yüklü değil, OCR ile deneniyor...")
             return self._ocr_pdf(file_path)
 
     def _ocr_pdf(self, file_path: Path) -> str:
@@ -121,7 +135,10 @@ class OCRAgent:
         try:
             from pdf2image import convert_from_path
 
-            images = convert_from_path(str(file_path))
+            # GÜVENLİK: sayfa ve DPI sınırı (PDF/görüntü bombası koruması)
+            images = convert_from_path(
+                str(file_path), dpi=OCR_DPI, first_page=1, last_page=MAX_PDF_SAYFA
+            )
             text_parts = []
 
             for i, image in enumerate(images, 1):
@@ -139,7 +156,17 @@ class OCRAgent:
         logger.debug(f"Görüntü dosyası okunuyor: {file_path}")
         from PIL import Image
 
+        # GÜVENLİK: görüntü bombasına (decompression bomb) karşı piksel sınırı;
+        # Pillow eşiği aşan görüntüde DecompressionBombError yükseltir.
+        Image.MAX_IMAGE_PIXELS = MAX_GORUNTU_PIKSEL
+
         image = Image.open(file_path)
+        genislik, yukseklik = image.size
+        if genislik * yukseklik > MAX_GORUNTU_PIKSEL:
+            raise ValueError(
+                f"Görüntü boyutu sınırı aşıldı ({genislik}x{yukseklik}); "
+                f"en fazla {MAX_GORUNTU_PIKSEL} piksel işlenir."
+            )
         return self._ocr_image(image)
 
     def _ocr_image(self, image) -> str:

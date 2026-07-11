@@ -63,6 +63,14 @@ data/raw/*.jpg
 data/raw/*.png
 data/raw/*.tiff
 
+# GÜVENLİK: üretilen yerel artefaktlar depoya sızmasın
+# (vektör DB ikili dosyaları, CLI çıktı dizini, model önbellekleri)
+data/chroma_db/
+chroma_db/
+output/
+.cache/
+huggingface/
+
 # Logs
 *.log
 logs/

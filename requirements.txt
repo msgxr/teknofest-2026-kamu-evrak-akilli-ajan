@@ -13,7 +13,11 @@ pydantic>=2.0.0
 pydantic-settings>=2.0.0
 
 # --- Evrak okuma (PDF metin katmanı) ---
-PyPDF2>=3.0.0
+# GÜVENLİK: PyPDF2 terk edilmiştir ve son sürümü (3.0.1) yamasız bir DoS
+# açığı taşır (PYSEC-2026-1835: özel hazırlanmış PDF'te extract_text sonsuz
+# döngü). Bakımlı ardılı pypdf ile değiştirildi (API aynı; >=6.13.3 hem bu
+# açığı hem GHSA-jm82-fx9c-mx94 bellek DoS'unu kapatır).
+pypdf>=6.13.3
 
 # --- Web Arayüzü ---
 streamlit>=1.30.0

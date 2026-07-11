@@ -6,6 +6,19 @@ Bu dizin, proje kapsamında kullanılan veri setlerini içerir.
 
 **Bu projede gerçek kamu verisi kullanılmamaktadır.** Tüm evraklar sentetiktir; geçen kişi, kurum, sayı, T.C. kimlik numarası ve olaylar kurgudur. Kurgu T.C. kimlik numaraları yalnızca algoritmik (checksum) doğrulama testleri için üretilmiş olup gerçek kişilere ait değildir.
 
+Aynı ilke evraklardaki diğer tanımlayıcı görünümlü değerler için de geçerlidir:
+
+- **Telefon numaraları** rastgele üretilmiş kurgu değerlerdir; format testleri için
+  geçerli GSM biçimindedir ancak hiçbir gerçek aboneye atıf amaçlanmamıştır.
+- **Yazışma sayılarındaki (EBYS/DETSİS benzeri) kodlar** rastgeledir; gerçek bir
+  kurumun haberleşme koduyla eşleşme amaçlanmamıştır (tüm antetler kurgu kurumlara
+  aittir).
+- **Yer adları** ağırlıklı olarak kurgu evrenlere aittir (Akçova, Bozkırova,
+  Denizova, Doğuşehir vb.); geliştirme setindeki iki dosyada yalnızca bağlam amaçlı
+  genel gerçek ilçe adları geçer, adreslerin kendileri (mahalle/cadde/kapı) kurgudur.
+- Değerlerden herhangi birinin gerçek bir kişi/kurum kaydıyla çakıştığı fark edilirse
+  bu tesadüfidir; bildirim üzerine derhal değiştirilir (bkz. kökteki `SECURITY.md`).
+
 ## Veri Kaynakları
 
 ### 1. Kurgu Evrak Örnekleri (`raw/kurgu_evraklar/`)

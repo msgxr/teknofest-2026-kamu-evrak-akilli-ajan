@@ -131,7 +131,11 @@ _TELEFON = re.compile(
     r"(?<!\d)(?:\+90|0)[\s.\-]?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{2}[\s.\-]?\d{2}(?!\d)"
 )
 
-_EPOSTA = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# GÜVENLİK (CWE-1333 ReDoS): niceleyiciler RFC sınırlarına bağlandı;
+# eski desen ("...+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}") güvenilmeyen uzun metinde
+# kuadratik geri izleme yapıyordu (80 KB → ~12 sn). Bu biçim doğrusaldır
+# (160 KB → ~40 ms) ve çıktı pariteği korunur.
+_EPOSTA = re.compile(r"[A-Za-z0-9._%+-]{1,64}@(?:[A-Za-z0-9-]{1,63}\.){1,10}[A-Za-z]{2,24}")
 
 _IBAN = re.compile(r"\bTR\d{2}(?:[ ]?\d{4}){5}[ ]?\d{2}\b")
 
@@ -676,7 +680,7 @@ class InfoExtractionAgent:
         Her hata sessizce yutulur (offline modda sistem tam çalışır).
         """
         try:
-            from src.models.llm_wrapper import get_default_llm
+            from src.models.llm_wrapper import GUVENLIK_SISTEM_EKI, belge_blogu, get_default_llm
 
             llm = get_default_llm()
             if not llm.is_available():
@@ -686,17 +690,19 @@ class InfoExtractionAgent:
                 '{"kisi_adlari": ["<ad soyad>"], "kurum_adlari": ["<kurum>"], '
                 '"konu": "<konu>", "muhatap": "<muhatap>"}'
             )
+            # GÜVENLİK: evrak metni belge_blogu ile "yalnızca veri" olarak
+            # işaretlenir (dolaylı prompt injection savunması, OWASP LLM01)
             prompt = f"""Aşağıdaki kamu evrakı metninden kişi adlarını, kurum adlarını,
 konu ve muhatap bilgilerini çıkar. Yalnızca metinde açıkça geçen bilgileri yaz.
 
-Evrak Metni:
----
-{text[:3000]}
----"""
+{belge_blogu(text, 3000)}"""
             data = llm.generate_json(
                 prompt,
                 schema_hint=schema_hint,
-                system_prompt="Sen kamu evraklarından yapılandırılmış bilgi çıkaran bir asistansın.",
+                system_prompt=(
+                    "Sen kamu evraklarından yapılandırılmış bilgi çıkaran bir asistansın."
+                    + GUVENLIK_SISTEM_EKI
+                ),
             )
 
             for alan in ("kisi_adlari", "kurum_adlari"):

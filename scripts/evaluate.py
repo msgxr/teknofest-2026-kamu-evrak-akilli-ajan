@@ -67,6 +67,21 @@ ETIKET_DOSYASI = EVRAK_DIZINI / "etiketler.json"
 RAPOR_DOSYASI = PROJE_KOKU / "data" / "processed" / "eval_report.json"
 
 
+def goreli_yol(yol: Any) -> str:
+    """
+    Yolu proje köküne göre göreli dizeye çevirir.
+
+    # GÜVENLİK: rapor JSON'u git ile izlenir; mutlak yol (makine/kullanıcı
+    # adı) sızmaması için yol her koşulda köke göre göreli yazılır, kök
+    # dışındaki yollar için yalnızca dizin adı raporlanır.
+    """
+    p = Path(yol).resolve()
+    try:
+        return p.relative_to(PROJE_KOKU).as_posix()
+    except ValueError:
+        return p.name
+
+
 # ---------------------------------------------------------------------------
 # SAF METRİK FONKSİYONLARI (pipeline'dan bağımsız, birim testlenebilir)
 # ---------------------------------------------------------------------------
@@ -422,7 +437,7 @@ def metrikleri_hesapla(
 
     return {
         "zaman_damgasi": datetime.now().isoformat(timespec="seconds"),
-        "veri_dizini": str(veri_dizini),
+        "veri_dizini": goreli_yol(veri_dizini),
         "set_adi": Path(veri_dizini).name,
         "llm": llm_bilgisi_al(),
         "degerlendirilen_dosya_sayisi": len(sonuclar),

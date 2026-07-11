@@ -45,6 +45,12 @@ _MIN_ANLAMLI_KARAKTER = 30
 # offline modda eskalasyon çalışamayacağı için işaret orkestratörde konur).
 _INSAN_ONAYI_GUVEN_ESIGI = 0.6
 
+# GÜVENLİK (CWE-400/OWASP LLM04): güvenilmeyen evrak metni için merkezî
+# azami uzunluk. Bunun üzerindeki girdi kırpılır; böylece regex tabanlı
+# çıkarım ve LLM çağrıları sınırsız kaynak tüketemez. Sınır tipik resmî
+# evrağın (birkaç KB) çok üzerindedir; olağan işlevi etkilemez.
+_MAX_GIRDI_KARAKTER = 200_000
+
 
 @dataclass
 class AgentState:
@@ -173,8 +179,33 @@ class OrchestratorAgent:
         logger.info(f"Doğrudan metin işleme başlatıldı ({len(text)} karakter, mod: {mode})")
         return self._run_workflow(mode)
 
+    def _apply_girdi_siniri(self) -> None:
+        """
+        Güvenilmeyen evrak metnini merkezî azami uzunlukta kırpar.
+
+        # GÜVENLİK: hem dosya (OCR) hem doğrudan metin yolu bu tek noktadan
+        # geçtiği için sınır burada uygulanır; aşırı uzun girdi regex/LLM
+        # adımlarını sınırsız meşgul edemez (CWE-400 / OWASP LLM04).
+        """
+        if len(self.state.raw_text) > _MAX_GIRDI_KARAKTER:
+            asil = len(self.state.raw_text)
+            self.state.raw_text = self.state.raw_text[:_MAX_GIRDI_KARAKTER]
+            self.state.workflow_warnings.append({
+                "kod": "girdi_kirpildi",
+                "baslik": "Girdi Uzunluk Sınırı",
+                "mesaj": (
+                    f"Evrak metni çok uzun ({asil} karakter); güvenlik/başarım "
+                    f"gereği ilk {_MAX_GIRDI_KARAKTER} karakter işlendi."
+                ),
+                "seviye": "uyari",
+            })
+            logger.warning(
+                f"Girdi metni {asil} karakter; {_MAX_GIRDI_KARAKTER} karaktere kırpıldı."
+            )
+
     def _run_workflow(self, mode: str) -> dict:
         """OCR sonrası ortak iş akışını koşullu kapılarla çalıştırır."""
+        self._apply_girdi_siniri()
         try:
             # KOŞULLU KAPI 1: metin okunabilirliği (boş/çok kısa metinde
             # analiz ve taslak adımları çalıştırılmaz; uydurma çıktı üretilmez)

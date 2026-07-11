@@ -449,7 +449,7 @@ class RoutingAgent:
         LLM yoksa veya hata oluşursa None döner (kural tabanlı sonuç korunur).
         """
         try:
-            from src.models.llm_wrapper import get_default_llm
+            from src.models.llm_wrapper import GUVENLIK_SISTEM_EKI, belge_blogu, get_default_llm
 
             llm = get_default_llm()
             if not llm.is_available():
@@ -460,12 +460,12 @@ class RoutingAgent:
                 f"(skor: {skor:.1f})"
                 for key, skor in adaylar
             )
+            # GÜVENLİK: evrak metni belge_blogu ile "yalnızca veri" olarak
+            # işaretlenir; seçim zaten aday listesiyle sınırlı doğrulanır
+            # (dolaylı prompt injection savunması, OWASP LLM01)
             prompt = f"""Aşağıdaki evrak metninin hangi birime yönlendirilmesi gerektiğine karar ver.
 
-Evrak Metni:
----
-{text[:2000]}
----
+{belge_blogu(text, 2000)}
 
 Skorları birbirine yakın aday birimler:
 {aday_str}
@@ -475,6 +475,10 @@ Evrakın ana talebini/konusunu dikkate alarak yalnızca bu adaylar arasından en
             result = llm.generate_json(
                 prompt,
                 schema_hint='{"birim_kodu": "aday_birim_key", "gerekce": "kısa açıklama"}',
+                system_prompt=(
+                    "Sen kamu kurumlarında evrak havalesi yapan bir yönlendirme asistanısın."
+                    + GUVENLIK_SISTEM_EKI
+                ),
             )
             secim = str(result.get("birim_kodu", "")).strip()
             if secim in dict(adaylar):

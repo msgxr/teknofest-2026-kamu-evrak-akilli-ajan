@@ -593,7 +593,7 @@ class ClassificationAgent:
             Exception: LLM erişilemezse veya geçersiz yanıt dönerse
             (çağıran taraf kural tabanlı sonuca düşer).
         """
-        from src.models.llm_wrapper import get_default_llm
+        from src.models.llm_wrapper import GUVENLIK_SISTEM_EKI, belge_blogu, get_default_llm
 
         llm = get_default_llm()
 
@@ -607,6 +607,8 @@ class ClassificationAgent:
             '"gerekce": "<tek cümlelik sınıflandırma gerekçesi>"}'
         )
 
+        # GÜVENLİK: evrak metni belge_blogu ile "yalnızca veri" olarak
+        # işaretlenir (dolaylı prompt injection savunması, OWASP LLM01)
         prompt = f"""Aşağıdaki kamu evrakı metnini analiz et ve evrak türünü belirle.
 
 Desteklenen evrak türleri (yalnızca bu key'lerden birini kullan):
@@ -615,10 +617,7 @@ Desteklenen evrak türleri (yalnızca bu key'lerden birini kullan):
 Kural tabanlı ön değerlendirme: {rule_result['tur']} (güven: {rule_result['guven']:.2f})
 Bu ön değerlendirme düşük güvenli olduğu için senden kesin karar isteniyor.
 
-Evrak Metni:
----
-{text[:3000]}
----"""
+{belge_blogu(text, 3000)}"""
 
         data = llm.generate_json(
             prompt,
@@ -626,6 +625,7 @@ Evrak Metni:
             system_prompt=(
                 "Sen kamu kurumlarında resmî yazışma ve evrak yönetimi "
                 "konusunda uzman bir sınıflandırma asistanısın."
+                + GUVENLIK_SISTEM_EKI
             ),
         )
 

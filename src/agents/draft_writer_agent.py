@@ -280,7 +280,12 @@ class DraftWriterAgent:
 
     def _generate_with_llm(self, yazi_turu: str, state: "AgentState") -> str:
         """LLM ile yönetmelik kurallarına uygun yazı taslağı oluşturur."""
-        from src.models.llm_wrapper import get_default_llm, LLMUnavailableError
+        from src.models.llm_wrapper import (
+            GUVENLIK_SISTEM_EKI,
+            LLMUnavailableError,
+            belge_blogu,
+            get_default_llm,
+        )
 
         llm = get_default_llm()
         if not llm.is_available():
@@ -307,12 +312,11 @@ class DraftWriterAgent:
                 f"\n{hedef_kitle} eksik bilgi/belgeler:\n" + "\n".join(eksikler)
             )
 
+        # GÜVENLİK: evrak metni belge_blogu ile "yalnızca veri" olarak
+        # işaretlenir (dolaylı prompt injection savunması, OWASP LLM01)
         prompt = f"""Aşağıdaki gelen evraka karşılık resmî bir "{DRAFT_TYPE_LABELS.get(yazi_turu, yazi_turu)}" taslağı yaz.
 
-Gelen Evrak Metni:
----
-{state.raw_text[:3000]}
----
+{belge_blogu(state.raw_text, 3000)}
 
 Çıkarılan Bilgiler:
 - Konu: {extracted.get('konu') or 'Belirtilmemiş'}
@@ -341,6 +345,7 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         system_prompt = (
             "Sen bir kamu kurumunda resmî yazışma kurallarına hâkim, "
             "deneyimli bir yazı işleri uzmanısın. Türkçe resmî üslupla yazarsın."
+            + GUVENLIK_SISTEM_EKI
         )
         return llm.generate(prompt, system_prompt=system_prompt).strip()
 

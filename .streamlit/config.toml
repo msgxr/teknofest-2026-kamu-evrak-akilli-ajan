@@ -1,0 +1,26 @@
+# ============================================================
+# Streamlit yapılandırması — güvenli yerel demo varsayılanları
+#
+# GÜVENLİK gerekçeleri:
+#   - address = "localhost": demo sunucusu yalnızca yerel makineden
+#     erişilebilir; aynı ağdaki cihazlara açılmaz. Jüri demosunda ağa
+#     açmak gerekirse bu satır bilinçli olarak değiştirilir.
+#   - maxUploadSize = 20: dosya yükleme üst sınırı 20 MB (kaynak
+#     tüketimi / DoS koruması; tipik evrak boyutunun çok üzerinde).
+#   - enableXsrfProtection: Streamlit varsayılanı zaten açıktır;
+#     yanlışlıkla kapatılmaması için açıkça sabitlenmiştir.
+#   - showErrorDetails = "none": yakalanmayan hataların ham stack
+#     trace'i tarayıcıya basılmaz (bilgi ifşası önlenir); ayrıntılar
+#     terminal loglarında görünmeye devam eder.
+# ============================================================
+
+[server]
+address = "localhost"
+maxUploadSize = 20
+enableXsrfProtection = true
+
+[client]
+showErrorDetails = "none"
+
+[browser]
+gatherUsageStats = false

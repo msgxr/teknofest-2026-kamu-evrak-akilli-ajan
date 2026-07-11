@@ -32,6 +32,30 @@ Sistem model-bağımsızdır; OpenAI-uyumlu veya Ollama arayüzü sunan her mode
 | Meta Llama 3.1 8B Instruct | https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct | Llama 3.1 Community License |
 | Mistral 7B Instruct v0.3 | https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3 | Apache 2.0 |
 
+### Bütünlük ve güvenli model yükleme (tedarik zinciri güvenliği)
+
+Üçüncü taraf model ağırlıkları **yalnızca doğrulanmış resmî kaynaktan** indirilmelidir.
+Güvenli yükleme ilkeleri:
+
+- **safetensors tercih edin.** Mümkün olduğunda `.safetensors` biçimini kullanın;
+  `.bin`/`.pt` (pickle) ağırlıklar yüklenirken rastgele kod çalıştırabilir (CWE-502).
+  `transformers` ile: `from_pretrained(..., use_safetensors=True)`.
+- **Sürümü sabitleyin.** HuggingFace deposundan çekerken belirli bir revizyon/commit
+  kullanın (`from_pretrained(..., revision="<commit_sha>")`); böylece deponun
+  ileride değişmesi kurulumu sessizce etkilemez.
+- **Bütünlüğü doğrulayın.** İndirilen ağırlığın yayınlanan `sha256` özetini
+  kontrol edin. Ollama imajları çekilirken (`ollama pull`) sürüm etiketini sabit tutun.
+- Bu ilkeler **yalnızca opsiyonel** yerel model yolu için geçerlidir; kural tabanlı
+  çekirdek hiçbir model ağırlığı indirmez.
+
+> **Not (ChromaDB gömme modeli):** Opsiyonel semantik arama etkinleştirilirse
+> (`chromadb` kurulu), `LegislationAgent` koleksiyona açık bir embedding fonksiyonu
+> geçirmez; bu durumda ChromaDB **kendi varsayılan modelini** (`all-MiniLM-L6-v2`,
+> ONNX) ilk kullanımda ağdan indirir. Yukarıda belgelenen
+> `paraphrase-multilingual-MiniLM-L12-v2` yalnızca `EMBEDDING_MODEL_NAME` ile açık
+> bir embedding fonksiyonu tanımlanırsa kullanılır. Her iki modelin de indirilmesi
+> başarısız olursa sistem BM25'e düşer ve tam işlevli kalır.
+
 ## Bilgi Getirimi (Mevzuat RAG)
 
 ### BM25-Okapi (model değildir — saf Python)
@@ -53,4 +77,4 @@ Sistem model-bağımsızdır; OpenAI-uyumlu veya Ollama arayüzü sunan her mode
 - **Lisans:** Apache 2.0
 - **Kullanım:** Görüntülerden Türkçe metin çıkarımı (`pytesseract` üzerinden)
 - **Kurulum:** `apt install tesseract-ocr tesseract-ocr-tur` (Linux) veya `brew install tesseract tesseract-lang` (macOS)
-- **Not:** Metin dosyaları ve metin katmanlı PDF'ler için OCR gerekmez (PyPDF2 ile okunur)
+- **Not:** Metin dosyaları ve metin katmanlı PDF'ler için OCR gerekmez (`pypdf` ile okunur)

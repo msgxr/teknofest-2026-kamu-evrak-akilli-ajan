@@ -603,7 +603,7 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
         dosya = st.file_uploader(
             "Evrak dosyası seçin (TXT, PDF, PNG, JPG)",
             type=["txt", "pdf", "png", "jpg", "jpeg"],
-            help="PDF metin katmanı PyPDF2 ile okunur; taranmış PDF ve görüntüler için "
+            help="PDF metin katmanı pypdf ile okunur; taranmış PDF ve görüntüler için "
                  "OCR bağımlılıkları (pytesseract/pdf2image) gerekir.",
         )
         if dosya is not None and st.button("🚀 Dosyayı İşle", type="primary", key="dosya_isle_btn"):
@@ -627,11 +627,17 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
                     try:
                         os.unlink(gecici_yol)
                     except OSError:
-                        pass
+                        # GÜVENLİK: evrak içeriği taşıyan geçici dosya
+                        # silinemezse iz bırakmadan yutulmasın
+                        logger.warning(f"Geçici evrak dosyası silinemedi: {gecici_yol}")
     else:
         metin = st.text_area(
             "Evrak metni",
             height=220,
+            # GÜVENLİK: girdi karakter üst sınırı (kaynak tüketimi/DoS
+            # koruması; orkestratördeki merkezî sınırla hizalı, tipik evrak
+            # uzunluğunun çok üzerinde)
+            max_chars=200_000,
             placeholder=(
                 "Örn:\n\nSayın Yetkili,\n\n... Müdürlüğüne 15.03.2026 tarihinde verdiğim "
                 "dilekçeme ilişkin bilgi almak istiyorum...\n\nAd Soyad / İmza"
