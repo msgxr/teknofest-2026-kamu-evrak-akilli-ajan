@@ -48,6 +48,12 @@ VARSAYILAN_DB_YOLU = (
 # arayüzün tek sayfada makul biçimde gösterebileceği üst sınırdır.
 _AZAMI_LIMIT = 500
 
+# Emsal arama için saklanan evrak metni özünün karakter sınırı: BM25'in
+# ayırt edici sözcükleri yakalaması için evrakın başı (konu, muhatap,
+# talep) yeterlidir; tam metin saklamak defteri şişirir ve KVKK açısından
+# gereksiz veri biriktirir (veri minimizasyonu).
+METIN_OZU_KARAKTER = 2000
+
 _TABLO_SQL = """
 CREATE TABLE IF NOT EXISTS islemler (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,9 +70,21 @@ CREATE TABLE IF NOT EXISTS islemler (
     format_skoru  REAL,
     sure_saniye   REAL,
     insan_onayi   INTEGER,
-    ozet_ilk_200  TEXT
+    ozet_ilk_200  TEXT,
+    metin_ozu     TEXT,
+    yazi_turu     TEXT
 )
 """
+
+# Şema geçişi (migration) sütunları: eski sürümle oluşturulmuş defterlerde
+# bulunmayan sütunlar bağlantı açılışında ALTER TABLE ile eklenir.
+# Gerekçe: kayıt defteri kalıcı bir denetim izidir; kurulu bir sistemdeki
+# db dosyası silinip yeniden oluşturulamaz. SQLite'ta ADD COLUMN mevcut
+# satırları NULL bırakır — veri kaybı olmadan geriye uyumlu genişleme.
+_EMSAL_SUTUNLARI = {
+    "metin_ozu": "TEXT",   # evrak metninin ilk ~2000 karakteri (emsal arama belgesi)
+    "yazi_turu": "TEXT",   # üretilen yazı taslağının türü (örn. 'cevap_yazisi')
+}
 
 
 def _guvenli_sozluk(deger: Any) -> dict:
@@ -131,6 +149,7 @@ class KayitDefteri:
         baglanti = self._baglan()
         try:
             baglanti.execute(_TABLO_SQL)
+            self._sema_gecisi(baglanti)
             baglanti.commit()
         finally:
             baglanti.close()
@@ -146,11 +165,32 @@ class KayitDefteri:
         baglanti.row_factory = sqlite3.Row
         return baglanti
 
+    @staticmethod
+    def _sema_gecisi(baglanti: sqlite3.Connection) -> None:
+        """
+        Eski şemalı defterleri yeni sütunlarla geriye uyumlu genişletir.
+
+        PRAGMA table_info ile mevcut sütunlar okunur; _EMSAL_SUTUNLARI
+        içinden eksik olanlar ALTER TABLE ... ADD COLUMN ile eklenir.
+        Eski kayıtlarda yeni sütunlar NULL kalır (emsal modülü bunu boş
+        metin olarak tolere eder); mevcut veri hiçbir biçimde değişmez.
+        """
+        mevcut = {
+            str(satir[1])
+            for satir in baglanti.execute("PRAGMA table_info(islemler)")
+        }
+        for sutun, tip in _EMSAL_SUTUNLARI.items():
+            if sutun not in mevcut:
+                # Sütun adı/tipi sabit modül sözlüğünden gelir; kullanıcı
+                # girdisi değildir (CWE-89 riski yoktur).
+                baglanti.execute(f"ALTER TABLE islemler ADD COLUMN {sutun} {tip}")
+                logger.info(f"Kayıt defteri şeması genişletildi: {sutun} {tip}")
+
     # ------------------------------------------------------------------
     # Yazma
     # ------------------------------------------------------------------
 
-    def kaydet(self, sonuc: dict) -> int:
+    def kaydet(self, sonuc: dict, metin: str = "") -> int:
         """
         Pipeline sonucunu tek satırlık denetim kaydı olarak defterine işler.
 
@@ -159,6 +199,10 @@ class KayitDefteri:
 
         Args:
             sonuc: EndToEndPipeline.process/process_text çıktısı sözlük.
+            metin: Evrakın ham metni (opsiyonel — sonuç sözlüğünde ham
+                metin bulunmadığı için ayrı parametredir). İlk
+                METIN_OZU_KARAKTER karakteri emsal arama belgesi olarak
+                saklanır; boş bırakan mevcut çağrılar aynen çalışır.
 
         Returns:
             Eklenen kaydın otomatik artan kimlik (id) değeri.
@@ -193,6 +237,8 @@ class KayitDefteri:
             _guvenli_sayi(sonuc.get("islem_suresi_saniye")),
             1 if insan_onayi.get("gerekli") is True else 0,
             str(sonuc.get("ozet") or "").strip()[:200],
+            str(metin or "").strip()[:METIN_OZU_KARAKTER],
+            str(sonuc.get("yazi_turu") or ""),
         )
 
         baglanti = self._baglan()
@@ -203,8 +249,9 @@ class KayitDefteri:
                 INSERT INTO islemler (
                     zaman, kaynak, tur, tur_guven, birim, birim_guven,
                     oncelik, son_tarih, eksik_sayisi, kritik_eksik,
-                    format_skoru, sure_saniye, insan_onayi, ozet_ilk_200
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    format_skoru, sure_saniye, insan_onayi, ozet_ilk_200,
+                    metin_ozu, yazi_turu
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 satir,
             )
@@ -276,6 +323,36 @@ class KayitDefteri:
         baglanti = self._baglan()
         try:
             satirlar = baglanti.execute(sql, parametreler).fetchall()
+        finally:
+            baglanti.close()
+        return [dict(satir) for satir in satirlar]
+
+    def tum_kayitlar_emsal_icin(self) -> "list[dict]":
+        """
+        Emsal (benzer geçmiş evrak) araması için tüm kayıtların özünü verir.
+
+        Emsal dizini defterin TAMAMI üzerinde kurulduğu için sorgula()'daki
+        sayfa limiti uygulanmaz; buna karşılık yalnızca emsal modülünün
+        gereksindiği alanlar seçilir (tam satır dönmez). Şema geçişinden
+        önce yazılmış eski kayıtlarda metin_ozu/yazi_turu NULL olabilir;
+        bunlar boş metne indirgenir ki tüketici tarafında tür denetimi
+        gerekmesin.
+
+        Returns:
+            [{id, kaynak, tur, birim, zaman, ozet_ilk_200, metin_ozu,
+              yazi_turu}, ...] — id artan sırada (eskiden yeniye).
+        """
+        baglanti = self._baglan()
+        try:
+            satirlar = baglanti.execute(
+                """
+                SELECT id, kaynak, tur, birim, zaman, ozet_ilk_200,
+                       COALESCE(metin_ozu, '') AS metin_ozu,
+                       COALESCE(yazi_turu, '') AS yazi_turu
+                FROM islemler
+                ORDER BY id
+                """
+            ).fetchall()
         finally:
             baglanti.close()
         return [dict(satir) for satir in satirlar]

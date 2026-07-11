@@ -144,7 +144,13 @@ class EndToEndPipeline:
         if not kayit or self.kayit_defteri is None:
             return
         try:
-            kayit_no = self.kayit_defteri.kaydet(results)
+            # Emsal arama (kurumsal hafıza) için evrak metninin özü de kaydedilir
+            evrak_metni = ""
+            try:
+                evrak_metni = self.orchestrator.state.raw_text or ""
+            except Exception:
+                pass
+            kayit_no = self.kayit_defteri.kaydet(results, metin=evrak_metni)
             logger.info(f"İşlem kayıt defterine işlendi (kayıt no: {kayit_no}).")
         except Exception as exc:
             logger.warning(f"Kayıt defterine yazılamadı (sonuç etkilenmez): {exc}")
