@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS islemler (
     format_skoru  REAL,
     sure_saniye   REAL,
     insan_onayi   INTEGER,
+    insan_onayi_gerekce TEXT,
     ozet_ilk_200  TEXT,
     metin_ozu     TEXT,
     yazi_turu     TEXT
@@ -81,9 +82,11 @@ CREATE TABLE IF NOT EXISTS islemler (
 # Gerekçe: kayıt defteri kalıcı bir denetim izidir; kurulu bir sistemdeki
 # db dosyası silinip yeniden oluşturulamaz. SQLite'ta ADD COLUMN mevcut
 # satırları NULL bırakır — veri kaybı olmadan geriye uyumlu genişleme.
-_EMSAL_SUTUNLARI = {
+_GECIS_SUTUNLARI = {
     "metin_ozu": "TEXT",   # evrak metninin ilk ~2000 karakteri (emsal arama belgesi)
     "yazi_turu": "TEXT",   # üretilen yazı taslağının türü (örn. 'cevap_yazisi')
+    # İnsan Onayı Kuyruğu: onay gerekçeleri ("; " ile birleştirilmiş metin)
+    "insan_onayi_gerekce": "TEXT",
 }
 
 
@@ -170,7 +173,7 @@ class KayitDefteri:
         """
         Eski şemalı defterleri yeni sütunlarla geriye uyumlu genişletir.
 
-        PRAGMA table_info ile mevcut sütunlar okunur; _EMSAL_SUTUNLARI
+        PRAGMA table_info ile mevcut sütunlar okunur; _GECIS_SUTUNLARI
         içinden eksik olanlar ALTER TABLE ... ADD COLUMN ile eklenir.
         Eski kayıtlarda yeni sütunlar NULL kalır (emsal modülü bunu boş
         metin olarak tolere eder); mevcut veri hiçbir biçimde değişmez.
@@ -179,7 +182,7 @@ class KayitDefteri:
             str(satir[1])
             for satir in baglanti.execute("PRAGMA table_info(islemler)")
         }
-        for sutun, tip in _EMSAL_SUTUNLARI.items():
+        for sutun, tip in _GECIS_SUTUNLARI.items():
             if sutun not in mevcut:
                 # Sütun adı/tipi sabit modül sözlüğünden gelir; kullanıcı
                 # girdisi değildir (CWE-89 riski yoktur).
@@ -236,6 +239,9 @@ class KayitDefteri:
             _guvenli_sayi(format_denetimi.get("skor")),
             _guvenli_sayi(sonuc.get("islem_suresi_saniye")),
             1 if insan_onayi.get("gerekli") is True else 0,
+            "; ".join(
+                str(g) for g in (insan_onayi.get("gerekceler") or [])
+            )[:1000],
             str(sonuc.get("ozet") or "").strip()[:200],
             str(metin or "").strip()[:METIN_OZU_KARAKTER],
             str(sonuc.get("yazi_turu") or ""),
@@ -249,9 +255,10 @@ class KayitDefteri:
                 INSERT INTO islemler (
                     zaman, kaynak, tur, tur_guven, birim, birim_guven,
                     oncelik, son_tarih, eksik_sayisi, kritik_eksik,
-                    format_skoru, sure_saniye, insan_onayi, ozet_ilk_200,
+                    format_skoru, sure_saniye, insan_onayi,
+                    insan_onayi_gerekce, ozet_ilk_200,
                     metin_ozu, yazi_turu
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 satir,
             )
@@ -273,6 +280,7 @@ class KayitDefteri:
         birim: Optional[str] = None,
         oncelik: Optional[str] = None,
         metin_ara: Optional[str] = None,
+        insan_onayi: Optional[bool] = None,
         limit: int = 50,
     ) -> "list[dict]":
         """
@@ -284,6 +292,8 @@ class KayitDefteri:
             oncelik: Öncelik düzeyi tam eşleşmesi (örn. 'ivedi').
             metin_ara: Özet ve kaynak alanlarında geçen serbest metin
                 (düz metin olarak aranır; joker karakterler etkisizdir).
+            insan_onayi: True → yalnızca insan onayı bekleyen kayıtlar
+                (İnsan Onayı Kuyruğu); False → onay gerektirmeyenler.
             limit: Döndürülecek azami kayıt sayısı (1..500 aralığına kırpılır).
 
         Returns:
@@ -302,6 +312,9 @@ class KayitDefteri:
         if oncelik:
             kosullar.append("oncelik = ?")
             parametreler.append(str(oncelik))
+        if insan_onayi is not None:
+            kosullar.append("insan_onayi = ?")
+            parametreler.append(1 if insan_onayi else 0)
         if metin_ara:
             kosullar.append(
                 "(ozet_ilk_200 LIKE ? ESCAPE '\\' OR kaynak LIKE ? ESCAPE '\\')"

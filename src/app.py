@@ -1036,7 +1036,10 @@ def _bolum_kvkk_nushasi(sonuc: dict, key_prefix: str) -> None:
     if not maskeli_metin and not rapor:
         return
 
-    with st.expander("🔒 KVKK Paylaşım Nüshası"):
+    # KVKK ilkesi (P0-5): ANONİM nüsha VARSAYILAN görünümdür; ham metin
+    # yalnızca bilinçli tıklamayla, uyarı eşliğinde açılır. "LLM'e giden
+    # metin varsayılan olarak anonim nüshadır" anlatısının UI karşılığı.
+    with st.expander("🔒 KVKK Paylaşım Nüshası (varsayılan görünüm)", expanded=True):
         st.caption(
             "Kişisel veriler maskelenmiş paylaşım nüshası — evrakın kurum "
             "dışıyla veya yetkisiz birimlerle paylaşımında bu nüsha kullanılır."
@@ -1057,6 +1060,16 @@ def _bolum_kvkk_nushasi(sonuc: dict, key_prefix: str) -> None:
                 mime="text/plain",
                 key=f"{key_prefix}_kvkk_indir",
             )
+
+    ham_metin = str(sonuc.get("_ham_metin") or "").strip()
+    if ham_metin:
+        with st.expander("🔓 Ham nüshayı göster (bilinçli erişim)", expanded=False):
+            st.warning(
+                "Bu nüsha maskelenmemiş kişisel veriler içerebilir; yalnızca "
+                "yetkiniz dahilindeki işlemler için görüntüleyin (KVKK m.12 "
+                "veri güvenliği yükümlülüğü)."
+            )
+            st.code(ham_metin, language=None)
 
 
 def _bolum_eyazisma_ustveri(sonuc: dict, key_prefix: str) -> None:
@@ -1563,6 +1576,111 @@ def _sekme_kokpit(pipeline: Any) -> None:
             st.caption(f"İlişki zinciri analizi yapılamadı: {exc}")
 
 
+def _sekme_insan_onayi(pipeline: Any) -> None:
+    """
+    Sekme: İnsan Onayı Kuyruğu — düşük güvenli / kısıtlı kararların
+    insan-döngüde (human-in-the-loop) gözden geçirme noktası (P0-5).
+
+    Kayıt defterinden insan onayı bekleyen işlemler listelenir; kullanıcı
+    kararı ONAYLAR veya doğru tür/birimi seçerek DÜZELTİR. Her iki aksiyon
+    da geri bildirim döngüsüne (geri_bildirim.jsonl) yazılır ve kural
+    kalibrasyonu önerilerine girdi sağlar. Sistem çıktıları "öneri"dir;
+    nihai karar sorumluluğu insandadır (KVKK ÜYZ Rehberi ile hizalı).
+    """
+    st.subheader("✋ İnsan Onayı Kuyruğu")
+    st.caption(
+        "Düşük güvenli sınıflandırma/yönlendirme kararları ve gizlilik "
+        "dereceli evraklar burada insan onayına düşer; sistem yalnızca "
+        "ÖNERİ üretir, nihai karar insandadır."
+    )
+
+    defter = getattr(pipeline, "kayit_defteri", None)
+    if defter is None:
+        st.info("Kayıt defteri kapalı olduğundan onay kuyruğu kullanılamıyor.")
+        return
+
+    try:
+        kayitlar = defter.sorgula(insan_onayi=True, limit=100)
+    except Exception as exc:  # kuyruk hiçbir koşulda uygulamayı düşürmesin
+        st.warning(f"Onay kuyruğu okunamadı: {exc}")
+        return
+
+    islenenler: set = st.session_state.setdefault("onay_islenenler", set())
+    bekleyenler = [k for k in kayitlar if k.get("id") not in islenenler]
+
+    ust1, ust2 = st.columns(2)
+    ust1.metric("Bekleyen kayıt", len(bekleyenler))
+    ust2.metric("Bu oturumda işlenen", len(islenenler))
+
+    if not bekleyenler:
+        st.success("Onay bekleyen kayıt yok. 👍")
+        return
+
+    tur_secenekleri = list(EVRAK_TUR_ADLARI.keys())
+    birimler = _birim_secenekleri()
+
+    for kayit in bekleyenler:
+        kayit_no = kayit.get("id")
+        baslik = (
+            f"#{kayit_no} · {Path(str(kayit.get('kaynak') or '?')).name} · "
+            f"tür: {kayit.get('tur') or '?'} · birim: {kayit.get('birim') or '?'}"
+        )
+        with st.expander(baslik, expanded=False):
+            gerekce = str(kayit.get("insan_onayi_gerekce") or "").strip()
+            if gerekce:
+                st.markdown(f"**Onay gerekçesi:** {gerekce}")
+            else:
+                st.caption(
+                    "Gerekçe kaydı yok (eski sürümle kaydedilmiş olabilir); "
+                    "düşük güven veya gizlilik kısıtı nedeniyle işaretlenmiştir."
+                )
+            ozet = str(kayit.get("ozet_ilk_200") or "").strip()
+            if ozet:
+                st.markdown(f"_Özet:_ {ozet}")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("✅ Kararı Onayla", key=f"onay_{kayit_no}"):
+                    _geri_bildirim_kaydet({
+                        "zaman": datetime.now().isoformat(timespec="seconds"),
+                        "aksiyon": "onaylandi",
+                        "kayit_no": kayit_no,
+                        "dosya": str(kayit.get("kaynak") or ""),
+                        "tahmin_tur": str(kayit.get("tur") or ""),
+                        "tahmin_birim": str(kayit.get("birim") or ""),
+                        "gerekce": gerekce,
+                    })
+                    islenenler.add(kayit_no)
+                    st.success("Karar onaylandı ve geri bildirim döngüsüne yazıldı.")
+                    st.rerun()
+            with col2:
+                dogru_tur = st.selectbox(
+                    "Doğru tür", tur_secenekleri,
+                    format_func=lambda k: EVRAK_TUR_ADLARI.get(k, k),
+                    key=f"onay_tur_{kayit_no}",
+                )
+                dogru_birim = st.selectbox(
+                    "Doğru birim", list(birimler.keys()),
+                    format_func=lambda k: birimler.get(k, k),
+                    key=f"onay_birim_{kayit_no}",
+                )
+                if st.button("✍️ Düzelterek Kaydet", key=f"duzelt_{kayit_no}"):
+                    _geri_bildirim_kaydet({
+                        "zaman": datetime.now().isoformat(timespec="seconds"),
+                        "aksiyon": "duzeltildi",
+                        "kayit_no": kayit_no,
+                        "dosya": str(kayit.get("kaynak") or ""),
+                        "tahmin_tur": str(kayit.get("tur") or ""),
+                        "dogru_tur": dogru_tur,
+                        "tahmin_birim": str(kayit.get("birim") or ""),
+                        "dogru_birim": dogru_birim,
+                        "gerekce": gerekce,
+                    })
+                    islenenler.add(kayit_no)
+                    st.success("Düzeltme geri bildirim döngüsüne yazıldı.")
+                    st.rerun()
+
+
 def _sekme_kayit_defteri(pipeline: Any) -> None:
     """
     Sekme: Kayıt Defteri — işlenen evrakların SQLite denetim izi.
@@ -1881,8 +1999,9 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Sekmeler
     # ------------------------------------------------------------------
-    sekme1, sekme2, sekme3, sekme4, sekme5 = st.tabs(
-        ["📄 Evrak İşle", "🎬 Demo Evrakları", "📊 Kurum Kokpiti", "🗂️ Kayıt Defteri", "ℹ️ Hakkında"]
+    sekme1, sekme2, sekme3, sekme4, sekme5, sekme6 = st.tabs(
+        ["📄 Evrak İşle", "🎬 Demo Evrakları", "📊 Kurum Kokpiti",
+         "✋ İnsan Onayı Kuyruğu", "🗂️ Kayıt Defteri", "ℹ️ Hakkında"]
     )
 
     with sekme1:
@@ -1895,9 +2014,12 @@ def main() -> None:
         _sekme_kokpit(pipeline)
 
     with sekme4:
-        _sekme_kayit_defteri(pipeline)
+        _sekme_insan_onayi(pipeline)
 
     with sekme5:
+        _sekme_kayit_defteri(pipeline)
+
+    with sekme6:
         _sekme_hakkinda()
 
 

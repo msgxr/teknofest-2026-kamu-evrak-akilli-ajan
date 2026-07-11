@@ -314,3 +314,55 @@ class TestIslemRaporu:
         ))
         assert "<script>" not in rapor
         assert "&lt;script&gt;" in rapor
+
+
+class TestInsanOnayiKuyrugu:
+    """İnsan Onayı Kuyruğu için gerekçe sütunu ve filtre testleri (P0-5)."""
+
+    def test_gerekce_kaydedilir(self, tmp_path):
+        """insan_onayi.gerekceler '; ' ile birleştirilip saklanmalı."""
+        defter = KayitDefteri(tmp_path / "defter.db")
+        defter.kaydet(_ornek_sonuc(insan_onayi={
+            "gerekli": True,
+            "gerekceler": ["Sınıflandırma güveni düşük (0.45)",
+                           "Gizlilik dereceli evrak (Yön. m.25)"],
+        }))
+        kayit = defter.sorgula(limit=1)[0]
+        assert kayit["insan_onayi"] == 1
+        assert "0.45" in kayit["insan_onayi_gerekce"]
+        assert "m.25" in kayit["insan_onayi_gerekce"]
+
+    def test_insan_onayi_filtresi(self, tmp_path):
+        """sorgula(insan_onayi=True) yalnızca onay bekleyenleri döndürmeli."""
+        defter = KayitDefteri(tmp_path / "defter.db")
+        defter.kaydet(_ornek_sonuc())  # gerekli=False
+        defter.kaydet(_ornek_sonuc(insan_onayi={
+            "gerekli": True, "gerekceler": ["düşük güven"],
+        }))
+        bekleyen = defter.sorgula(insan_onayi=True)
+        digerleri = defter.sorgula(insan_onayi=False)
+        assert len(bekleyen) == 1 and bekleyen[0]["insan_onayi"] == 1
+        assert len(digerleri) == 1 and digerleri[0]["insan_onayi"] == 0
+
+    def test_eski_semadan_gecis(self, tmp_path):
+        """Gerekçe sütunu olmayan eski defter açılışta genişletilmeli."""
+        import sqlite3
+
+        yol = tmp_path / "eski.db"
+        baglanti = sqlite3.connect(yol)
+        baglanti.execute(
+            "CREATE TABLE islemler (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "zaman TEXT NOT NULL, kaynak TEXT, tur TEXT, tur_guven REAL, "
+            "birim TEXT, birim_guven REAL, oncelik TEXT, son_tarih TEXT, "
+            "eksik_sayisi INTEGER, kritik_eksik INTEGER, format_skoru REAL, "
+            "sure_saniye REAL, insan_onayi INTEGER, ozet_ilk_200 TEXT)"
+        )
+        baglanti.commit()
+        baglanti.close()
+
+        defter = KayitDefteri(yol)
+        defter.kaydet(_ornek_sonuc(insan_onayi={
+            "gerekli": True, "gerekceler": ["göç testi"],
+        }))
+        kayit = defter.sorgula(insan_onayi=True, limit=1)[0]
+        assert kayit["insan_onayi_gerekce"] == "göç testi"

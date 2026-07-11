@@ -14,6 +14,19 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **İnsan Onayı Kuyruğu + KVKK varsayılan anonim görünüm (P0-5, şartname izi: yenilik/HITL):**
+  - Streamlit'e "✋ İnsan Onayı Kuyruğu" sekmesi: düşük güvenli /
+    gizlilik-kısıtlı kararlar kayıt defterinden gerekçeleriyle listelenir;
+    **Onayla** veya **Düzelterek Kaydet** aksiyonları geri bildirim
+    döngüsüne (`geri_bildirim.jsonl`, `aksiyon: onaylandi|duzeltildi`)
+    yazılır — nihai karar insandadır (KVKK ÜYZ Rehberi ile hizalı).
+  - Kayıt defteri şeması genişletildi: `insan_onayi_gerekce` sütunu
+    (geriye uyumlu ALTER TABLE geçişiyle) + `sorgula(insan_onayi=...)`
+    filtresi.
+  - KVKK paylaşım nüshası artık **varsayılan görünüm** (açık expander);
+    ham nüsha yalnızca "bilinçli erişim" expander'ı arkasında, KVKK m.12
+    uyarısıyla gösterilir.
+  - 3 yeni test (gerekçe saklama, filtre, eski şemadan geçiş); toplam 304/304.
 - **Triyaj yasal-süre motoru sertifikasyonu (P0-4, şartname izi: yenilik/G1 destek):**
   - İş günü hesabına **sabit tarihli ulusal resmî tatiller** eklendi (2429
     sayılı Kanun: 1 Oca, 23 Nis, 1 May, 19 May, 15 Tem, 30 Ağu, 29 Eki);
