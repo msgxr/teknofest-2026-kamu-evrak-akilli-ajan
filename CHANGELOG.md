@@ -14,6 +14,18 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Demo Senaryosu 2.0 (P1-9, şartname izi: Demo-15):**
+  4 sahneli jüri gösterimi (`demo/demo_scenario.py`): (1) dilekçe →
+  cevap taslağı; (2) İVEDİ üst yazı → triyaj + yönlendirme (evrak
+  çalışma anında bugünün tarihiyle üretilir — kalan-gün hesabı canlı
+  kalır); (3) taranmış/gürültülü görüntü → OCR hattı (Pillow ile
+  çalışma anında üretilir; OCR yığını yoksa dürüst bildirimle atlanır);
+  (4) **"İNTERNETİ KES"** — tüm ağ soketleri programatik engellenirken
+  aynı evrak yeniden işlenir (offline-first kanıtı, m.8 yedek plan
+  tavsiyesinin cevabı). `--kayit` bayrağı konsol dökümünü dosyaya
+  kaydeder (kayıt yedeği); demo sonunda ≤240 sn süre provası raporlanır.
+  Sonuç panellerine madde-dayanaklı format denetimi, mevzuat madde
+  etiketi+gerekçesi ve taslak kalite hakemi eklendi.
 - **Adversarial tutulmuş set v3 + hata analizi (P1-7, şartname izi: Uygulama-35/veri çeşitliliği):**
   - 16 zorlayıcı kurgu evrak (dördüncü kurgu evren "Puslupınar/Kavakdüzü";
     8 tür × 2; 9 birimin tamamı hedef): bozuk sayı bloğu, kopuk İlgi

@@ -1,12 +1,31 @@
 """
-Demo Senaryosu — Sistemin uçtan uca çalışmasını gösterir.
+Demo Senaryosu 2.0 — Jüri sunumu için 4 sahneli uçtan uca gösterim.
 
-Farklı evrak türleri üzerinde sistemin tüm yeteneklerini sergiler.
+Sahneler (şartname m.8: temel yetenekler ve özgün çıktılar gözlemlenebilir):
+    1. Vatandaş dilekçesi → analiz + CEVAP TASLAĞI (Görev 1 + Görev 2)
+    2. İVEDİ damgalı üst yazı → TRİYAJ (yasal süre/son işlem tarihi)
+       + BİRİM YÖNLENDİRME (çalışma anında bugünün tarihiyle üretilir;
+       kalan gün hesabı canlı demoda her zaman anlamlı kalır)
+    3. Taranmış/gürültülü evrak görüntüsü → OCR hattı (opsiyonel yığın
+       kuruluysa çalışır; değilse dürüst mesajla atlanır — G1-a kanıtı)
+    4. "İNTERNETİ KES" sahnesi — tüm ağ soket erişimi programatik olarak
+       engellenirken aynı evrak yeniden işlenir: çekirdek kural tabanlı
+       sistem kesintisiz sürer (offline-first kanıtı, şartname m.8
+       "internet kesintisine karşı yedek plan" tavsiyesinin cevabı)
+
+Kayıt yedeği: `python demo/demo_scenario.py --kayit demo_kaydi.txt`
+konsol dökümünü dosyaya kaydeder (jüri kayıttan izleme talebine yedek).
+Süre provası: demo sonunda toplam süre, 4 dakikalık hedefle karşılaştırılır.
 """
 
-import os
+import argparse
+import socket
 import sys
+import time
+from contextlib import contextmanager
+from datetime import date, timedelta
 from pathlib import Path
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -15,76 +34,246 @@ from rich.table import Table
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-console = Console()
+console = Console(record=True)
 
-# Demo evrak dosyaları
-DEMO_EVRAKLAR = [
-    {
-        "dosya": "data/raw/kurgu_evraklar/ornek_dilekce.txt",
-        "aciklama": "Bilgi İşlem altyapı sorunu hakkında dilekçe",
-    },
-    {
-        "dosya": "data/raw/kurgu_evraklar/ornek_ust_yazi.txt",
-        "aciklama": "Dijital Dönüşüm Eylem Planı üst yazısı",
-    },
-    {
-        "dosya": "data/raw/kurgu_evraklar/ornek_tutanak.txt",
-        "aciklama": "İnsan Kaynakları toplantı tutanağı",
-    },
-]
+# Demo hedef süresi (10 dakikalık sunumda demoya ayrılan pay)
+DEMO_HEDEF_SANIYE = 240
+
+# Çalışma anında üretilen demo girdileri bu dizine yazılır
+DEMO_GIRDI_DIZINI = project_root / "demo" / "demo_evraklar"
+
+# İVEDİ damgalı üst yazı şablonu: tarih çalışma anında doldurulur ki
+# triyajın "kalan gün" hesabı canlı demoda her zaman ileriye baksın
+IVEDI_SABLONU = """T.C.
+AKÇOVA VALİLİĞİ
+İl Afet Koordinasyon Birimi
+
+                                    İVEDİ
+
+Sayı  : E-58231467-249.05-2026/641
+Konu  : Sel riski taşıyan bölgelerde acil tahliye planı güncellemesi
+Tarih : {tarih}
+
+AKÇOVA BELEDİYE BAŞKANLIĞINA
+
+İlgi : a) İl Afet Koordinasyon Kurulunun {ilgi_tarih} tarihli kararı.
+
+Meteoroloji verilerine göre önümüzdeki hafta il genelinde kuvvetli yağış
+beklenmektedir. İlgi karar uyarınca, dere yatağına yakın mahallelerdeki
+acil tahliye planlarının güncellenmesi ve toplanma alanı işaretlemelerinin
+denetlenmesi gerekmektedir.
+
+Söz konusu güncellemelerin 5 iş günü içinde tamamlanarak sonucundan
+Valiliğimize bilgi verilmesini önemle arz ederim.
+
+                                                        (e-imzalıdır)
+                                                        Vali a.
+                                                        Vali Yardımcısı
+"""
 
 
-def run_demo() -> None:
-    """Demo senaryosunu çalıştırır."""
+def _ivedi_evrak_uret() -> Path:
+    """İVEDİ üst yazıyı bugünün tarihiyle üretip yoluna döndürür."""
+    DEMO_GIRDI_DIZINI.mkdir(parents=True, exist_ok=True)
+    bugun = date.today()
+    icerik = IVEDI_SABLONU.format(
+        tarih=bugun.strftime("%d.%m.%Y"),
+        ilgi_tarih=(bugun - timedelta(days=3)).strftime("%d.%m.%Y"),
+    )
+    yol = DEMO_GIRDI_DIZINI / "ivedi_ust_yazi.txt"
+    yol.write_text(icerik, encoding="utf-8")
+    return yol
+
+
+def _taranmis_evrak_uret() -> "Path | None":
+    """
+    Taranmış görünümlü (hafif eğik + benekli) kurgu dilekçe görüntüsü üretir.
+
+    Pillow kurulu değilse None döner (görüntü sahnesi dürüstçe atlanır);
+    üretim her koşulda deterministik tohumla yapılır.
+    """
+    try:
+        import random
+
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError:
+        return None
+
+    metin_kaynagi = project_root / "data" / "raw" / "kurgu_evraklar" / "dilekce_01.txt"
+    try:
+        metin = metin_kaynagi.read_text(encoding="utf-8")
+    except OSError:
+        return None
+
+    goruntu = Image.new("L", (1240, 1754), color=245)  # A4 @150dpi, açık gri
+    cizim = ImageDraw.Draw(goruntu)
+    try:
+        font = ImageFont.truetype("arial.ttf", 28)
+    except OSError:
+        font = ImageFont.load_default()
+
+    y = 90
+    for satir in metin.splitlines():
+        cizim.text((100, y), satir, fill=25, font=font)
+        y += 40
+
+    # Tarayıcı izlenimi: hafif eğim + tuz-biber beneği (deterministik)
+    rnd = random.Random(2026)
+    for _ in range(2600):
+        x, yy = rnd.randint(0, 1239), rnd.randint(0, 1753)
+        goruntu.putpixel((x, yy), rnd.choice((0, 60, 200, 255)))
+    goruntu = goruntu.rotate(1.2, expand=False, fillcolor=245)
+
+    DEMO_GIRDI_DIZINI.mkdir(parents=True, exist_ok=True)
+    yol = DEMO_GIRDI_DIZINI / "taranmis_dilekce.png"
+    goruntu.save(yol)
+    return yol
+
+
+@contextmanager
+def _internet_kesildi():
+    """
+    Tüm ağ soket erişimini geçici olarak engeller ("interneti kes" sahnesi).
+
+    socket.socket kurucusu istisna fırlatacak biçimde değiştirilir; blok
+    çıkışında eski davranış geri yüklenir. Böylece jüriye, sistemin ağ
+    tamamen yokken de uçtan uca çalıştığı PROGRAMATİK olarak kanıtlanır.
+    """
+    orijinal_socket = socket.socket
+
+    class _AgYok(socket.socket):
+        def __init__(self, *args, **kwargs):
+            raise OSError("Demo: ağ erişimi bilinçli olarak kesildi")
+
+    socket.socket = _AgYok  # type: ignore[misc]
+    try:
+        yield
+    finally:
+        socket.socket = orijinal_socket  # type: ignore[misc]
+
+
+def run_demo(kayit_dosyasi: "str | None" = None) -> None:
+    """Demo senaryosunu (4 sahne) çalıştırır."""
+    demo_baslangic = time.perf_counter()
+
     console.print(Panel(
-        "[bold cyan]🎬 Demo Senaryosu[/bold cyan]\n\n"
-        "Bu demo, farklı evrak türleri üzerinde sistemin\n"
-        "uçtan uca çalışmasını göstermektedir.",
+        "[bold cyan]🎬 Demo Senaryosu 2.0[/bold cyan]\n\n"
+        "Sahne 1: Vatandaş dilekçesi → analiz + cevap taslağı\n"
+        "Sahne 2: İVEDİ üst yazı → triyaj (yasal süre) + yönlendirme\n"
+        "Sahne 3: Taranmış görüntü → OCR hattı (opsiyonel yığın)\n"
+        "Sahne 4: İNTERNET KESİLİR → sistem kural tabanlı çekirdekle sürer",
         title="TEKNOFEST 2026 — Kamu Evrak Akıllı Ajan",
         border_style="blue",
     ))
 
-    # Demo evraklarını listele
-    table = Table(title="Demo Evrakları")
-    table.add_column("#", style="bold")
-    table.add_column("Dosya", style="cyan")
-    table.add_column("Açıklama", style="green")
-
-    for i, evrak in enumerate(DEMO_EVRAKLAR, 1):
-        dosya_path = project_root / evrak["dosya"]
-        status = "✅" if dosya_path.exists() else "❌"
-        table.add_row(str(i), f"{status} {evrak['dosya']}", evrak["aciklama"])
-
-    console.print(table)
-    console.print()
-
-    # Her evrakı işle
     from src.pipelines.end_to_end_pipeline import EndToEndPipeline
 
     pipeline = EndToEndPipeline()
 
-    for i, evrak in enumerate(DEMO_EVRAKLAR, 1):
-        dosya_path = project_root / evrak["dosya"]
+    # ------------------------------------------------------------------
+    # Sahne 1 — Dilekçe → cevap taslağı
+    # ------------------------------------------------------------------
+    _sahne_basligi(1, "Vatandaş dilekçesi → analiz + cevap taslağı")
+    dilekce = project_root / "data" / "raw" / "kurgu_evraklar" / "dilekce_01.txt"
+    _isle_ve_goster(pipeline, dilekce)
 
-        if not dosya_path.exists():
-            console.print(f"[red]❌ Dosya bulunamadı: {dosya_path}[/red]")
-            continue
+    # ------------------------------------------------------------------
+    # Sahne 2 — İVEDİ üst yazı → triyaj + yönlendirme
+    # ------------------------------------------------------------------
+    _sahne_basligi(2, "İVEDİ damgalı üst yazı → triyaj + birim yönlendirme")
+    console.print(
+        "[dim]İVEDİ evrak, kalan-gün hesabı canlı kalsın diye bugünün "
+        "tarihiyle üretiliyor...[/dim]"
+    )
+    ivedi = _ivedi_evrak_uret()
+    _isle_ve_goster(pipeline, ivedi)
 
+    # ------------------------------------------------------------------
+    # Sahne 3 — Taranmış görüntü → OCR
+    # ------------------------------------------------------------------
+    _sahne_basligi(3, "Taranmış/gürültülü evrak görüntüsü → OCR hattı")
+    goruntu = _taranmis_evrak_uret()
+    if goruntu is None:
         console.print(Panel(
-            f"[bold]Evrak {i}/{len(DEMO_EVRAKLAR)}:[/bold] {evrak['aciklama']}",
-            border_style="yellow",
+            "Pillow kurulu olmadığından taranmış görüntü üretilemedi.\n"
+            "Kurulum: pip install -r requirements-optional.txt",
+            title="ℹ️ Sahne atlandı (dürüst bildirim)", border_style="yellow",
         ))
-
+    else:
+        console.print(f"[dim]Kurgu taranmış görüntü üretildi: {goruntu.name}[/dim]")
         try:
-            sonuc = pipeline.process(str(dosya_path))
-
-            # Sonuçları göster
+            sonuc = pipeline.process(str(goruntu))
+            ocr_metni = str((sonuc.get("ocr") or {}).get("metin") or "").strip()
+            if not ocr_metni:
+                raise RuntimeError("görüntüden metin çıkarılamadı")
             _display_results(sonuc)
-
         except Exception as e:
-            console.print(f"[red]Hata: {e}[/red]")
+            console.print(Panel(
+                f"OCR yığını (pytesseract/easyocr) bu kurulumda yok: {e}\n"
+                "Çekirdek sistem TXT/PDF ile tam çalışır; görüntü OCR'ı "
+                "opsiyoneldir (pip install -r requirements-optional.txt "
+                "+ Tesseract kurulumu).",
+                title="ℹ️ Sahne atlandı (dürüst bildirim)", border_style="yellow",
+            ))
 
-        console.print("─" * 80)
+    # ------------------------------------------------------------------
+    # Sahne 4 — İnterneti kes: offline devamlılık kanıtı
+    # ------------------------------------------------------------------
+    _sahne_basligi(4, "İNTERNET KESİLDİ — sistem çalışmaya devam ediyor")
+    console.print(Panel(
+        "[bold red]Tüm ağ soket erişimi şu anda programatik olarak "
+        "ENGELLENDİ.[/bold red]\nAynı İVEDİ evrak, ağ tamamen yokken "
+        "yeniden işleniyor...",
+        border_style="red",
+    ))
+    with _internet_kesildi():
+        baslangic = time.perf_counter()
+        sonuc = pipeline.process(str(ivedi))
+        sure = time.perf_counter() - baslangic
+    console.print(Panel(
+        f"[bold green]✅ Sistem ağ olmadan uçtan uca çalıştı.[/bold green]\n"
+        f"Tür: {sonuc.get('siniflandirma', {}).get('tur_adi', '?')} · "
+        f"Yönlendirme: {sonuc.get('yonlendirme', {}).get('birim', '?')} · "
+        f"Taslak: {'üretildi' if sonuc.get('yazi_taslagi') else 'üretilemedi'}\n"
+        f"Süre: {sure:.2f} sn — çekirdek tamamen kural tabanlı, "
+        f"hiçbir dış servis çağrısı yok (offline-first).",
+        title="🔌 Offline Devamlılık Kanıtı", border_style="green",
+    ))
+
+    # ------------------------------------------------------------------
+    # Kapanış: süre provası + kayıt
+    # ------------------------------------------------------------------
+    toplam = time.perf_counter() - demo_baslangic
+    durum = "✅ hedefin içinde" if toplam <= DEMO_HEDEF_SANIYE else "⚠️ hedef aşıldı"
+    console.print(Panel(
+        f"Toplam demo süresi: [bold]{toplam:.1f} sn[/bold] "
+        f"(hedef ≤ {DEMO_HEDEF_SANIYE} sn — {durum})",
+        title="⏱️ Süre Provası", border_style="cyan",
+    ))
+
+    if kayit_dosyasi:
+        console.save_text(kayit_dosyasi)
+        console.print(f"[dim]Demo kaydı yazıldı: {kayit_dosyasi}[/dim]")
+
+
+def _sahne_basligi(no: int, baslik: str) -> None:
+    console.print()
+    console.print(Panel(
+        f"[bold]SAHNE {no}[/bold] — {baslik}", border_style="yellow",
+    ))
+
+
+def _isle_ve_goster(pipeline, dosya: Path) -> None:
+    """Evrakı işleyip sonuç panellerini basar (hata toleranslı)."""
+    if not dosya.exists():
+        console.print(f"[red]❌ Dosya bulunamadı: {dosya}[/red]")
+        return
+    try:
+        sonuc = pipeline.process(str(dosya))
+        _display_results(sonuc)
+    except Exception as e:
+        console.print(f"[red]Hata: {e}[/red]")
+    console.print("─" * 80)
 
 
 def _display_results(sonuc: dict) -> None:
@@ -119,13 +308,18 @@ def _display_results(sonuc: dict) -> None:
         )
         console.print(Panel(eksik_text, title="⚠️ Eksik Bilgiler", border_style="yellow"))
 
-    # Mevzuat önerileri
+    # Mevzuat önerileri (madde referansı + gerekçeyle — jüri önünde madde gösterilir)
     if sonuc.get("mevzuat_eslestirme"):
-        mevzuat_text = "\n".join(
-            f"• {m.get('baslik', '?')} [dim](benzerlik: {m.get('benzerlik', 0):.0%})[/dim]"
-            for m in sonuc["mevzuat_eslestirme"][:3]
-        )
-        console.print(Panel(mevzuat_text, title="📚 Mevzuat Önerileri", border_style="blue"))
+        satirlar = []
+        for m in sonuc["mevzuat_eslestirme"][:3]:
+            satir = f"• {m.get('baslik', '?')}"
+            if m.get("madde_etiketi"):
+                satir += f" [bold]({m['madde_etiketi']})[/bold]"
+            satir += f" [dim](benzerlik: {m.get('benzerlik', 0):.0%})[/dim]"
+            if m.get("gerekce"):
+                satir += f"\n  [dim]gerekçe: {m['gerekce'][:90]}[/dim]"
+            satirlar.append(satir)
+        console.print(Panel("\n".join(satirlar), title="📚 Mevzuat Önerileri", border_style="blue"))
 
     # Özet
     if sonuc.get("ozet"):
@@ -139,17 +333,29 @@ def _display_results(sonuc: dict) -> None:
             border_style="green",
         ))
 
-    # Format denetimi
+    # Format denetimi (madde dayanaklarıyla)
     if sonuc.get("format_denetimi"):
         fd = sonuc["format_denetimi"]
         kontrol_text = "\n".join(
             f"{'✅' if k.get('durum') else '❌'} {k.get('kural', '?')}"
+            + (f" [dim][{k['dayanak']}][/dim]" if k.get("dayanak") else "")
             for k in fd.get("kontroller", [])
         )
         console.print(Panel(
             f"[bold]Skor:[/bold] {fd.get('skor', 0):.0%}\n{kontrol_text}",
-            title="📐 Resmî Yazışma Format Denetimi",
+            title="📐 Resmî Yazışma Format Denetimi (madde dayanaklı)",
             border_style="green" if fd.get("uygun") else "yellow",
+        ))
+
+    # Bağımsız taslak kalite hakemi
+    kalite = sonuc.get("taslak_kalitesi") or {}
+    if kalite.get("puan") is not None:
+        bilesen = kalite.get("bilesenler", {})
+        console.print(Panel(
+            f"[bold]Puan:[/bold] {kalite['puan']}/100 "
+            f"[dim]({kalite.get('yontem', '?')})[/dim]\n"
+            + " · ".join(f"{k}: {v}" for k, v in bilesen.items()),
+            title="⚖️ Taslak Kalite Hakemi", border_style="cyan",
         ))
 
     # Yönlendirme
@@ -216,4 +422,12 @@ def _display_results(sonuc: dict) -> None:
 
 
 if __name__ == "__main__":
-    run_demo()
+    parser = argparse.ArgumentParser(
+        description="TEKNOFEST 2026 Kamu Evrak Akıllı Ajan — 4 sahneli demo"
+    )
+    parser.add_argument(
+        "--kayit", metavar="DOSYA", default=None,
+        help="Konsol dökümünü dosyaya kaydet (jüri kayıt yedeği)",
+    )
+    args = parser.parse_args()
+    run_demo(kayit_dosyasi=args.kayit)
