@@ -13,10 +13,11 @@ Skorlama tasarımı:
     - Muhatap (hitap satırı) içinde birim adı geçiyorsa güçlü bonus; metinde
       (kurum_adlari) yalnızca adı geçen birimlere zayıf bonus uygulanır —
       resmî bir evrakta adı geçen her birim evrakın muhatabı değildir.
-    - Evrak türü bonusları eklenir. Makam oluru/onaylı belge üst yönetim
-      yetkisinde sonuçlandığı için genel müdürlük bonusu belirgin şekilde
-      güçlüdür; ancak çok güçlü içerik sinyali (örn. ihale onay belgesi →
-      satınalma birimi) bunu aşabilir.
+    - Evrak türü bonusları eklenir. Makam oluru/onaylı belgede genel
+      müdürlük bonusu, en yüksek içerik skoruna ORANTILI hesaplanır
+      (karar mercii ile işi yürüten birim ayrımı): içerik sinyali zayıfsa
+      üst yönetim önde kalır, baskın konu sinyali (örn. ihale onay
+      belgesi → satınalma, stratejik plan oluru → strateji) kazanabilir.
     - Güven, en iyi skorun ilk iki skorun toplamına oranı (ayrışma) ile
       sinyal kapsamının birleşiminden hesaplanır.
     - İki birim skoru çok yakınsa (fark < %15) ve LLM varsa nihai karar
@@ -28,6 +29,8 @@ from __future__ import annotations
 import logging
 import re
 from typing import TYPE_CHECKING, Optional
+
+from src.utils.turkish_nlp import TR_KUCUK_HARF_SINIFI, govde_desen
 
 if TYPE_CHECKING:
     from src.agents.orchestrator import AgentState
@@ -168,23 +171,35 @@ BIRIMLER = {
     },
 }
 
-# Evrak türüne göre birim bonusları.
-# onayli_belge → genel_mudurluk bonusu bilinçli olarak güçlüdür: makam
-# oluru/onaylı belge, niteliği gereği üst yönetimin (makamın) karar
-# yetkisinde sonuçlanan evraktır; içerik hangi konuda olursa olsun karar
-# mercii üst yönetimdir. Yalnızca çok baskın içerik sinyali (örn. ihale
-# onay belgesi → satınalma birimi) bu önceliği aşabilmelidir.
+# Evrak türüne göre sabit birim bonusları.
 # genelge bonusu düşüktür: genelgeyi üst yönetim yayımlar ama evrak,
 # konusunu yürüten birime yönlendirilir.
+# onayli_belge → genel_mudurluk bonusu bu tabloda DEĞİLDİR; içerik
+# skoruna orantılı hesaplanır (bkz. ONAYLI_BELGE_BONUS_ORANI).
 TUR_BONUSLARI = {
     ("dilekce", "basin_halkla_iliskiler"): 2.0,
     ("dilekce", "yazi_isleri"): 1.0,
     ("tutanak", "hukuk"): 1.5,
     ("rapor", "strateji"): 1.5,
     ("genelge", "genel_mudurluk"): 1.0,
-    ("onayli_belge", "genel_mudurluk"): 5.0,
     ("ust_yazi", "yazi_isleri"): 0.5,
 }
+
+# Onaylı belge (makam oluru) bonusu — İLKE: makam oluru, KARAR MERCİİ
+# (üst yönetim) ile İŞİ YÜRÜTEN birimi ayırır. Olur kalıpları
+# ("olurlarınıza arz ederim", "Onaylayan", "uygun görüşle") HER makam
+# olurunda bulunur; bunlar evrakın türünü gösterir, konuyu yürüten
+# birimi göstermez. Bu yüzden genel müdürlük bonusu sabit bir değer
+# yerine evraktaki EN YÜKSEK içerik skoruna orantılı verilir:
+#     bonus = ORAN × max(içerik skorları)
+# Böylece karar akışı şuna indirgenir: bir birimin konu sinyali, üst
+# yönetimin karar-mercii sinyalinin yaklaşık 1/(1-ORAN) katını (0.4 için
+# ~1.7x) aşıyorsa evrak işi yürüten birime havale edilir (örn. ihale
+# onay belgesi → satınalma, stratejik plan oluru → strateji); konu
+# sinyali zayıf kaldığında ise bonus üst yönetimi önde tutar. Sabit
+# bonus (+5) güçlü konu sinyalini körlemesine bastırıyordu; orantılı
+# bonus içerikten bağımsız bir tavan koymaz.
+ONAYLI_BELGE_BONUS_ORANI = 0.4
 
 # Tam sözcük eşleşmesi gerektiren kısa kökler: bu sözcükler başka anlamdaki
 # köklerin ÖNEKİ olduğu için ek çekimine izin verilmez. Örn. "mali"
@@ -202,7 +217,7 @@ def _tr_lower(text: str) -> str:
 
 
 # Türkçe küçük harf kümesi (_tr_lower sonrası metin için)
-_TR_HARF = "a-zçğıöşüâîû"
+_TR_HARF = TR_KUCUK_HARF_SINIFI
 _DESEN_CACHE: dict = {}
 
 
@@ -215,13 +230,18 @@ def _kelime_adedi(text_lower: str, kelime: str) -> int:
     SONUNDA ek çekimine izin verilir (önek eşleşmesi). Kelimenin BAŞI ise
     bir sözcük sınırında olmalıdır; aksi halde alakasız köklerin içindeki
     rastlantısal parçalar ("vatandaş" içindeki "atan" gibi) yanlış sinyal
-    üretir. TAM_KELIMELER'deki kökler için ek çekimine de izin verilmez.
+    üretir. Desen `govde_desen` ile üretilir: süreksiz sert ünsüzle
+    (p, ç, t, k) biten kökler ünlüyle başlayan ek önünde yumuşadığından
+    ("lojistik" → "lojistiği", "sonuç" → "sonucu") çekimli biçimler de
+    yakalanır. TAM_KELIMELER'deki kökler için ek çekimine (dolayısıyla
+    yumuşamaya) izin verilmez.
     """
     desen = _DESEN_CACHE.get(kelime)
     if desen is None:
-        kaynak = "(?<![%s])%s" % (_TR_HARF, re.escape(kelime))
         if kelime in TAM_KELIMELER:
-            kaynak += "(?![%s])" % _TR_HARF
+            kaynak = "(?<![%s])%s(?![%s])" % (_TR_HARF, re.escape(kelime), _TR_HARF)
+        else:
+            kaynak = govde_desen(kelime, _TR_HARF)
         desen = re.compile(kaynak)
         _DESEN_CACHE[kelime] = desen
     return len(desen.findall(text_lower))
@@ -274,10 +294,23 @@ class RoutingAgent:
         for birim_key, birim_info in BIRIMLER.items():
             skor, sinyaller = self._score_birim(
                 birim_key, birim_info, text_lower, konu_lower,
-                kurum_muhatap, muhatap_lower, evrak_turu,
+                kurum_muhatap, muhatap_lower,
             )
             scores[birim_key] = skor
             signals[birim_key] = sinyaller
+
+        # Evrak türü bonusları içerik skorlarının ÜZERİNE eklenir; onaylı
+        # belge bonusu en yüksek içerik skoruna orantılı olduğundan önce
+        # tüm birimlerin içerik skorları hesaplanmış olmalıdır.
+        max_icerik = max(scores.values()) if scores else 0.0
+        for birim_key in BIRIMLER:
+            tur_bonus = self._tur_bonusu(evrak_turu, birim_key, max_icerik)
+            if tur_bonus > 0:
+                scores[birim_key] += tur_bonus
+                signals[birim_key].append(
+                    (f"evrak türü ({evrak_turu}) katkısı", tur_bonus)
+                )
+                signals[birim_key].sort(key=lambda x: x[1], reverse=True)
 
         if not scores or max(scores.values()) <= 0:
             return {
@@ -339,10 +372,11 @@ class RoutingAgent:
         konu_lower: str,
         kurum_muhatap: str,
         muhatap_lower: str,
-        evrak_turu: str,
     ) -> tuple:
         """
-        Tek bir birim için ağırlıklı skor hesaplar.
+        Tek bir birim için ağırlıklı İÇERİK skoru hesaplar (tür bonusu
+        hariç; tür bonusları _determine_routing'de içerik skorlarının
+        üzerine eklenir).
 
         Returns:
             (toplam_skor, [(sinyal_aciklamasi, katki), ...]) — katkıya göre sıralı
@@ -382,14 +416,23 @@ class RoutingAgent:
             skor += 2.0
             sinyaller.append(("birim adı evrak metninde geçiyor", 2.0))
 
-        # 3) Evrak türü bonusu
-        tur_bonus = TUR_BONUSLARI.get((evrak_turu, birim_key), 0.0)
-        if tur_bonus > 0:
-            skor += tur_bonus
-            sinyaller.append((f"evrak türü ({evrak_turu}) katkısı", tur_bonus))
-
         sinyaller.sort(key=lambda x: x[1], reverse=True)
         return skor, sinyaller
+
+    @staticmethod
+    def _tur_bonusu(evrak_turu: str, birim_key: str, max_icerik: float) -> float:
+        """
+        Evrak türüne göre birim bonusunu hesaplar.
+
+        Onaylı belge (makam oluru) → genel müdürlük bonusu sabit değil,
+        evraktaki en yüksek içerik skoruna orantılıdır (gerekçe için bkz.
+        ONAYLI_BELGE_BONUS_ORANI): karar mercii üst yönetim olsa da,
+        baskın konu sinyali işi yürüten birimi gösteriyorsa evrak o birime
+        havale edilir. Diğer tür bonusları TUR_BONUSLARI tablosundan gelir.
+        """
+        if (evrak_turu, birim_key) == ("onayli_belge", "genel_mudurluk"):
+            return round(ONAYLI_BELGE_BONUS_ORANI * max_icerik, 2)
+        return TUR_BONUSLARI.get((evrak_turu, birim_key), 0.0)
 
     @staticmethod
     def _kisa_birim_adi(ad: str) -> str:
@@ -432,8 +475,7 @@ class RoutingAgent:
             )
         if any("muhatap (hitap)" in s for s, _ in sinyaller):
             parcalar.append("muhatap/hitap bilgisinde birim adı doğrudan geçiyor")
-        tur_bonus = TUR_BONUSLARI.get((evrak_turu, birim_key), 0.0)
-        if tur_bonus > 0:
+        if any(s.startswith("evrak türü") for s, _ in sinyaller):
             parcalar.append(f"evrak türü ({evrak_turu}) bu birimi destekliyor")
         parcalar.append(f"toplam skor {skor:.1f}")
         return "; ".join(parcalar) + "."

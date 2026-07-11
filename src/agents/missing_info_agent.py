@@ -17,7 +17,7 @@ import re
 from typing import TYPE_CHECKING
 
 from src.agents.info_extraction_agent import tanzim_tarihi_bul
-from src.utils.turkish_nlp import turkish_lower, turkish_upper
+from src.utils.turkish_nlp import govde_desen, turkish_lower, turkish_upper
 
 if TYPE_CHECKING:
     from src.agents.orchestrator import AgentState
@@ -32,6 +32,30 @@ _AKSAN_TABLOSU = str.maketrans("çğıöşü", "cgiosu")
 def _ascii_katla(s: str) -> str:
     """Küçük harfli metindeki Türkçe aksanlı karakterleri ASCII'ye katlar."""
     return s.translate(_AKSAN_TABLOSU)
+
+
+# govde_desen ile üretilen derlenmiş desenlerin önbelleği (anahtar kelime
+# kümesi küçük ve sabittir; her evrak için yeniden derleme yapılmaz)
+_GOVDE_DESEN_CACHE: dict = {}
+
+
+def _anahtar_gecer(tl: str, kelime: str) -> bool:
+    """
+    Anahtar kelimeyi sözcük-başı sınırı ve son-ünsüz yumuşaması
+    toleransıyla arar.
+
+    Türkçe eklemeli bir dildir; içerik sinyali taşıyan kökler metinde
+    çekimlenmiş geçer ("sonuç" → "sonucuna", "tespit" → "tespiti").
+    Süreksiz sert ünsüzle biten kökler ek önünde yumuşadığından düz
+    substring araması bu biçimleri kaçırır; `govde_desen` iki biçimi de
+    yakalar (bkz. src/utils/turkish_nlp.py). Sözcük-başı sınırı, alakasız
+    köklerin içindeki rastlantısal parçaların sinyal üretmesini önler.
+    """
+    desen = _GOVDE_DESEN_CACHE.get(kelime)
+    if desen is None:
+        desen = re.compile(govde_desen(kelime))
+        _GOVDE_DESEN_CACHE[kelime] = desen
+    return bool(desen.search(tl))
 
 # Evrak türüne göre zorunlu alanlar
 ZORUNLU_ALANLAR = {
@@ -220,13 +244,22 @@ class MissingInfoAgent:
             or (evrak_turu == "tutanak" and bool(tanzim_tarihi_bul(text)))
             or ("evrak_tarihi" not in extracted and bool(extracted.get("tarihler"))),
             "saat": lambda: bool(re.search(r"\b\d{1,2}[:.][0-5]\d\b", text)),
-            "sayi": lambda: bool(extracted.get("referans_numaralari"))
-            or bool(re.search(r"(?m)^\s*say[ıi]\s*:", tl)),
+            # Evrak sayısı: belgenin KENDİ "Sayı :" alanı aranır (İlgi
+            # bloğunda atıf yapılan yazıların sayıları belgenin sayısı
+            # değildir; ayrım info_extraction'da "evrak_sayisi" olarak
+            # yapılır). Anahtar yoksa (eski çağrılar) genel referans
+            # listesine ve "Sayı :" satır etiketine düşülür.
+            "sayi": lambda: (
+                bool(extracted["evrak_sayisi"])
+                if "evrak_sayisi" in extracted
+                else bool(extracted.get("referans_numaralari"))
+                or bool(re.search(r"(?m)^\s*say[ıi]\s*:", tl))
+            ),
             "konu": lambda: bool(extracted.get("konu")),
             "muhatap": lambda: bool(extracted.get("muhatap")),
             "imza": lambda: self._has_signature(text, tl),
-            "imzalar": lambda: "imzalar" in tl
-            or "imzalanmıştır" in tl
+            "imzalar": lambda: _anahtar_gecer(tl, "imzalar")
+            or _anahtar_gecer(tl, "imzalanmıştır")
             or len(re.findall(r"_{4,}", text)) >= 2
             or self._has_signature(text, tl),
             "ad_soyad": lambda: bool(extracted.get("kisi_adlari")),
@@ -243,52 +276,59 @@ class MissingInfoAgent:
             "metin": lambda: len(text.strip()) > 100,
             "talep_metni": lambda: len(text.strip()) > 50,
             "cevap_metni": lambda: len(text.strip()) > 50,
-            "dagitim": lambda: "dağıtım" in tl or bool(re.search(r"(?m)^\s*gereği\s*:", tl)),
+            "dagitim": lambda: _anahtar_gecer(tl, "dağıtım")
+            or bool(re.search(r"(?m)^\s*gereği\s*:", tl)),
             "kurum_bilgisi": lambda: bool(extracted.get("kurum_adlari")),
             # Yer: tutanak/toplantı belgelerinde yer bilgisi "Yer :" /
             # "Toplantı Yeri :" alan satırıyla ya da mekân sözcükleriyle verilir.
             "yer": lambda: bool(
                 re.search(r"(?m)^\s*(?:toplantı\s+)?yer[i]?\s*:", tl)
             )
-            or any(k in tl for k in ["yeri", "salon", "adres", "mahal"]),
-            "katilimcilar": lambda: "katılımcı" in tl or "hazır bulunan" in tl
-            or "iştirak eden" in tl,
+            or any(_anahtar_gecer(tl, k) for k in ["yeri", "salon", "adres", "mahal"]),
+            "katilimcilar": lambda: any(
+                _anahtar_gecer(tl, k)
+                for k in ["katılımcı", "hazır bulunan", "iştirak eden"]
+            ),
             # Gündem: görüşülen husus "Gündem" listesiyle verilebileceği gibi
             # tutanaklarda "Konu :" satırı veya "görüşülen konular" bölümü de
             # aynı işlevi görür (tek konulu tutanaklarda gündem listesi olmaz).
-            "gundem": lambda: "gündem" in tl
+            "gundem": lambda: _anahtar_gecer(tl, "gündem")
             or bool(extracted.get("konu"))
-            or "görüşülen konu" in tl
-            or "toplantı konusu" in tl,
-            "kararlar": lambda: "karar" in tl,
+            or _anahtar_gecer(tl, "görüşülen konu")
+            or _anahtar_gecer(tl, "toplantı konusu"),
+            "kararlar": lambda: _anahtar_gecer(tl, "karar"),
             "baslik": lambda: self._has_title(text),
             "hazirlayan": lambda: any(
-                k in tl for k in ["hazırlayan", "düzenleyen", "raportör", "rapor eden"]
+                _anahtar_gecer(tl, k)
+                for k in ["hazırlayan", "düzenleyen", "raportör", "rapor eden"]
             ),
-            "ozet": lambda: "özet" in tl,
+            "ozet": lambda: _anahtar_gecer(tl, "özet"),
             # Bulgular/sonuç: raporlar bölüm başlığı yerine serbest akışta
             # da yazılabilir; tespit/değerlendirme fiilleri içerik sinyalidir.
             # Türkçe eklemeli dil: fiil kökleriyle arama yapılır ki
             # "görülmüştür/görülmektedir/izlenmiş/incelemek" gibi tüm
-            # çekimler yakalansın.
+            # çekimler yakalansın; _anahtar_gecer son-ünsüz yumuşamasını da
+            # karşılar ("sonuç" → "sonucuna", "tespit" → "tespidi").
             "bulgular": lambda: any(
-                k in tl
+                _anahtar_gecer(tl, k)
                 for k in [
                     "bulgu", "tespit", "görülm", "belirlen", "saptan",
                     "gözlem", "incele", "izlen", "kaydedil", "ölçül",
                 ]
             ),
             "sonuc": lambda: any(
-                k in tl
+                _anahtar_gecer(tl, k)
                 for k in [
                     "sonuç", "kanaat", "netice", "öneri", "önerilmektedir",
                     "değerlendirilmiştir", "teklif edilmektedir", "uygun olacağı",
                 ]
             ),
-            "onaylayan": lambda: "onaylayan" in tl or "olur" in tl
+            "onaylayan": lambda: _anahtar_gecer(tl, "onaylayan")
+            or _anahtar_gecer(tl, "olur")
             or self._has_signature(text, tl),
             "onay_metni": lambda: any(
-                k in tl for k in ["uygun görülmüştür", "onaylanmıştır", "tasdik", "olur"]
+                _anahtar_gecer(tl, k)
+                for k in ["uygun görülmüştür", "onaylanmıştır", "tasdik", "olur"]
             ),
         }
 
@@ -298,8 +338,16 @@ class MissingInfoAgent:
 
         # Genel kontrol: alan adı metinde geçiyor mu. Alan adları ASCII
         # (ör. "gundem"), metin ise Türkçe karakterli (ör. "gündem")
-        # olduğundan iki taraf da aksan katlanarak karşılaştırılır.
-        return _ascii_katla(field.replace("_", " ")) in _ascii_katla(tl)
+        # olduğundan iki taraf da aksan katlanarak karşılaştırılır; arama
+        # govde_desen ile sözcük-başı sınırlı ve son-ünsüz yumuşaması
+        # toleranslı yapılır (katlanmış düzlemde ç→c zaten örtüşür,
+        # k→[kğg] sınıfı katlanmış ğ→g biçimini de kapsar).
+        return bool(
+            re.search(
+                govde_desen(_ascii_katla(field.replace("_", " "))),
+                _ascii_katla(tl),
+            )
+        )
 
     @staticmethod
     def _has_address(text: str, tl: str) -> bool:

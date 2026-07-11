@@ -6,6 +6,8 @@ Regex tabanlı, güvenilir çıkarım esastır; LLM erişilebilirse sonuçlar
 
 Çıkarılan unsurlar:
     - tarihler (dd.mm.yyyy, dd/mm/yyyy, "12 Temmuz 2026", ISO)
+    - evrak_sayisi (belgenin KENDİ "Sayı :" alanındaki numara; İlgi
+      bloğundaki atıf sayıları hariç)
     - referans_numaralari (Sayı : E-12345678-000-1234, EBYS, No: …)
     - tc_kimlik (11 hane + resmi checksum doğrulaması; geçersizler alınmaz)
     - telefon, eposta, iban, para_tutarlari (₺/TL)
@@ -252,6 +254,7 @@ class InfoExtractionAgent:
             "evrak_tarihi": self._extract_document_date(text),
             "kurum_adlari": self._extract_organizations(text),
             "kisi_adlari": self._extract_person_names(text),
+            "evrak_sayisi": self._extract_document_number(text),
             "referans_numaralari": self._extract_reference_numbers(text),
             "konu": self._extract_subject(text),
             "muhatap": self._extract_recipient(text),
@@ -383,6 +386,39 @@ class InfoExtractionAgent:
 
         # 4) Düzenlenme kalıbı ("<tarih> günü ... tanzim edilmiştir")
         return tanzim_tarihi_bul(text)
+
+    def _extract_document_number(self, text: str) -> str:
+        """
+        Belgenin KENDİ sayısını çıkarır (atıf sayılarından ayrıştırılmış).
+
+        Resmî yazışma kuralı (Resmî Yazışmalarda Uygulanacak Usul ve
+        Esaslar Hakkında Yönetmelik): belgenin sayısı, başlık bölümündeki
+        "Sayı :" alan satırında yer alır. "İlgi" bloğunda anılan
+        tarih/sayılar atıf yapılan ÖNCEKİ belgelere aittir ve bu belgenin
+        sayısı DEĞİLDİR; bu yüzden yalnızca İlgi bloğu dışındaki "Sayı :"
+        satırından çıkarım yapılır. (referans_numaralari alanı, metinde
+        geçen TÜM referansları toplama davranışını korur; belgenin kendi
+        sayısı ile atıf sayısı ayrımı bu alanla yapılır.)
+        """
+        lines = text.split("\n")
+        ilgi_blok = self._ilgi_blok_satirlari(lines)
+        for i, line in enumerate(lines):
+            if i in ilgi_blok:
+                continue
+            if not _SAYI_SATIRI.match(turkish_lower(line)):
+                continue
+            deger = line.split(":", 1)[1] if ":" in line else ""
+            match = re.match(r"\s*([A-Za-z0-9ÇĞİÖŞÜçğıöşü][\w.\-/]*)", deger)
+            if not match:
+                continue
+            sayi = match.group(1).rstrip(".,;")
+            # Klasik "Sayı-Tarih" düzeninde satırda yalnızca tarih kalmış
+            # olabilir; tarih görünümlü değer belge sayısı sayılmaz.
+            if re.fullmatch(r"\d{1,2}[./-]\d{1,2}[./-]\d{4}", sayi):
+                continue
+            if len(sayi) >= 2:
+                return sayi
+        return ""
 
     def _extract_reference_numbers(self, text: str) -> list:
         """Sayı/referans numaralarını çıkarır (EBYS formatları dahil)."""
