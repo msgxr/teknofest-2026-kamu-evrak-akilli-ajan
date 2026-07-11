@@ -206,6 +206,115 @@ class TestTriageAgent:
         assert result.triage["son_tarih"] == "2026-07-11"
 
 
+class TestBasvuruNiteligiKosulu:
+    """Yasal sürelerin başvuru niteliği ön koşulu (Katman 3 kapsam doğruluğu).
+
+    3071/4982/CİMER cevap süreleri idareye yöneltilmiş bir başvuruyu
+    cevaplama yükümlülüğünden doğar; başvuru niteliği olmayan iç belgelere
+    (tutanak/rapor/genelge/onaylı belge/bilgilendirme) atanmamalıdır.
+    """
+
+    def setup_method(self):
+        """Her test öncesi sabit 'bugün' ile agent kur."""
+        self.agent = TriageAgent(bugun=date(2026, 7, 1))
+
+    def test_ic_rapor_yasal_sure_almaz(self):
+        """CİMER'den söz eden iç istatistik raporu kanuni cevap süresi almamalı."""
+        state = _state(
+            "CİMER üzerinden kurumumuza iletilen başvuruların aylık "
+            "dağılımını gösteren istatistik raporu ekte sunulmuştur.",
+            tur="rapor",
+            evrak_tarihi="01.07.2026",
+        )
+        result = self.agent.run(state)
+        assert result.triage["yasal_sure"] is None
+        assert result.triage["son_tarih"] is None
+
+    def test_ic_bilgilendirme_yasal_sure_almaz(self):
+        """Başvuru içermeyen iç bilgilendirme yazısına yasal süre atanmamalı."""
+        state = _state(
+            "İlçemizde etkili olan kar yağışı nedeniyle ana arterlerde kar "
+            "küreme ve tuzlama çalışması yapılmıştır. Bilgilerinize sunulur.",
+            tur="bilgilendirme",
+            evrak_tarihi="01.07.2026",
+        )
+        result = self.agent.run(state)
+        assert result.triage["yasal_sure"] is None
+        assert result.triage["oncelik"] == "normal"
+
+    def test_mevzuat_eslesmesi_ic_belgeye_sure_atamaz(self):
+        """Yüksek benzerlikli mevzuat eşleşmesi bile iç belgeye kanuni süre atamamalı."""
+        state = _state(
+            "Park ve bahçelerde mevsimlik bakım çalışması tamamlanmıştır. "
+            "Bilgilerinize sunulur.",
+            tur="bilgilendirme",
+            evrak_tarihi="01.07.2026",
+        )
+        state.legislation_matches = [
+            {
+                "baslik": "CİMER ve Vatandaş Başvuruları Hakkında Bilgi Notu",
+                "benzerlik": 0.9,
+            }
+        ]
+        result = self.agent.run(state)
+        assert result.triage["yasal_sure"] is None
+
+    def test_genelge_bilgi_edinme_konulu_sure_almaz(self):
+        """Bilgi edinme USULÜNÜ düzenleyen genelge 15 iş günü süresi almamalı."""
+        state = _state(
+            "Bilgi edinme başvurularının birimlerce cevaplanmasında uyulacak "
+            "usul ve esaslar aşağıda belirtilmiştir.",
+            tur="genelge",
+            evrak_tarihi="01.07.2026",
+        )
+        result = self.agent.run(state)
+        assert result.triage["yasal_sure"] is None
+
+    def test_dilekce_3071_suresi_korunur(self):
+        """Dilekçe türü başvuru niteliği taşır: 3071 m.7 30 gün süresi işlemeli."""
+        state = _state(
+            "Mahallemizdeki park aydınlatmasının onarılması hususunda "
+            "gereğini arz ederim.",
+            tur="dilekce",
+            evrak_tarihi="01.07.2026",
+        )
+        result = self.agent.run(state)
+        yasal = result.triage["yasal_sure"]
+        assert yasal is not None
+        assert yasal["sure_gun"] == 30
+        assert "3071" in yasal["kaynak"]
+        assert result.triage["son_tarih"] == "2026-07-31"
+
+    def test_cimer_havale_ust_yazisi_sure_alir(self):
+        """Başvuru içeren CİMER havale üst yazısı 30 günlük takibe girmeli."""
+        state = _state(
+            "CİMER üzerinden Başkanlığımıza iletilen başvuruda, vatandaş "
+            "mahallesindeki yol bozukluğunun giderilmesini talep etmektedir. "
+            "Gereğini rica ederim.",
+            tur="ust_yazi",
+            evrak_tarihi="01.07.2026",
+        )
+        result = self.agent.run(state)
+        yasal = result.triage["yasal_sure"]
+        assert yasal is not None
+        assert yasal["sure_gun"] == 30
+        assert "CİMER" in yasal["kaynak"]
+
+    def test_metin_ici_sure_ic_yazida_calisir(self):
+        """Metin içi açık süre kaydı ('10 gün içinde') iç yazıda da çalışmalı."""
+        state = _state(
+            "Denetimde tespit edilen hususların 10 gün içinde giderilerek "
+            "sonucundan bilgi verilmesi gerekmektedir.",
+            tur="rapor",
+            evrak_tarihi="01.07.2026",
+        )
+        result = self.agent.run(state)
+        assert result.triage["yasal_sure"] is None
+        assert result.triage["son_tarih"] == "2026-07-11"
+        tipler = [s["tip"] for s in result.triage["sinyaller"]]
+        assert "metin_ici_sure" in tipler
+
+
 class TestYardimcilar:
     """Yardımcı fonksiyon testleri."""
 

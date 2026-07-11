@@ -154,11 +154,32 @@ TEMA_ASGARI_TETIKLEYICI = 2
 # olduğunu gösterir ve temayı tek başına aktifleştirir
 TEMA_MERKEZI_BICIM = 3
 
-# Mutlak kapsam kalibrasyonu: en iyi bölüm bile sorgudaki ayırt edici
-# sözcük (IDF) kütlesinin bu oranından azını karşılıyorsa benzerlik
-# orantılı düşürülür (göreli normalizasyonun zayıf eşleşmeleri 1.0'a
-# şişirmesini önler; taslak ajanı benzerlik eşiği uygulayabilir).
-ASGARI_KAPSAM = 0.12
+# ----------------------------------------------------------------------
+# Mutlak benzerlik kalibrasyonu (benzerlik dürüstlüğü)
+#
+# Göreli normalizasyon (skor / en_iyi_skor) en iyi eşleşmeyi eşleşme ne
+# kadar zayıf olursa olsun 1.0'a şişirir; taslak ajanı bu değeri yasal
+# dayanak atfı için eşikle süzdüğünden şişirme yanlış mevzuat alıntısına
+# dönüşebilir (etik risk). Benzerlik bu yüzden MUTLAK bir doygunluk
+# noktasına oranlanır ve 1.0'a kırpılır:
+#
+#   benzerlik = min(1, agirlikli_skor / (DOYGUNLUK_KATSAYISI * toplam_idf))
+#
+# toplam_idf, sorgunun korpus dağarcığındaki ayırt edici sözcük (IDF)
+# kütlesidir. BM25 teorisinde ortalama uzunluktaki bir bölümde TEK geçiş
+# (tf=1) tam olarak idf katkısı verir; katkı tf arttıkça (k1+1)=2.5·idf
+# doygunluğuna yaklaşır (tf=2 → 1.43·idf, tf=3 → 1.67·idf). Katsayı 1.5,
+# "tam benzerlik" tanımını sorgu sözcüklerinin bölümde MERKEZÎ (tekrarlı,
+# tf≈2-3) kullanılmasına bağlar: her sözcüğe yalnızca bir kez değinen bir
+# bölüm ≤ ~0.67, sorgunun küçük bir kısmına değinen bölüm ise orantılı
+# olarak düşük benzerlik alır. Ölçek korpus istatistiğine (IDF) dayanır,
+# belge/veri kümesine özel ezber içermez.
+DOYGUNLUK_KATSAYISI = 1.5
+
+# En iyi eşleşme bile bu mutlak eşiğin altındaysa sonuç listesi "zayıf
+# eşleşme" işaretiyle döner: korpusta evraka gerçekten uyan hüküm yok
+# demektir ve tüketiciler (arayüz/raporlama) bunu şeffafça gösterebilir.
+ZAYIF_ESLESME_ESIGI = 0.5
 
 
 class LegislationAgent:
@@ -361,9 +382,14 @@ class LegislationAgent:
         """
         BM25 ile en ilgili chunk'ları bulur; skorlar tür/tema koşullu
         ağırlıklarla yeniden sıralanır ve mevzuat başına tek (en iyi)
-        sonuç döndürülür. Benzerlik değeri, göreli skorun mutlak kapsam
-        kalitesiyle (sorgu IDF kütlesinin karşılanma oranı) çarpımıdır;
-        böylece zayıf eşleşmeler 1.0'a şişmez ve düşük benzerlikte kalır.
+        sonuç döndürülür.
+
+        Benzerlik MUTLAK ölçektedir: ağırlıklı BM25 skoru, sorgunun IDF
+        kütlesinden türetilen doygunluk noktasına oranlanıp 1.0'a kırpılır
+        (bkz. DOYGUNLUK_KATSAYISI). En iyi eşleşme dahi göreli sıradan
+        bağımsız değerlendirildiği için alakasız sorgular düşük benzerlikte
+        kalır; en iyi benzerlik ZAYIF_ESLESME_ESIGI altındaysa tüm sonuçlar
+        "zayif_esleme": True işaretiyle döner.
         """
         cls = type(self)
         chunks = cls._chunks or []
@@ -377,6 +403,13 @@ class LegislationAgent:
         raw_scores = cls._bm25.get_scores(query_tokens)
         aktif_temalar = self._aktif_temalar(query_tokens)
         tur_agirliklari = TUR_MEVZUAT_AGIRLIKLARI.get(evrak_turu, {})
+
+        # Mutlak doygunluk noktası: sorgunun korpus dağarcığındaki IDF kütlesi
+        idf = cls._bm25.idf
+        toplam_idf = sum(idf.get(t, 0.0) for t in set(query_tokens))
+        if toplam_idf <= 0:
+            return []
+        doygunluk = DOYGUNLUK_KATSAYISI * toplam_idf
 
         # Tür/tema koşullu ağırlıklandırılmış skorlar
         agirliklar: Dict[str, float] = {}
@@ -392,7 +425,6 @@ class LegislationAgent:
         ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
         if not ranked or scores[ranked[0]] <= 0:
             return []
-        max_score = scores[ranked[0]]
 
         # Mevzuat (doc_id) başına en iyi chunk
         best_per_doc: Dict[str, int] = {}
@@ -408,9 +440,7 @@ class LegislationAgent:
         matches: List[dict] = []
         for i in best_per_doc.values():
             chunk = chunks[i]
-            benzerlik = (scores[i] / max_score) * self._kapsam_kalitesi(
-                query_tokens, chunk
-            )
+            benzerlik = min(1.0, scores[i] / doygunluk)
             matches.append({
                 "baslik": chunk["baslik"],
                 "icerik_ozeti": self._chunk_ozeti(chunk),
@@ -418,9 +448,18 @@ class LegislationAgent:
                 "kaynak": chunk["kaynak"],
                 "anahtar_kelimeler": chunk["anahtar_kelimeler"],
             })
-        # Kapsam kalibrasyonu sıralamayı değiştirebilir; nihai benzerliğe
-        # göre sırala (liste tekdüze azalan benzerlikle sunulur)
+        # Benzerlik ağırlıklı skorda tekdüzedir; nihai benzerliğe göre sırala
         matches.sort(key=lambda m: m["benzerlik"], reverse=True)
+
+        # Mutlak taban eşiği: en iyi eşleşme bile zayıfsa listeyi işaretle
+        if matches and matches[0]["benzerlik"] < ZAYIF_ESLESME_ESIGI:
+            for m in matches:
+                m["zayif_esleme"] = True
+            logger.info(
+                "Mevzuat araması zayıf eşleşme ile sonuçlandı "
+                f"(en iyi benzerlik {matches[0]['benzerlik']}); korpusta "
+                "evraka doğrudan uyan hüküm bulunamamış olabilir."
+            )
         return matches
 
     @staticmethod
@@ -467,27 +506,6 @@ class LegislationAgent:
             agirlik *= TEMA_BONUSU if tema in aktif_temalar else ALAN_DISI_SONUMLEME
         return agirlik
 
-    @classmethod
-    def _kapsam_kalitesi(cls, query_tokens: List[str], chunk: Dict) -> float:
-        """
-        Bölümün sorguyu mutlak olarak ne ölçüde karşıladığını [0-1] döndürür.
-
-        Ölçü: bölümde geçen sorgu token'larının IDF kütlesinin, sorgunun
-        korpus dağarcığındaki toplam IDF kütlesine oranı (kapsam). Kapsam
-        ASGARI_KAPSAM'ın altındaysa oran orantılı cezalandırılır; üstünde
-        tam puan verilir (göreli sıralamayı bozmadan mutlak kalibrasyon).
-        """
-        if cls._bm25 is None:
-            return 1.0
-        idf = cls._bm25.idf
-        uniq = set(query_tokens)
-        toplam = sum(idf.get(t, 0.0) for t in uniq)
-        if toplam <= 0:
-            return 0.0
-        chunk_tokens = set(chunk["tokens"])
-        kapsam = sum(idf.get(t, 0.0) for t in uniq if t in chunk_tokens) / toplam
-        return min(1.0, kapsam / ASGARI_KAPSAM)
-
     @staticmethod
     def _chunk_ozeti(chunk: Dict, limit: int = OZET_LIMITI) -> str:
         """Chunk'ın bölüm başlığı + içeriğinden ~300 karakterlik özet üretir."""
@@ -508,7 +526,8 @@ class LegislationAgent:
         sayılı Dilekçe Hakkı Kanunu. Bu mevzuatın ilgililiği sözcük
         çakışmasından değil türün kendisinden geldiği için, listede varsa
         başa taşınır, yoksa korpustan eklenir; benzerliği en az 0.8 olarak
-        raporlanır.
+        raporlanır ve varsa "zayif_esleme" işareti kaldırılır (türsel
+        gerekçe metinsel eşleşmenin zayıflığından etkilenmez).
         """
         doc_id = TUR_USUL_MEVZUATI.get(evrak_turu)
         if not doc_id:
@@ -535,6 +554,7 @@ class LegislationAgent:
                     max(float(tasinan.get("benzerlik") or 0.0), float(en_yuksek), 0.8), 3
                 )
                 tasinan["eklenme_nedeni"] = "tur_usul_mevzuati"
+                tasinan.pop("zayif_esleme", None)
                 return [tasinan] + matches
         usul_onerisi = {
             "baslik": chunk["baslik"],

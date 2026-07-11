@@ -27,7 +27,11 @@ her kural resmî/kamusal gerçekliğe dayanır):
    bilgi edinme → 4982 s. Kanun m.11 (15 iş günü); CİMER başvurusu →
    30 gün (CİMER uygulaması, 3071/4982 çerçevesi); idari itiraz/dava
    içeriği → 2577 s. İYUK m.7 (60 gün); dilekçe → 3071 s. Dilekçe
-   Hakkı Kanunu m.7 (30 gün içinde cevap).
+   Hakkı Kanunu m.7 (30 gün içinde cevap). 3071/4982/CİMER süreleri
+   idareye yöneltilmiş bir BAŞVURUYU cevaplama yükümlülüğünden doğduğu
+   için yalnızca başvuru niteliği taşıyan evraka uygulanır (tür=dilekçe
+   veya metinde başvuru sözcüğü + istem ifadesi); tutanak/rapor/genelge/
+   onaylı belge/iç bilgilendirmeye kanuni cevap süresi atanmaz.
 
 İş günü hesabında hafta sonları (Cumartesi/Pazar) atlanır; resmî tatil
 listesi TUTULMAZ — ulusal/dinî tatiller yıla ve hicri takvime bağlı
@@ -132,10 +136,21 @@ _SAYI_ONLAR = {
 #
 # Her satır: ad, kaynak (mevzuat dayanağı), sure_gun, tip (takvim|is_gunu),
 # anahtar_kelimeler (turkish_lower metinde aranır), turler (classification
-# türü eşleşmesi), kanun_no (legislation_matches başlığı doğrulaması için).
-# SIRALAMA ÖNEMLİDİR: özel içerik kuralları (bilgi edinme, CİMER, İYUK)
-# genel tür kuralından (dilekçe) önce denenir; böylece "bilgi edinme
-# başvurusu" içerikli bir dilekçe 30 güne değil 15 iş gününe bağlanır.
+# türü eşleşmesi), kanun_no (legislation_matches başlığı doğrulaması için),
+# basvuru_kosulu (satırın yalnızca başvuru niteliği taşıyan evrakta
+# uygulanması). SIRALAMA ÖNEMLİDİR: özel içerik kuralları (bilgi edinme,
+# CİMER, İYUK) genel tür kuralından (dilekçe) önce denenir; böylece "bilgi
+# edinme başvurusu" içerikli bir dilekçe 30 güne değil 15 iş gününe bağlanır.
+#
+# Başvuru niteliği ön koşulu (basvuru_kosulu=True): 3071 m.7, 4982 m.11 ve
+# CİMER cevap süreleri idareye yöneltilmiş bir BAŞVURUYU cevaplama
+# yükümlülüğünden doğar — kanun metinlerinde süre "başvuru/dilekçe" üzerine
+# işler. Başvuru niteliği taşımayan iç belgeler (tutanak, rapor, genelge,
+# onaylı belge, iç bilgilendirme) bu sürelere tabi değildir: bir faaliyet
+# raporunun CİMER'den söz etmesi ortada cevaplanacak bir başvuru olduğu
+# anlamına gelmez. 2577 satırında koşul aranmaz: dava açma süresi başvuru
+# değil, işlemin tebliği üzerine işler. Metin içi açık süre kayıtları
+# (Katman 2) her evrak türünde çalışmaya devam eder.
 #
 # Not (İYUK): 60 günlük dava açma süresi hukuken TEBLİĞ tarihinden başlar;
 # tebliğ tarihi evraktan bilinemediği için evrak tarihi yaklaşık başlangıç
@@ -150,6 +165,7 @@ YASAL_SURE_TABLOSU: List[dict] = [
         "anahtar_kelimeler": ["bilgi edinme", "4982"],
         "turler": [],
         "kanun_no": "4982",
+        "basvuru_kosulu": True,
     },
     {
         "ad": "cimer_basvurusu",
@@ -159,6 +175,7 @@ YASAL_SURE_TABLOSU: List[dict] = [
         "anahtar_kelimeler": ["cimer", "cumhurbaşkanlığı iletişim merkezi"],
         "turler": [],
         "kanun_no": "cimer",
+        "basvuru_kosulu": True,
     },
     {
         "ad": "idari_dava_itiraz",
@@ -171,6 +188,7 @@ YASAL_SURE_TABLOSU: List[dict] = [
         ],
         "turler": [],
         "kanun_no": "2577",
+        "basvuru_kosulu": False,
     },
     {
         "ad": "dilekce_cevabi",
@@ -180,8 +198,27 @@ YASAL_SURE_TABLOSU: List[dict] = [
         "anahtar_kelimeler": ["3071"],
         "turler": ["dilekce"],
         "kanun_no": "3071",
+        "basvuru_kosulu": True,
     },
 ]
+
+# Başvuru niteliği taşımayan evrak türleri: tutanak/rapor/genelge/onaylı
+# belge kurum işleyişinin kayıt ve düzenleme belgeleridir, bilgilendirme
+# yazısı cevap beklemeyen iç bilgi paylaşımıdır; hiçbiri idareye
+# yöneltilmiş bir başvuru değildir ve kanuni cevap süresi doğurmaz.
+_BASVURU_DISI_TURLER = frozenset(
+    {"tutanak", "rapor", "genelge", "onayli_belge", "bilgilendirme"}
+)
+
+# Tür bilgisi başvuru niteliğini tek başına belirlemiyorsa (üst yazı,
+# cevap yazısı, diger...) metinden dilbilgisel kanıt aranır: "başvuru /
+# müracaat / dilekçe" sözcük ailesinden bir sözcüğün bir istem ifadesiyle
+# ("talep", "arz", "rica", "istirham") BİRLİKTE geçmesi, evrakın bir
+# başvuruyu konu edindiğini gösterir (ör. CİMER havale yazısı: "başvuruda
+# ... talep etmektedir"). Tek başına kapanış nezaketi ("bilgilerinize arz
+# ederim") her resmî yazıda bulunduğundan başvuru kanıtı sayılmaz.
+_BASVURU_SOZCUGU = re.compile(r"\b(?:başvur|müracaat|dilekçe)\w*")
+_ISTEM_IFADESI = re.compile(r"\b(?:talep|arz|rica|istirham)\w*")
 
 # legislation_matches doğrulaması için asgari benzerlik: bu eşiğin
 # altındaki mevzuat eşleşmeleri yasal süre kanıtı sayılmaz.
@@ -535,25 +572,51 @@ class TriageAgent:
         return hesaplanamayan_var
 
     @staticmethod
+    def _basvuru_niteligi(tl: str, tur: str) -> bool:
+        """
+        Evrakın "başvuru niteliği" taşıyıp taşımadığını belirler.
+
+        Kanuni cevap süreleri (3071/4982/CİMER) idareye yöneltilmiş bir
+        başvuruyu cevaplama yükümlülüğünden doğar; bu yüzden:
+          - dilekçe türü tanım gereği başvurudur → True,
+          - tutanak/rapor/genelge/onaylı belge/bilgilendirme kurum içi
+            kayıt-bilgi belgeleridir, başvuru değildir → False,
+          - diğer türlerde (üst yazı, cevap yazısı, diger...) metinden
+            dilbilgisel kanıt aranır: başvuru sözcük ailesi + istem
+            ifadesi birlikte geçmelidir (bkz. _BASVURU_SOZCUGU).
+        """
+        if tur == "dilekce":
+            return True
+        if tur in _BASVURU_DISI_TURLER:
+            return False
+        return bool(_BASVURU_SOZCUGU.search(tl) and _ISTEM_IFADESI.search(tl))
+
+    @staticmethod
     def _yasal_sure_bul(
         tl: str, classification: dict, legislation_matches: list
     ) -> Optional[dict]:
         """
         Katman 3: yasal süre tablosundan ilk eşleşen satırı döndürür.
 
-        Eşleşme kanıtları (herhangi biri yeter): (a) anahtar kelime
-        metinde geçer, (b) evrak türü satırın türler listesindedir,
-        (c) mevzuat agent'ı ilgili kanunu yeterli benzerlikle
-        eşleştirmiştir. Tablo sırası özelden genele gittiği için ilk
-        eşleşme en özgül kuraldır.
+        basvuru_kosulu=True satırlar yalnızca başvuru niteliği taşıyan
+        evrakta değerlendirilir (bkz. _basvuru_niteligi): kanuni cevap
+        süresi, başvuru olmayan iç belgeye (tutanak/rapor/genelge vb.)
+        atanmaz. Koşulu geçen satırlar için eşleşme kanıtları (herhangi
+        biri yeter): (a) anahtar kelime metinde geçer, (b) evrak türü
+        satırın türler listesindedir, (c) mevzuat agent'ı ilgili kanunu
+        yeterli benzerlikle eşleştirmiştir. Tablo sırası özelden genele
+        gittiği için ilk eşleşme en özgül kuraldır.
         """
         tur = classification.get("tur", "")
+        basvuru_niteligi = TriageAgent._basvuru_niteligi(tl, tur)
         mevzuat_basliklari = [
             turkish_lower(m.get("baslik", ""))
             for m in legislation_matches
             if m.get("benzerlik", 0) >= _MEVZUAT_BENZERLIK_ESIGI
         ]
         for satir in YASAL_SURE_TABLOSU:
+            if satir.get("basvuru_kosulu") and not basvuru_niteligi:
+                continue
             if any(anahtar in tl for anahtar in satir["anahtar_kelimeler"]):
                 return satir
             if tur in satir["turler"]:
