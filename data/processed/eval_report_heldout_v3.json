@@ -1,0 +1,245 @@
+{
+  "zaman_damgasi": "2026-07-12T01:00:09",
+  "veri_dizini": "data/raw/kurgu_evraklar_heldout_v3",
+  "set_adi": "kurgu_evraklar_heldout_v3",
+  "llm": {
+    "backend": "offline",
+    "model": "gpt-4o-mini",
+    "kullanilabilir": false
+  },
+  "degerlendirilen_dosya_sayisi": 16,
+  "siniflandirma": {
+    "accuracy": 0.9375,
+    "macro_f1": 0.9333,
+    "macro_precision": 0.9583,
+    "macro_recall": 0.9375,
+    "sinif_bazinda": {
+      "bilgilendirme": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "cevap_yazisi": {
+        "precision": 0.6667,
+        "recall": 1.0,
+        "f1": 0.8,
+        "destek": 2
+      },
+      "dilekce": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "genelge": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "onayli_belge": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "rapor": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "tutanak": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "destek": 2
+      },
+      "ust_yazi": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6667,
+        "destek": 2
+      }
+    },
+    "confusion_matrix": {
+      "siniflar": [
+        "bilgilendirme",
+        "cevap_yazisi",
+        "dilekce",
+        "genelge",
+        "onayli_belge",
+        "rapor",
+        "tutanak",
+        "ust_yazi"
+      ],
+      "matris": {
+        "bilgilendirme": {
+          "bilgilendirme": 2,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "cevap_yazisi": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 2,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "dilekce": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 2,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "genelge": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 2,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "onayli_belge": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 2,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "rapor": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 2,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "tutanak": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 2,
+          "ust_yazi": 0
+        },
+        "ust_yazi": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 1,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 1
+        }
+      }
+    },
+    "yanlis_siniflananlar": [
+      {
+        "dosya": "ust_yazi_a1.txt",
+        "beklenen": "ust_yazi",
+        "tahmin": "cevap_yazisi"
+      }
+    ]
+  },
+  "yonlendirme": {
+    "accuracy": 1.0,
+    "yanlis_yonlendirilenler": []
+  },
+  "eksik_bilgi_tespiti": {
+    "micro_precision": 0.5714,
+    "micro_recall": 0.8,
+    "micro_f1": 0.6667,
+    "tp": 4,
+    "fp": 3,
+    "fn": 1
+  },
+  "mevzuat_onerisi": {
+    "isabet_at_3": {
+      "k": 3,
+      "etiketli_evrak": 16,
+      "isabet": 14,
+      "isabet_orani": 0.875
+    },
+    "isabet_at_1": {
+      "k": 1,
+      "etiketli_evrak": 16,
+      "isabet": 14,
+      "isabet_orani": 0.875
+    },
+    "isabetsizler": [
+      {
+        "dosya": "rapor_a1.txt",
+        "beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "tahmin": [
+          "devlet_arsiv_hizmetleri_yonetmeligi",
+          "kvkk_6698",
+          "resmi_yazisma_yonetmeligi"
+        ]
+      },
+      {
+        "dosya": "tutanak_a2.txt",
+        "beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "kvkk_6698"
+        ],
+        "tahmin": [
+          "belediye_kanunu_5393",
+          "devlet_memurlari_kanunu_657",
+          "elektronik_imza_kanunu_5070"
+        ]
+      }
+    ]
+  },
+  "taslak_kalitesi": {
+    "ortalama_puan": 95.8,
+    "asgari_puan": 91.0,
+    "degerlendirilen": 16,
+    "yontemler": {
+      "kural_hakem": 16
+    }
+  },
+  "performans": {
+    "evrak_basina_ortalama_sure_saniye": 0.3089,
+    "evrak_basina_medyan_sure_saniye": 0.0335,
+    "adim_bazinda_ortalama_sure_saniye": {
+      "ocr": 0.0091,
+      "classification": 0.2738,
+      "info_extraction": 0.0043,
+      "missing_info": 0.0021,
+      "legislation": 0.0043,
+      "triage": 0.0011,
+      "summarization": 0.0024,
+      "anonimlestirme": 0.0011,
+      "draft_writer": 0.0029,
+      "routing": 0.0079,
+      "user_info": 0.0
+    }
+  },
+  "islenemeyen_dosyalar": []
+}

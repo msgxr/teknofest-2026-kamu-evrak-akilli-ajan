@@ -106,6 +106,28 @@ python3 scripts/evaluate.py \
     --rapor-dosyasi data/processed/eval_report_heldout_v2.json
 ```
 
+### 2c. Adversarial Tutulmuş Set v3 (`raw/kurgu_evraklar_heldout_v3/`)
+
+Sistemin **zorlayıcı/bozuk girdilere dayanıklılığını** ölçen, etiketli adversarial sentetik set.
+
+- **Amaç:** Gerçek kurum ortamındaki kusurlu evrak akışının (bozuk sayı blokları, kopuk atıf zincirleri, sözel tarihler, KVKK-yoğun içerik, yanlış üslup) sistem başarımına etkisini ölçmek. Set kural geliştirme ve kalibrasyonda **kullanılmamıştır**; 12.07.2026'daki İLK ölçüm sonuçları olduğu gibi raporlanmış, **çıkan hatalara yönelik hiçbir kural değişikliği yapılmamıştır** (hatalar `docs/teknik_rapor.md` §5-§6'da analiz olarak belgelidir).
+- **Dosya sayısı:** 16 adet `.txt` (UTF-8) + 1 adet `etiketler.json` — 8 evrak türü × 2; 9 hedef birimin her biri en az 1 evrakta hedeftir.
+- **Adlandırma:** `<tur>_a1.txt`, `<tur>_a2.txt` (a = adversarial).
+- **Kurgu evren (dördüncü):** "Puslupınar" ili / "Kavakdüzü" ilçesi — göl kıyısı, ormanlık, turizm+tarım ekonomili KURGU yer (valilik, kaymakamlık, belediye, il kültür ve turizm müdürlüğü, kurgu "Karlıdağ Meslek Yüksekokulu").
+- **Adversarial eksenler:** yönetmelik-dışı bozuk sayı bloğu; İlgi bloğu olmadan gövdede "İlgi (b)" atfı (kopuk zincir); geçersiz tarih (31/02/2026) + kısa-yıl biçimi; tamamen sözel tarih ("Temmuz ayının on ikinci günü"); aşırı kısaltmalı bozuk muhatap; yanlış "rica ederim" bitişli vatandaş dilekçesi (m.16 tolerans testi); KVKK-yoğun içerik (2 dosya: çift TCKN, IBAN, telefon, plaka); çok konulu tek evrak (2 dosya); **çift-doğalı makam oluru** (2 dosya, bilinen sınır durumun genişletilmesi); yanlış harfli maddeleme ("A)", "c."); 2 temiz kontrol örneği.
+- **Kasıtlı eksik alanlar:** 5 dosyada (`ilgi`, `katilimcilar`, `hazirlayan`, `dagitim`, `tarih`); kalan 11 tam alanlıdır.
+- **Üretim ve çift-etiketleme:** İki bağımsız yazar spesifikasyona göre 8'er evrak üretmiş; her set, DİĞER yazarın setini denetleyen bağımsız kontrolle (çift-etiketleme) doğrulanmıştır. Tek itiraz (rapor_a1'in v2 setindeki bir dosyaya yakın klon olması — held-out çapraz kontaminasyon riski) kabul edilip evrak farklı antet/iskeletle yeniden yazılmıştır.
+- **KVKK:** Tüm kişi/kurum/yer adları kurgudur; T.C. kimlik numaraları yalnızca checksum-geçerli 4 kurgu değerdir; IBAN/telefon/plaka biçim-uyumlu kurgudur.
+- **Kaynak:** Takım üretimi. **Lisans:** Apache 2.0.
+
+v3 ölçümü çalıştırma:
+
+```bash
+python3 scripts/evaluate.py \
+    --veri-dizini data/raw/kurgu_evraklar_heldout_v3 \
+    --rapor-dosyasi data/processed/eval_report_heldout_v3.json
+```
+
 ### 3. Mevzuat Metinleri (`raw/mevzuat_metinleri/`)
 - Kamuya açık mevzuat metinleri
 - **Kaynak:** [mevzuat.gov.tr](https://mevzuat.gov.tr)

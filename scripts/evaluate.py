@@ -258,6 +258,31 @@ def hesapla_isabet_kacaklari(
     ]
 
 
+def hesapla_confusion_matrix(
+    gercek: Sequence[str], tahmin: Sequence[str]
+) -> Dict[str, Any]:
+    """
+    Tür bazında karışıklık (confusion) matrisi üretir (saf Python).
+
+    Args:
+        gercek: Gerçek sınıf etiketleri
+        tahmin: Tahmin edilen sınıf etiketleri (aynı uzunlukta)
+
+    Returns:
+        {"siniflar": [...sıralı sınıf listesi...],
+         "matris": {gercek_sinif: {tahmin_sinif: sayi}}}
+        — satır gerçek etiketi, sütun tahmini temsil eder; köşegen
+        dışındaki her hücre bir karışma desenidir (hata analizi girdisi).
+    """
+    siniflar = sorted(set(gercek) | set(tahmin))
+    matris: Dict[str, Dict[str, int]] = {
+        g: {t: 0 for t in siniflar} for g in siniflar
+    }
+    for g, t in zip(gercek, tahmin):
+        matris[g][t] += 1
+    return {"siniflar": siniflar, "matris": matris}
+
+
 def hesapla_taslak_kalitesi(sonuclar: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Taslak kalite hakemi puanlarının (0-100) özet istatistiğini üretir.
@@ -552,6 +577,7 @@ def metrikleri_hesapla(
             "macro_precision": sinif_metrikleri["macro_precision"],
             "macro_recall": sinif_metrikleri["macro_recall"],
             "sinif_bazinda": sinif_metrikleri["sinif_bazinda"],
+            "confusion_matrix": hesapla_confusion_matrix(gercek_tur, tahmin_tur),
             "yanlis_siniflananlar": hesapla_yanlis_listesi(
                 dosyalar, gercek_tur, tahmin_tur
             ),

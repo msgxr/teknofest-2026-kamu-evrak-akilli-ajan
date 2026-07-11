@@ -37,6 +37,7 @@ pytest tests/                                        # birim + uçtan uca testle
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar --rapor-dosyasi data/processed/eval_report.json
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout --rapor-dosyasi data/processed/eval_report_heldout.json
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v2 --rapor-dosyasi data/processed/eval_report_heldout_v2.json
+python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v3 --rapor-dosyasi data/processed/eval_report_heldout_v3.json
 
 streamlit run src/app.py                             # web arayüzü
 python demo/demo_scenario.py                         # konsol demo senaryosu

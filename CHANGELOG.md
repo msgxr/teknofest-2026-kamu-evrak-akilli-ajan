@@ -14,6 +14,22 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Adversarial tutulmuş set v3 + hata analizi (P1-7, şartname izi: Uygulama-35/veri çeşitliliği):**
+  - 16 zorlayıcı kurgu evrak (dördüncü kurgu evren "Puslupınar/Kavakdüzü";
+    8 tür × 2; 9 birimin tamamı hedef): bozuk sayı bloğu, kopuk İlgi
+    zinciri, geçersiz/sözel tarihler, KVKK-yoğun içerik, yanlış bitişli
+    vatandaş dilekçesi, çok konulu evraklar, iki yeni çift-doğalı olur.
+  - Üretim çift-etiketlemeli: iki bağımsız yazar + çapraz kontrol; tek
+    itiraz (v2 dosyasına yakın klon — held-out kontaminasyon riski) kabul
+    edilip evrak yeniden yazıldı. Veri kartı `data/README.md` §2c.
+  - **İLK ölçüm düzeltmesiz raporlandı** (12.07.2026): sınıflandırma 0,938 /
+    yönlendirme 1,000 / eksik bilgi F1 0,667 / isabet@3 0,875 / kalite 95,8.
+    Dört karışma deseni teknik rapor §5.1'de analiz edildi, §6 Sınırlılıklar
+    beş somut maddeyle genişletildi (İlgi metinsel-varlık yanılması, sözel
+    tarih, rapor iskelet bağımlılığı, KVKK tema-tetikleyici boşluğu,
+    iyelik sinyali sınır durumu) — held-out bütünlüğü korundu.
+  - `evaluate.py`'ye tür-bazlı **confusion matrix** eklendi
+    (`siniflandirma.confusion_matrix`; 4 birim testi). Toplam 318/318 yeşil.
 - **MCP entegrasyon vizyonu (P1-8, şartname izi: Yenilikçilik-15):**
   `docs/mcp_vizyonu.md` — mevcut REST API'nin Model Context Protocol
   araçlarına birebir eşlenmesi: mimari çizim, 5 araç şeması taslağı

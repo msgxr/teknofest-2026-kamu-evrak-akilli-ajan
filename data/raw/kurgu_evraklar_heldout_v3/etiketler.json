@@ -1,0 +1,114 @@
+{
+  "bilgilendirme_a1.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Yeni evrak kayıt ve havale usulünü (EBYS kaydı, sistem üzerinden havale, gizlilik dereceli evrak, e-Yazışma paketi) duyuran bilgilendirme yazısı; sayı, konu, tarih, gövde, dağıtım ve imza tam. ADVERSARIAL: muhatap makam adı aşırı ve hatalı kısaltmayla bozuk ('PSLPNR İL MÜD. YRD.LIĞINA') — muhatap mevcut ama biçimsiz, ayrıştırma tolerans testi.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "e_yazisma_teknik_rehberi_bilgi_notu"]
+  },
+  "bilgilendirme_a2.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "genel_mudurluk",
+    "eksik_alanlar": [],
+    "aciklama": "Normal kontrol örneği (adversarial değil): Genel Müdürlük Makamının Olur'a dayanan tasarruf talimatının tüm birimlere duyurulması. Makam, talimat, olur ve üst yönetim dili genel müdürlük yönlendirme sinyalidir. Sayı, konu, tarih, imza ve dağıtım alanları tamdır.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
+  },
+  "cevap_yazisi_a1.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": ["ilgi"],
+    "aciklama": "Kaymakamlığın ek ödenek talebine kısmi kabul cevabı: 5018 kapsamında 520.000 TL için aktarma başlatılıyor, kalan tutar üçüncü çeyrek gerçekleşmelerine erteleniyor. ADVERSARIAL: kopuk ilgi zinciri — İlgi bloğu hiç yok ancak gövde 'İlgi (b)'de kayıtlı yazınız' diyerek var olmayan bir ilgi listesine atıf yapıyor.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kamu_mali_yonetimi_5018"]
+  },
+  "cevap_yazisi_a2.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Adversarial TUTARSIZ TARİH BİÇİMLERİ: İlgi satırında takvimde bulunmayan geçersiz '31/02/2026' tarihi, gövdede kısa yıllı '12.7.26' biçimi kullanılmıştır; belgenin kendi Tarih alanı (14.07.2026) normaldir. İdare aleyhine açılan iptal davasında savunma süresine ilişkin hukuki görüş cevabıdır; dava/mahkeme/savunma dili hukuk yönlendirme sinyalidir.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "idari_yargilama_usulu_kanunu_2577"]
+  },
+  "dilekce_a1.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Kavakdüzü pazaryerindeki seyyar satıcı işgali ve gürültüyü şikâyet eden, esnaf ve vatandaşlara yönelik kamuoyu duyurusu talep eden tam alanlı vatandaş dilekçesi (ad-soyad, TC, adres, imza, tarih, konu tam). ADVERSARIAL: vatandaş dilekçeyi 'arz ederim' yerine yanlış bitiş kalıbı olan 'gereğinin yapılmasını rica ederim' ile bitirmiş — bitiş ifadesi tolerans testi.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "kabahatler_kanunu_5326", "belediye_kanunu_5393"]
+  },
+  "dilekce_a2.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Adversarial KVKK-yoğun dilekçe: metinde iki T.C. kimlik numarası (başvuran 66123774556, vekil 72926652458), bir IBAN, iki cep telefonu ve açık adres geçer; kişisel veri tespiti/maskeleme davranışını test eder. Mükerrer su faturası tahsilatının iadesi ve ödeme planı itirazı; tahsilat/iade/ödeme dili mali hizmetlere yönlendirme sinyalidir. Tüm zorunlu alanlar tamdır.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "belediye_kanunu_5393"]
+  },
+  "genelge_a1.txt": {
+    "tur": "genelge",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": ["dagitim"],
+    "aciklama": "Kişisel verilerin telefonla paylaşılmamasını, KVKK'ya (6698) uyumu ve itiraz/dava süreçlerinde İl Hukuk İşleri Şb. Müd.'ne danışılmasını emreden genelge; sayı, konu, tarih ve imza mevcut. ADVERSARIAL: maddeleme yönetmelik dışı ve karışık ('A)' büyük harfli, 'c.' noktalı, '3)' rakamlı biçimler bir arada, 'A)' mükerrer kullanılmış); Dağıtım bölümü hiç yok — dagitim alanı gerçekten eksik.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kvkk_6698"]
+  },
+  "genelge_a2.txt": {
+    "tur": "genelge",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Normal kontrol örneği (adversarial değil): elektrik, su ve kırtasiye tasarruf tedbirleri uygulama genelgesi. Bütçe, ödenek ve harcama dili mali hizmetler yönlendirme sinyalidir. Sayı, genelge numarası, tarih, imza ve dağıtım alanları tamdır.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "resmi_yazisma_yonetmeligi"]
+  },
+  "onayli_belge_a1.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Hizmet içi eğitim için 18 personelin görevlendirilmesini makam onayına sunan, tüm alanları tam (sayı, tarih, onaylayan, onay metni) e-imzalı makam oluru. ADVERSARIAL ÇİFT-DOĞA: 'olurlarınıza arz ederim' ve 'O L U R' kalıpları makam/üst yönetim (genel_mudurluk) sinyali verirken, içerik personel görevlendirmesi, idari izin, yıllık izin planlaması ve özlük dosyası işlemleri (insan_kaynaklari) ağırlıklıdır; işi yürüten birim ilkesi gereği doğru yönlendirme insan_kaynaklari'dır.",
+    "mevzuat_beklenen": ["elektronik_imza_kanunu_5070", "devlet_memurlari_kanunu_657"]
+  },
+  "onayli_belge_a2.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": ["tarih"],
+    "aciklama": "Adversarial ÇİFT-DOĞALI OLUR #2: yazılım lisansının doğrudan temin usulüyle alımına ilişkin makam oluru; işi destek hizmetleri yürütür ve metin teknik şartname, yaklaşık maliyet, piyasa fiyat araştırması ve bütçe tertibi dili içerir (mali/bilgi işlem çeldiricileri). Tarih alanı kasıtlı olarak yoktur; Olur bloğunda da tarih bulunmaz (eksik_alanlar=[tarih]).",
+    "mevzuat_beklenen": ["elektronik_imza_kanunu_5070", "kamu_ihale_kanunu_4734"]
+  },
+  "rapor_a1.txt": {
+    "tur": "rapor",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": ["hazirlayan"],
+    "aciklama": "Turizm sezonu ziyaretçi istatistikleri ile 2024-2028 il stratejik planı performans göstergesi gerçekleşmelerini sunan ara dönem raporu; tarih, başlık, bulgular, sonuç ve imza mevcut. ADVERSARIAL: 'Hazırlayan' bölümü hiç yok (imzadaki unvan hazırlayanı açıkça tanımlamıyor — mevcut etiketleme geleneğiyle uyumlu) ve bulgular düzensiz, karışık girintili/çift tireli liste biçiminde verilmiş.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
+  },
+  "rapor_a2.txt": {
+    "tur": "rapor",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": [],
+    "aciklama": "Adversarial ÇOK KONULU rapor: çeyrek bütçe gerçekleşmesi (mali sinyal) ile personel devir/izin istatistikleri (insan kaynakları sinyali) tek raporda birleştirilmiştir; stratejik plan performans göstergesi atıfları (SP-2.1, SP-4.3) raporu strateji birimine bağlar. Tarih, hazırlayan ve imza alanları tamdır.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
+  },
+  "tutanak_a1.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": ["katilimcilar"],
+    "aciklama": "Doğrudan temin (4734 md. 22/d) ile alınan çadır ve ekipmanın muayene-kabul tutanağı; saat, yer, konu, kararlar ve imza blokları mevcut. ADVERSARIAL: tarih yalnızca sözle ve sıra dışı biçimde verilmiş ('İki bin yirmi altı yılı Temmuz ayının on ikinci günü'), belgede hiçbir rakamsal tarih yok (tarih ayrıştırma tolerans testi); katılımcı listesi bulunmuyor, imza blokları isimsiz — katilimcilar alanı gerçekten eksik.",
+    "mevzuat_beklenen": ["kamu_ihale_kanunu_4734", "kamu_mali_yonetimi_5018"]
+  },
+  "tutanak_a2.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Adversarial KVKK-yoğun hasar tespit tutanağı: üçüncü şahsın T.C. kimlik numarası (56375893488), cep telefonu ve kurgu plakalar (81 KGV 217, 81 AEL 508) metinde geçer; kişisel veri tespiti/maskeleme testi. Hizmet aracına verilen zararın tespiti ve kamu zararının tazmini için dosyanın hukuk birimine devri konu edilir. Tarih, katılımcılar ve imzalar tamdır.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "kvkk_6698"]
+  },
+  "ust_yazi_a1.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [],
+    "aciklama": "Kurum ağ altyapısındaki tekrarlayan kesintiler ve bilgi güvenliği tedbirleri kapsamında sistem odası incelemesi, ağ cihazı onarımı ve güvenlik duvarı/ağ yeniden yapılandırması talep eden üst yazı; ilgi, tarih, muhatap ve imza tam. ADVERSARIAL: sayı bloğu Resmî Yazışma Yönetmeliği'ne aykırı serbest biçimde bozuk ('Sayı : PV-2026/---') — sayı alanı mevcut ama biçimsiz, tolerans testi.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
+  },
+  "ust_yazi_a2.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Adversarial ÇOK KONULU tek evrak: ağırlıklı konu yaz dönemi personel izin planlaması ve vekâlet görevlendirmeleridir (insan kaynakları); gövdeye 'Ayrıca' ile sunucu bakımı kaynaklı sistem kesintisi duyurusu talebi (bilgi işlem sinyali) eklenmiştir. Yönlendirme ağırlıklı konuya göre insan_kaynaklari olmalıdır; ikincil konu çeldiricidir. Sayı, konu, tarih, muhatap, ilgi ve imza alanları tamdır.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "devlet_memurlari_kanunu_657"]
+  }
+}

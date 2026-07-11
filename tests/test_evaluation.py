@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from scripts.evaluate import (
     hesapla_accuracy,
+    hesapla_confusion_matrix,
     hesapla_adim_ortalamalari,
     hesapla_isabet_at_k,
     hesapla_isabet_kacaklari,
@@ -275,3 +276,36 @@ class TestIsabetKacaklari:
 
     def test_hepsi_isabetliyse_bos(self):
         assert hesapla_isabet_kacaklari(["a.txt"], [{"m"}], [["m"]], k=3) == []
+
+
+class TestConfusionMatrix:
+    """hesapla_confusion_matrix birim testleri (P1-7 hata analizi)."""
+
+    def test_kosegen_ve_karisma(self):
+        """Doğrular köşegene, karışmalar ilgili hücreye yazılmalı."""
+        gercek = ["dilekce", "dilekce", "tutanak", "rapor"]
+        tahmin = ["dilekce", "tutanak", "tutanak", "rapor"]
+        cm = hesapla_confusion_matrix(gercek, tahmin)
+        assert cm["siniflar"] == ["dilekce", "rapor", "tutanak"]
+        assert cm["matris"]["dilekce"]["dilekce"] == 1
+        assert cm["matris"]["dilekce"]["tutanak"] == 1  # karışma deseni
+        assert cm["matris"]["tutanak"]["tutanak"] == 1
+        assert cm["matris"]["rapor"]["rapor"] == 1
+
+    def test_sadece_tahminde_gorulen_sinif_sutunda(self):
+        """Etikette olmayan tahmin sınıfı matriste sütun olarak yer almalı."""
+        cm = hesapla_confusion_matrix(["a"], ["b"])
+        assert cm["matris"]["a"]["b"] == 1
+        assert cm["matris"]["b"]["a"] == 0
+
+    def test_toplam_korunur(self):
+        """Matris hücrelerinin toplamı örnek sayısına eşit olmalı."""
+        gercek = ["a", "b", "a", "c", "b"]
+        tahmin = ["a", "a", "a", "c", "b"]
+        cm = hesapla_confusion_matrix(gercek, tahmin)
+        toplam = sum(sum(satir.values()) for satir in cm["matris"].values())
+        assert toplam == 5
+
+    def test_bos_giris(self):
+        cm = hesapla_confusion_matrix([], [])
+        assert cm["siniflar"] == [] and cm["matris"] == {}

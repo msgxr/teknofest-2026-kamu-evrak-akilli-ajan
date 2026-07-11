@@ -1,0 +1,21 @@
+T.C.
+PUSLUPINAR VALİLİĞİ
+İl Kültür ve Turizm Müdürlüğü
+
+Sayı   : PV-2026/---
+Konu   : Ağ altyapısı kesintileri ve bilgi güvenliği tedbirleri kapsamında onarım talebi
+Tarih  : 08.07.2026
+
+İL BİLGİ İŞLEM MÜDÜRLÜĞÜNE
+
+İlgi : a) 19.06.2026 tarihli ve E-40312578-710.01-2026/402 sayılı yazınız
+       b) Müdürlüğümüz teknik biriminin 03.07.2026 tarihli arıza bildirim formu
+
+Müdürlüğümüz hizmet binasında son üç haftadır tekrarlayan ağ kesintileri yaşanmakta; elektronik belge yönetim sistemi ile kullanıcı doğrulama hizmetlerine erişim gün içinde defalarca kopmaktadır. İlgi (b) formda; zemin kat sistem odasındaki anahtarlama cihazının (switch) aşırı ısınma nedeniyle kendini kapattığı, yapısal kablolamanın bir bölümünün standart dışı olduğu ve kesintiler sırasında turizm danışma bürosundaki vezne yazılımının da hizmet dışı kaldığı tespit edilmiştir.
+
+İlgi (a) yazınızla duyurulan bilgi güvenliği tedbirleri de dikkate alınarak; sistem odasının yerinde incelenmesi, arızalı ağ cihazlarının onarımı veya değişimi, kesintisiz güç kaynağının kontrolü ile güvenlik duvarı kurallarının ve ağ yapılandırmasının Müdürlüğümüz ihtiyaçlarına göre yeniden düzenlenmesi hususunda gereğini arz ederim.
+
+                                                        Doruk KAYAGÖLÜ
+                                                        İl Müdürü a.
+                                                        İl Müd. Yrd.
+                                                        (e-imzalıdır)
