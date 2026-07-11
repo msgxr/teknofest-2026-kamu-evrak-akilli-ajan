@@ -1,11 +1,29 @@
 """
-Mevzuat Eşleştirme Agent — BM25 tabanlı RAG ile ilgili mevzuat önerisi.
+Mevzuat Eşleştirme Agent — hibrit (BM25 ∪ opsiyonel semantik) RAG ile
+madde-referanslı ve gerekçeli mevzuat önerisi.
 
 data/raw/mevzuat_metinleri/ altındaki mevzuat özet dosyalarını bölüm
-bazında parçalara (chunk) ayırır, saf Python BM25-Okapi indeksiyle
-bellekte arar ve evraka en uygun mevzuat hükümlerini önerir. ChromaDB
-kuruluysa opsiyonel semantik arama denenir; hiçbir yol sonuç üretemezse
-kural tabanlı eşleştirmeye düşülür (LLM'siz/offline tam çalışma).
+bazında parçalara (chunk) ayırır, her bölümün atıf yaptığı madde
+numaralarını çıkarır ve saf Python BM25-Okapi indeksiyle bellekte arar.
+Benzerlik değerleri MUTLAK ölçektedir (sorgu IDF kütlesinden türetilen
+doygunluk noktasına oran); göreli normalizasyonun zayıf eşleşmeleri 1.0'a
+şişirmesi bilinçli olarak terk edilmiştir ve en iyi eşleşme bile zayıfsa
+sonuçlar "zayif_esleme" işaretiyle döner (benzerlik dürüstlüğü).
+
+Opsiyonel katmanlar (sentence-transformers kuruluysa ve ayarla açılmışsa):
+turkish-e5-large yoğun arama adayları BM25 ile puan birleşimine girer,
+bge-reranker-v2-m3 aday havuzunu yeniden sıralar. En iyi eşleşmenin
+benzerliği eşiğin altında kalırsa evrak türünün usul söz dağarcığıyla
+sorgu bir kez genişletilip arama yinelenir (düzeltici/corrective RAG
+döngüsü — bkz. Singh vd. 2025, arXiv:2501.09136; Li vd. 2025,
+arXiv:2507.09477). Hiçbir opsiyonel katman yokken sistem tamamen kural
+tabanlı + BM25 ile offline çalışır; hiçbir yol sonuç üretemezse evrak
+türüne göre kural tabanlı eşleştirmeye düşülür.
+
+Her öneri şu alanları taşır: {mevzuat_adi, madde_no, gerekce, benzerlik
+(skor), doc_id, bolum, icerik_ozeti, kaynak} — gerekçe ve madde alanları
+halüsinasyonsuz, tamamen korpus içeriğinden ve eşleşme sinyallerinden
+türetilir.
 
 Şartname Referansı (Görev 1):
     "İlgili mevzuat, yönetmelik veya standart yazışma kurallarını önerebilme"
@@ -20,6 +38,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from src.utils.bm25 import BM25Okapi, tokenize
+from src.utils.semantik_arama import SemantikArama, YenidenSiralayici, puan_birlestir
 from src.utils.turkish_nlp import turkish_lower
 
 if TYPE_CHECKING:
@@ -46,6 +65,13 @@ TUR_USUL_MEVZUATI["dilekce"] = "dilekce_hakki_kanunu_3071"
 # Sorguya dahil edilecek ham metin uzunluğu ve özet uzunluğu
 SORGU_METIN_LIMITI = 1500
 OZET_LIMITI = 300
+
+# Bölüm metinlerindeki madde atıflarını yakalayan desen. Korpusta gözlenen
+# biçimler: "(m. 14)", "(m. 22-23)" (aralık) ve "m. 4'te" (parantezsiz,
+# kesme ekli). Kanun numarası atıfları ("3071 sayılı") madde DEĞİLDİR ve
+# "m." öneki zorunlu olduğu için yakalanmaz; madde numaraları korpusta en
+# fazla üç hanelidir.
+MADDE_DESENI = re.compile(r"\bm\.\s*(\d{1,3})(?:-(\d{1,3}))?")
 
 # ----------------------------------------------------------------------
 # Tür-koşullu yeniden sıralama (re-ranking) ağırlıkları
@@ -181,17 +207,98 @@ DOYGUNLUK_KATSAYISI = 1.5
 # demektir ve tüketiciler (arayüz/raporlama) bunu şeffafça gösterebilir.
 ZAYIF_ESLESME_ESIGI = 0.5
 
+# ----------------------------------------------------------------------
+# Düzeltici (corrective) arama döngüsü ve hibrit birleşim sabitleri
+# ----------------------------------------------------------------------
+
+# Düzeltici döngü tetiği, zayıf-eşleşme İŞARETİNDEN (0.5) bilinçli olarak
+# ayrıdır ve daha aşağıdadır: işaret şeffaflık içindir, tetik ise yalnızca
+# sorgu söz dağarcığı korpusla GERÇEKTEN örtüşmediğinde (ör. korpus dışı
+# terminoloji, bozuk OCR çıktısı) devreye giren güvenlik ağıdır. Eşik
+# geliştirme seti gözlemiyle kalibre edilmiştir (held-out kullanılmadı):
+# 35 geliştirme evrakında ilk-en-iyi benzerlik min 0.107 / medyan 0.245
+# ölçülmüş; tetik 0.5'te döngü 33/35 evrakta ateşlenip usul terimleriyle
+# alan mevzuatını ilk üçten itebildiğinden isabet@3 0.943→0.914 düşmüş,
+# 0.15'te ise isabet 0.943'te kalarak döngü yalnızca 2 sınır evrakta
+# çalışmıştır. Bu yüzden 0.15: iyi eşleşen evraklara dokunmaz, söz
+# dağarcığı uyuşmazlığında devreye girer (birim testle doğrulanır).
+DUZELTME_ESIGI = 0.15
+
+# Evrak türü → sorgu genişletmede kullanılan usul söz dağarcığı. Terimler
+# belge içeriğine değil türün hukuki bağlamına aittir; düzeltme döngüsü
+# sorgunun mevzuat korpusu dağarcığıyla hizalanmasını sağlar.
+TUR_SORGU_GENISLETME: Dict[str, List[str]] = {
+    "dilekce": ["dilekçe", "başvuru", "talep", "şikâyet", "cevap", "süre",
+                "imza", "adres", "yetkili", "makam"],
+    "cevap_yazisi": ["resmî", "yazışma", "cevap", "başvuru", "ilgi", "sayı",
+                     "usul", "süre"],
+    "ust_yazi": ["resmî", "yazışma", "usul", "sayı", "konu", "imza",
+                 "dağıtım", "belge"],
+    "bilgilendirme": ["resmî", "yazışma", "duyuru", "bilgilendirme", "usul",
+                      "belge"],
+    "genelge": ["resmî", "yazışma", "genelge", "talimat", "uygulama", "usul"],
+    "tutanak": ["tutanak", "tespit", "imza", "katılımcı", "arşiv", "saklama",
+                "belge"],
+    "rapor": ["rapor", "değerlendirme", "bulgu", "arşiv", "saklama",
+              "dosyalama"],
+    "onayli_belge": ["elektronik", "imza", "onay", "güvenli", "sertifika",
+                     "belge"],
+}
+
+# Hibrit birleşimde BM25 tarafının ağırlığı (kalan semantik tarafa gider).
+# BM25 birincildir: çekirdek yol, mevzuat dilindeki birebir terim
+# çakışmasında güçlüdür; semantik katman eş anlamlı ifadeleri tamamlar.
+# Birleşim mutlak ölçekte yapılır: BM25 tarafı doygunluk-oranlı benzerlik,
+# semantik taraf kosinüs benzerliği (ikisi de [0-1]).
+HIBRIT_BM25_AGIRLIK = 0.6
+
+# Opsiyonel katmanlara (semantik aday havuzu, rerank) verilen aday sayısı
+ADAY_HAVUZU = 10
+
+# Gerekçede listelenen en ayırt edici (yüksek IDF) ortak terim sayısı
+GEREKCE_TERIM_SAYISI = 3
+
+
+def madde_referanslari(metin: str) -> List[str]:
+    """
+    Bölüm metnindeki madde atıflarını sıra korunarak (tekrarsız) çıkarır.
+
+    "(m. 14)" → "14"; "(m. 22-23)" aralığı → "22-23"; "m. 4'te" → "4".
+    Madde atfı olmayan metin için boş liste döner (bilgi notları gibi
+    korpus dosyalarında bu normal akıştır).
+    """
+    gorulen: List[str] = []
+    for esleme in MADDE_DESENI.finditer(metin):
+        no = esleme.group(1)
+        if esleme.group(2):
+            no = f"{no}-{esleme.group(2)}"
+        if no not in gorulen:
+            gorulen.append(no)
+    return gorulen
+
+
+def madde_etiketi(madde_no: List[str]) -> str:
+    """Madde listesini insan-okur etikete çevirir: ["4","22-23"] → "m. 4, m. 22-23"."""
+    return ", ".join(f"m. {n}" for n in madde_no)
+
 
 class LegislationAgent:
     """
     Mevzuat eşleştirme agent'ı.
 
     Evrak içeriğine göre ilgili mevzuat, yönetmelik ve standart yazışma
-    kurallarını önerir. Öncelik sırası:
-      1. (Opsiyonel) ChromaDB semantik arama — yalnızca kuruluysa,
-      2. BM25-Okapi anahtar kelime araması (birincil, bağımlılıksız yol;
-         sonuçlar tür/tema koşullu ağırlıklarla yeniden sıralanır),
-      3. Kural tabanlı eşleştirme (son çare).
+    kurallarını madde referansı ve gerekçesiyle önerir. Akış:
+      1. BM25-Okapi anahtar kelime araması (çekirdek, bağımlılıksız yol;
+         sonuçlar tür/tema koşullu ağırlıklarla yeniden sıralanır, benzerlik
+         mutlak doygunluk ölçeğindedir),
+      2. (Opsiyonel) turkish-e5-large yoğun arama adayları BM25 ile puan
+         birleşimine girer; (opsiyonel) bge-reranker-v2-m3 adayları
+         yeniden sıralar — ikisi de yoksa salt BM25 davranışı birebir korunur,
+      3. En iyi benzerlik DUZELTME_ESIGI altındaysa tür söz dağarcığıyla
+         sorgu genişletilip arama BİR KEZ yinelenir (corrective RAG),
+      4. (Opsiyonel) ChromaDB semantik arama — yalnızca BM25 indeksi
+         kurulamadıysa yedek yol olarak denenir,
+      5. Kural tabanlı eşleştirme (son çare).
 
     Korpus ve BM25 indeksi sınıf düzeyinde önbelleğe alınır; ilk kullanımda
     bir kez yüklenir, sonraki örnekler aynı indeksi paylaşır.
@@ -200,11 +307,14 @@ class LegislationAgent:
     # Sınıf düzeyinde cache (tüm örnekler paylaşır)
     _chunks: Optional[List[Dict]] = None
     _bm25: Optional[BM25Okapi] = None
+    # Opsiyonel katman örnekleri: None = henüz denenmedi, False = kullanılamaz
+    _semantik: object = None
+    _rerank: object = None
 
     def __init__(self) -> None:
         self.collection = None
         self._chroma_denendi = False
-        logger.info("Mevzuat Agent başlatıldı (BM25 RAG).")
+        logger.info("Mevzuat Agent başlatıldı (hibrit BM25 RAG).")
 
     # ------------------------------------------------------------------
     # Korpus yükleme ve indeksleme
@@ -246,6 +356,9 @@ class LegislationAgent:
             cls._bm25 = BM25Okapi([c["tokens"] for c in cls._chunks])
         else:
             cls._bm25 = None
+        # Chunk listesi değişti: semantik gömme indeksi bayatladı, ilk
+        # kullanımda yeniden kurulsun
+        cls._semantik = None
 
     @staticmethod
     def _parse_corpus_file(path: Path) -> List[Dict]:
@@ -258,6 +371,10 @@ class LegislationAgent:
             # Anahtar-Kelimeler: <virgüllü liste>
             ## <bölüm başlığı>
             <2-5 cümlelik bölüm metni>
+
+        Her bölüm bir chunk olur; bölümün atıf yaptığı madde numaraları
+        (madde_referanslari) chunk üstverisine işlenir — böylece öneriler
+        mevzuat adıyla birlikte madde numarası taşıyabilir.
         """
         text = path.read_text(encoding="utf-8")
 
@@ -304,6 +421,7 @@ class LegislationAgent:
                 "anahtar_kelimeler": anahtar_kelimeler,
                 "bolum": bolum,
                 "icerik": icerik,
+                "madde_no": madde_referanslari(icerik),
                 # Anahtar kelimeler geri getirme kalitesi için token'lara eklenir
                 "tokens": tokenize(f"{baslik} {bolum} {icerik} {keyword_text}"),
             })
@@ -331,12 +449,47 @@ class LegislationAgent:
                 "anahtar_kelimeler": anahtar,
                 "bolum": "Genel",
                 "icerik": metin,
+                "madde_no": madde_referanslari(metin),
                 "tokens": tokenize(f"{baslik} {metin} {' '.join(anahtar)}"),
             })
 
         cls._chunks = chunks
         cls._rebuild_bm25()
         logger.info(f"{len(documents)} mevzuat belgesi bellek içi korpusa eklendi.")
+
+    # ------------------------------------------------------------------
+    # Opsiyonel katman erişimi (zarif düşüşlü)
+    # ------------------------------------------------------------------
+
+    def _ensure_semantik(self) -> Optional[SemantikArama]:
+        """Semantik arama katmanını (bir kez) kurmayı dener; yoksa None."""
+        cls = type(self)
+        if cls._semantik is False:
+            return None
+        if cls._semantik is None:
+            sa = SemantikArama()
+            chunks = cls._chunks or []
+            metinler = [
+                f"{c['baslik']} {c['bolum']} {c['icerik']}" for c in chunks
+            ]
+            if not sa.aktif() or not sa.indeksle(metinler):
+                cls._semantik = False
+                return None
+            cls._semantik = sa
+        return cls._semantik  # type: ignore[return-value]
+
+    def _ensure_rerank(self) -> Optional[YenidenSiralayici]:
+        """Yeniden sıralama katmanını (bir kez) kurmayı dener; yoksa None."""
+        cls = type(self)
+        if cls._rerank is False:
+            return None
+        if cls._rerank is None:
+            rr = YenidenSiralayici()
+            if not rr.aktif():
+                cls._rerank = False
+                return None
+            cls._rerank = rr
+        return cls._rerank  # type: ignore[return-value]
 
     # ------------------------------------------------------------------
     # Ana çalışma akışı
@@ -352,103 +505,174 @@ class LegislationAgent:
 
         self._ensure_index()
 
-        matches: List[dict] = []
+        # 1) Birincil yol: hibrit arama (BM25 + opsiyonel katmanlar)
+        matches, yontem = self._hibrit_ara(query_text, evrak_turu)
 
-        # 1) Opsiyonel semantik arama — yalnızca chromadb kuruluysa denenir
-        if importlib.util.find_spec("chromadb") is not None:
+        # 2) Düzeltici döngü: en iyi benzerlik eşiğin altındaysa (zayıf
+        #    eşleşme) sorguyu türün usul söz dağarcığıyla genişletip BİR KEZ
+        #    yeniden ara; yalnızca en iyi benzerlik iyileşirse benimse
+        ilk_benzerlik = matches[0]["benzerlik"] if matches else 0.0
+        duzeltme = {
+            "uygulandi": False,
+            "esik": DUZELTME_ESIGI,
+            "ilk_en_iyi_benzerlik": round(ilk_benzerlik, 3),
+            "eklenen_terimler": [],
+        }
+        genisletme = TUR_SORGU_GENISLETME.get(evrak_turu, [])
+        if ilk_benzerlik < DUZELTME_ESIGI and genisletme:
+            genis_sorgu = f"{query_text} {' '.join(genisletme)}"
+            yeni_matches, yeni_yontem = self._hibrit_ara(
+                genis_sorgu, evrak_turu, duzeltilmis=True
+            )
+            yeni_benzerlik = yeni_matches[0]["benzerlik"] if yeni_matches else 0.0
+            if yeni_benzerlik > ilk_benzerlik:
+                matches, yontem = yeni_matches, yeni_yontem
+                duzeltme["uygulandi"] = True
+                duzeltme["eklenen_terimler"] = list(genisletme)
+                duzeltme["son_en_iyi_benzerlik"] = round(yeni_benzerlik, 3)
+                logger.info(
+                    "Düzeltici döngü uygulandı: benzerlik "
+                    f"{ilk_benzerlik:.3f} → {yeni_benzerlik:.3f}"
+                )
+
+        # 3) Yedek yol: BM25 indeksi kurulamadıysa ChromaDB (kuruluysa)
+        if not matches and importlib.util.find_spec("chromadb") is not None:
             matches = self._search_vector_db(query_text)
+            if matches:
+                yontem = "chromadb"
 
-        # 2) Birincil yol: BM25 anahtar kelime araması (tür-koşullu sıralama)
-        if not matches:
-            matches = self._bm25_search(query_text, evrak_turu)
-
-        # 3) Son çare: kural tabanlı eşleştirme
+        # 4) Son çare: kural tabanlı eşleştirme
         if not matches:
             matches = self._rule_based_match(evrak_turu)
+            if matches:
+                yontem = "kural_tabanli"
 
         # Şartname: türü düzenleyen usul mevzuatı (yazışma kuralları /
         # dilekçe hakkı) önerilerin başında yer alır
         matches = self._ensure_usul_mevzuati(matches, evrak_turu)
 
         state.legislation_matches = matches[:5]
-        logger.info(f"Mevzuat eşleştirmesi: {len(state.legislation_matches)} sonuç")
+        state.legislation_meta = {
+            "yontem": yontem,
+            "duzeltme_dongusu": duzeltme,
+        }
+        logger.info(
+            f"Mevzuat eşleştirmesi: {len(state.legislation_matches)} sonuç "
+            f"(yöntem: {yontem})"
+        )
         return state
 
     # ------------------------------------------------------------------
-    # BM25 arama
+    # Hibrit arama (BM25 çekirdek + opsiyonel semantik/rerank)
     # ------------------------------------------------------------------
 
-    def _bm25_search(self, query_text: str, evrak_turu: str = "", top_n: int = 5) -> List[dict]:
+    def _hibrit_ara(
+        self,
+        query_text: str,
+        evrak_turu: str = "",
+        top_n: int = 5,
+        duzeltilmis: bool = False,
+    ) -> Tuple[List[dict], str]:
         """
-        BM25 ile en ilgili chunk'ları bulur; skorlar tür/tema koşullu
-        ağırlıklarla yeniden sıralanır ve mevzuat başına tek (en iyi)
-        sonuç döndürülür.
+        BM25 ve (varsa) semantik adayları puan birleşimiyle harmanlar,
+        (varsa) yeniden sıralar; mevzuat başına tek (en iyi) sonuç döndürür.
 
-        Benzerlik MUTLAK ölçektedir: ağırlıklı BM25 skoru, sorgunun IDF
-        kütlesinden türetilen doygunluk noktasına oranlanıp 1.0'a kırpılır
-        (bkz. DOYGUNLUK_KATSAYISI). En iyi eşleşme dahi göreli sıradan
-        bağımsız değerlendirildiği için alakasız sorgular düşük benzerlikte
-        kalır; en iyi benzerlik ZAYIF_ESLESME_ESIGI altındaysa tüm sonuçlar
-        "zayif_esleme": True işaretiyle döner.
+        Benzerlik MUTLAK ölçektedir: BM25 tarafında ağırlıklı skor, sorgunun
+        IDF kütlesinden türetilen doygunluk noktasına oranlanıp 1.0'a
+        kırpılır (bkz. DOYGUNLUK_KATSAYISI); semantik taraf kosinüs
+        benzerliği katar. En iyi eşleşme dahi göreli sıradan bağımsız
+        değerlendirildiği için alakasız sorgular düşük benzerlikte kalır;
+        en iyi benzerlik ZAYIF_ESLESME_ESIGI altındaysa tüm sonuçlar
+        "zayif_esleme": True işaretiyle döner. Opsiyonel katmanların ikisi
+        de yokken davranış salt BM25 aramasıyla birebir aynıdır.
+
+        Returns:
+            (öneri listesi, kullanılan yöntem etiketi)
         """
         cls = type(self)
         chunks = cls._chunks or []
         if cls._bm25 is None or not chunks:
-            return []
+            return [], "yok"
 
         query_tokens = tokenize(query_text)
         if not query_tokens:
-            return []
-
-        raw_scores = cls._bm25.get_scores(query_tokens)
-        aktif_temalar = self._aktif_temalar(query_tokens)
-        tur_agirliklari = TUR_MEVZUAT_AGIRLIKLARI.get(evrak_turu, {})
+            return [], "yok"
 
         # Mutlak doygunluk noktası: sorgunun korpus dağarcığındaki IDF kütlesi
         idf = cls._bm25.idf
         toplam_idf = sum(idf.get(t, 0.0) for t in set(query_tokens))
         if toplam_idf <= 0:
-            return []
+            return [], "yok"
         doygunluk = DOYGUNLUK_KATSAYISI * toplam_idf
 
-        # Tür/tema koşullu ağırlıklandırılmış skorlar
+        raw_scores = cls._bm25.get_scores(query_tokens)
+        aktif_temalar = self._aktif_temalar(query_tokens)
+        tur_agirliklari = TUR_MEVZUAT_AGIRLIKLARI.get(evrak_turu, {})
+
+        # Tür/tema koşullu ağırlıklandırılmış, doygunluk-oranlı MUTLAK
+        # BM25 benzerlikleri
         agirliklar: Dict[str, float] = {}
-        scores: List[float] = []
+        bm25_benzerlik: Dict[int, float] = {}
         for i, raw in enumerate(raw_scores):
+            if raw <= 0:
+                continue
             doc_id = chunks[i]["doc_id"]
             if doc_id not in agirliklar:
                 agirliklar[doc_id] = self._doc_agirligi(
                     doc_id, tur_agirliklari, aktif_temalar
                 )
-            scores.append(raw * agirliklar[doc_id])
+            bm25_benzerlik[i] = min(1.0, raw * agirliklar[doc_id] / doygunluk)
 
-        ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
-        if not ranked or scores[ranked[0]] <= 0:
-            return []
+        # Opsiyonel yoğun (dense) aday havuzu → mutlak ölçekte puan birleşimi
+        yontem = "bm25"
+        dense_benzerlik: Dict[int, float] = {}
+        semantik = self._ensure_semantik()
+        if semantik is not None:
+            adaylar = semantik.ara(query_text, top_n=ADAY_HAVUZU)
+            if adaylar:
+                dense_benzerlik = {i: max(0.0, s) for i, s in adaylar}
+                yontem = "bm25+semantik"
+
+        fused = puan_birlestir(bm25_benzerlik, dense_benzerlik, HIBRIT_BM25_AGIRLIK)
+        if not fused:
+            return [], yontem
+
+        # Opsiyonel yeniden sıralama: en iyi ADAY_HAVUZU aday yeniden puanlanır
+        # (çapraz kodlayıcının sigmoid çıktısı da [0-1] mutlak ölçektedir)
+        rerank = self._ensure_rerank()
+        if rerank is not None:
+            aday_idx = [
+                i for i, _ in sorted(
+                    fused.items(), key=lambda kv: kv[1], reverse=True
+                )[:ADAY_HAVUZU]
+            ]
+            rerank_puanlari = rerank.sirala(
+                query_text, [chunks[i]["icerik"] for i in aday_idx]
+            )
+            if rerank_puanlari:
+                fused = dict(zip(aday_idx, rerank_puanlari))
+                yontem += "+rerank"
 
         # Mevzuat (doc_id) başına en iyi chunk
-        best_per_doc: Dict[str, int] = {}
-        for i in ranked:
-            if scores[i] <= 0:
+        ranked = sorted(fused.items(), key=lambda kv: kv[1], reverse=True)
+        best_per_doc: Dict[str, Tuple[int, float]] = {}
+        for i, puan in ranked:
+            if puan <= 0:
                 break
             doc_id = chunks[i]["doc_id"]
             if doc_id not in best_per_doc:
-                best_per_doc[doc_id] = i
+                best_per_doc[doc_id] = (i, puan)
                 if len(best_per_doc) >= top_n:
                     break
 
         matches: List[dict] = []
-        for i in best_per_doc.values():
+        for i, puan in best_per_doc.values():
             chunk = chunks[i]
-            benzerlik = min(1.0, scores[i] / doygunluk)
-            matches.append({
-                "baslik": chunk["baslik"],
-                "icerik_ozeti": self._chunk_ozeti(chunk),
-                "benzerlik": round(benzerlik, 3),
-                "kaynak": chunk["kaynak"],
-                "anahtar_kelimeler": chunk["anahtar_kelimeler"],
-            })
-        # Benzerlik ağırlıklı skorda tekdüzedir; nihai benzerliğe göre sırala
+            gerekce = self._gerekce_uret(
+                chunk, query_tokens, aktif_temalar, evrak_turu, duzeltilmis
+            )
+            matches.append(self._match_olustur(chunk, round(puan, 3), gerekce))
+        # Benzerlik mutlak ölçekte tekdüzedir; nihai benzerliğe göre sırala
         matches.sort(key=lambda m: m["benzerlik"], reverse=True)
 
         # Mutlak taban eşiği: en iyi eşleşme bile zayıfsa listeyi işaretle
@@ -460,7 +684,73 @@ class LegislationAgent:
                 f"(en iyi benzerlik {matches[0]['benzerlik']}); korpusta "
                 "evraka doğrudan uyan hüküm bulunamamış olabilir."
             )
-        return matches
+        return matches, yontem
+
+    def _match_olustur(self, chunk: Dict, benzerlik: float, gerekce: str = "") -> dict:
+        """
+        Chunk'tan standart öneri sözlüğü üretir.
+
+        Şema (P0-1): mevzuat_adi + madde_no + gerekce + benzerlik(skor);
+        geriye dönük uyumluluk için eski anahtarlar (baslik, icerik_ozeti,
+        kaynak, anahtar_kelimeler) korunur.
+        """
+        madde_no = list(chunk.get("madde_no", []))
+        return {
+            "doc_id": chunk["doc_id"],
+            "baslik": chunk["baslik"],
+            "mevzuat_adi": chunk["baslik"],
+            "bolum": chunk["bolum"],
+            "madde_no": madde_no,
+            "madde_etiketi": madde_etiketi(madde_no),
+            "icerik_ozeti": self._chunk_ozeti(chunk),
+            "benzerlik": benzerlik,
+            "kaynak": chunk["kaynak"],
+            "anahtar_kelimeler": chunk["anahtar_kelimeler"],
+            "gerekce": gerekce,
+        }
+
+    def _gerekce_uret(
+        self,
+        chunk: Dict,
+        query_tokens: List[str],
+        aktif_temalar: set,
+        evrak_turu: str,
+        duzeltilmis: bool = False,
+    ) -> str:
+        """
+        Önerinin NEDEN ilgili olduğunu eşleşme sinyallerinden türetir.
+
+        Halüsinasyon yasağı gereği gerekçe yalnızca gözlenen sinyallerden
+        kurulur: sorgu-bölüm ortak ayırt edici terimler (IDF sıralı), tür
+        önceliği, aktif alan teması ve düzeltme döngüsü bilgisi.
+        """
+        parcalar: List[str] = []
+
+        idf = type(self)._bm25.idf if type(self)._bm25 is not None else {}
+        chunk_tokens = set(chunk.get("tokens", []))
+        ortak = sorted(
+            {t for t in query_tokens if t in chunk_tokens},
+            key=lambda t: idf.get(t, 0.0),
+            reverse=True,
+        )[:GEREKCE_TERIM_SAYISI]
+        if ortak:
+            parcalar.append(
+                "eşleşen ayırt edici terimler: " + ", ".join(ortak)
+            )
+
+        if evrak_turu and chunk["doc_id"] in TUR_MEVZUAT_AGIRLIKLARI.get(evrak_turu, {}):
+            parcalar.append(f"'{evrak_turu}' türü için öncelikli mevzuat")
+
+        tema = ALAN_MEVZUATI.get(chunk["doc_id"])
+        if tema is not None and tema in aktif_temalar:
+            parcalar.append(f"belgede '{tema}' alan söz dağarcığı saptandı")
+
+        if duzeltilmis:
+            parcalar.append(
+                "düşük skor sonrası genişletilmiş sorguyla bulundu (düzeltici döngü)"
+            )
+
+        return "; ".join(parcalar) if parcalar else "sözcük düzeyinde benzerlik"
 
     @staticmethod
     def _aktif_temalar(query_tokens: List[str]) -> set:
@@ -542,32 +832,44 @@ class LegislationAgent:
         if chunk is None:
             return matches
 
+        usul_gerekcesi = (
+            f"'{evrak_turu}' türündeki her evrak bu mevzuata tabidir (usul mevzuatı)"
+        )
+
         # Liste başına alınan usul mevzuatının benzerliği, mevcut en
         # yüksek benzerlikten (ve 0.8 tabanından) düşük raporlanmaz
         en_yuksek = matches[0]["benzerlik"] if matches else 0.8
 
-        # Listede varsa başa taşı
+        # Listede varsa başa taşı (doc_id ile; eski davranış başlıkla eşliyordu)
         for i, m in enumerate(matches):
-            if m.get("baslik") == chunk["baslik"]:
+            ayni_mevzuat = (
+                m.get("doc_id") == doc_id or m.get("baslik") == chunk["baslik"]
+            )
+            if ayni_mevzuat:
                 tasinan = matches.pop(i)
                 tasinan["benzerlik"] = round(
                     max(float(tasinan.get("benzerlik") or 0.0), float(en_yuksek), 0.8), 3
                 )
                 tasinan["eklenme_nedeni"] = "tur_usul_mevzuati"
                 tasinan.pop("zayif_esleme", None)
+                mevcut_gerekce = tasinan.get("gerekce") or ""
+                if usul_gerekcesi not in mevcut_gerekce:
+                    tasinan["gerekce"] = (
+                        f"{usul_gerekcesi}; {mevcut_gerekce}" if mevcut_gerekce
+                        else usul_gerekcesi
+                    )
                 return [tasinan] + matches
-        usul_onerisi = {
-            "baslik": chunk["baslik"],
-            "icerik_ozeti": self._chunk_ozeti(chunk),
-            "benzerlik": round(max(float(en_yuksek), 0.8), 3),
-            "kaynak": chunk["kaynak"],
-            "anahtar_kelimeler": chunk["anahtar_kelimeler"],
-            "eklenme_nedeni": "tur_usul_mevzuati",
-        }
+
+        usul_onerisi = self._match_olustur(
+            chunk,
+            round(max(float(en_yuksek), 0.8), 3),
+            usul_gerekcesi,
+        )
+        usul_onerisi["eklenme_nedeni"] = "tur_usul_mevzuati"
         return [usul_onerisi] + matches
 
     # ------------------------------------------------------------------
-    # Opsiyonel ChromaDB semantik arama
+    # Opsiyonel ChromaDB semantik arama (yedek yol)
     # ------------------------------------------------------------------
 
     def _init_vector_db(self) -> None:
@@ -609,11 +911,17 @@ class LegislationAgent:
                         results["distances"][0][i] if results.get("distances") else 1.0
                     )
                     matches.append({
+                        "doc_id": meta.get("doc_id", ""),
                         "baslik": meta.get("baslik", f"Mevzuat #{i + 1}"),
+                        "mevzuat_adi": meta.get("baslik", f"Mevzuat #{i + 1}"),
+                        "bolum": meta.get("bolum", ""),
+                        "madde_no": madde_referanslari(doc),
+                        "madde_etiketi": madde_etiketi(madde_referanslari(doc)),
                         "icerik_ozeti": doc[:OZET_LIMITI],
                         "benzerlik": round(max(0.0, 1 - distance), 3),
                         "kaynak": meta.get("kaynak", ""),
                         "anahtar_kelimeler": [],
+                        "gerekce": "harici vektör veritabanı (ChromaDB) eşleşmesi",
                     })
             return matches
         except Exception as e:
@@ -628,30 +936,35 @@ class LegislationAgent:
         """Korpus/BM25 kullanılamadığında evrak türüne göre temel mevzuat önerir."""
         base_regulations = [
             {
+                "doc_id": "resmi_yazisma_yonetmeligi",
                 "baslik": "Resmî Yazışmalarda Uygulanacak Usul ve Esaslar Hakkında Yönetmelik",
                 "aciklama": "Tüm resmî yazışmalarda uyulması gereken format ve usul kuralları",
                 "kaynak": "mevzuat.gov.tr (kamuya açık)",
                 "ilgili_turler": ["ust_yazi", "cevap_yazisi", "bilgilendirme", "genelge"],
             },
             {
+                "doc_id": "dilekce_hakki_kanunu_3071",
                 "baslik": "3071 Sayılı Dilekçe Hakkının Kullanılmasına Dair Kanun",
                 "aciklama": "Dilekçede zorunlu bilgiler ve 30 gün içinde cevap verme yükümlülüğü",
                 "kaynak": "mevzuat.gov.tr (kamuya açık)",
                 "ilgili_turler": ["dilekce"],
             },
             {
+                "doc_id": "bilgi_edinme_kanunu_4982",
                 "baslik": "4982 Sayılı Bilgi Edinme Hakkı Kanunu",
                 "aciklama": "Bilgi edinme başvurusu usulü ve 15 iş günlük cevap süresi",
                 "kaynak": "mevzuat.gov.tr (kamuya açık)",
                 "ilgili_turler": ["dilekce", "bilgilendirme", "cevap_yazisi"],
             },
             {
+                "doc_id": "devlet_arsiv_hizmetleri_yonetmeligi",
                 "baslik": "Devlet Arşiv Hizmetleri Hakkında Yönetmelik",
                 "aciklama": "Evrakın arşivlenmesi, saklama süreleri, ayıklama ve imha usulleri",
                 "kaynak": "mevzuat.gov.tr (kamuya açık)",
                 "ilgili_turler": ["ust_yazi", "tutanak", "rapor"],
             },
             {
+                "doc_id": "elektronik_imza_kanunu_5070",
                 "baslik": "5070 Sayılı Elektronik İmza Kanunu",
                 "aciklama": "Güvenli elektronik imzanın hukuki geçerliliği ve elektronik belge",
                 "kaynak": "mevzuat.gov.tr (kamuya açık)",
@@ -662,12 +975,23 @@ class LegislationAgent:
         matches: List[dict] = []
         for reg in base_regulations:
             if evrak_turu in reg["ilgili_turler"] or not evrak_turu:
+                tur_eslesti = evrak_turu in reg["ilgili_turler"]
                 matches.append({
+                    "doc_id": reg["doc_id"],
                     "baslik": reg["baslik"],
+                    "mevzuat_adi": reg["baslik"],
+                    "bolum": "",
+                    "madde_no": [],
+                    "madde_etiketi": "",
                     "icerik_ozeti": reg["aciklama"],
-                    "benzerlik": 0.8 if evrak_turu in reg["ilgili_turler"] else 0.3,
+                    "benzerlik": 0.8 if tur_eslesti else 0.3,
                     "kaynak": reg["kaynak"],
                     "anahtar_kelimeler": [],
+                    "gerekce": (
+                        f"kural tabanlı eşleştirme: '{evrak_turu}' türüyle ilişkili mevzuat"
+                        if tur_eslesti
+                        else "kural tabanlı eşleştirme: genel mevzuat önerisi"
+                    ),
                 })
 
         return sorted(matches, key=lambda x: x["benzerlik"], reverse=True)

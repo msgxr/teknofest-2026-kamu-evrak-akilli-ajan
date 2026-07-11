@@ -48,26 +48,56 @@ Güvenli yükleme ilkeleri:
 - Bu ilkeler **yalnızca opsiyonel** yerel model yolu için geçerlidir; kural tabanlı
   çekirdek hiçbir model ağırlığı indirmez.
 
-> **Not (ChromaDB gömme modeli):** Opsiyonel semantik arama etkinleştirilirse
-> (`chromadb` kurulu), `LegislationAgent` koleksiyona açık bir embedding fonksiyonu
-> geçirmez; bu durumda ChromaDB **kendi varsayılan modelini** (`all-MiniLM-L6-v2`,
+> **Not (ChromaDB gömme modeli):** ChromaDB araması hibritleşmeyle birlikte
+> YEDEK yoldur: yalnızca BM25 indeksi kurulamadığında (`chromadb` kuruluysa)
+> denenir. Bu yolda `LegislationAgent` koleksiyona açık bir embedding fonksiyonu
+> geçirmez; ChromaDB **kendi varsayılan modelini** (`all-MiniLM-L6-v2`,
 > ONNX) ilk kullanımda ağdan indirir. Yukarıda belgelenen
 > `paraphrase-multilingual-MiniLM-L12-v2` yalnızca `EMBEDDING_MODEL_NAME` ile açık
 > bir embedding fonksiyonu tanımlanırsa kullanılır. Her iki modelin de indirilmesi
 > başarısız olursa sistem BM25'e düşer ve tam işlevli kalır.
 
-## Bilgi Getirimi (Mevzuat RAG)
+## Bilgi Getirimi (Hibrit Mevzuat RAG)
+
+Mevzuat önerici, **hibrit** bir geri getirme hattı kullanır: çekirdek BM25
+her zaman çalışır; aşağıdaki opsiyonel katmanlar kuruluysa VE ortam
+değişkeniyle açıkça etkinleştirilmişse BM25 sonuçlarıyla puan birleşimine
+girer. Opsiyonel katmanlar bilinçli olarak **varsayılan kapalıdır**: ilk
+kullanımda model indirme gerektirdiklerinden kapalı ağda sürpriz ağ
+trafiği oluşturmazlar (offline-first ilkesi).
 
 ### BM25-Okapi (model değildir — saf Python)
 - **Konum:** `src/utils/bm25.py` (takım tarafından yazılmıştır, harici bağımlılık yok)
 - **Kullanım:** Mevzuat korpusunda birincil arama yöntemi; her ortamda, tamamen çevrimdışı çalışır
 
-### Embedding modeli (yalnızca opsiyonel `chromadb` kuruluysa)
+### Semantik arama modeli (opsiyonel) — turkish-e5-large
+- **Erişim:** https://huggingface.co/ytu-ce-cosmos/turkish-e5-large
+- **Sürüm:** commit `02e2362` (son güncelleme 2025-12-01; ~560M parametre)
+- **Lisans:** MIT (model kartı `license` alanından doğrulandı)
+- **Taban model:** `intfloat/multilingual-e5-large-instruct` (instruct varyantı)
+- **Kullanım:** `pip install -r requirements-optional.txt` sonrası
+  `EMBEDDING_SEMANTIK_AKTIF=1` ile etkinleşir (`src/utils/semantik_arama.py`).
+  Model kartına uygun olarak sorgular `Instruct: {görev}\nQuery: {sorgu}`
+  biçiminde, pasajlar öneksiz ve `normalize_embeddings=True` ile kodlanır.
+  Model erişilemezse sistem uyarı verip BM25 ile tam işlevli kalır.
+
+### Yeniden sıralama modeli (opsiyonel) — bge-reranker-v2-m3
+- **Erişim:** https://huggingface.co/BAAI/bge-reranker-v2-m3
+- **Sürüm:** commit `953dc6f` (2024-06-24; ~568M parametre, XLM-R tabanlı çapraz kodlayıcı)
+- **Lisans:** Apache 2.0 (model kartı `license` alanından doğrulandı)
+- **Kullanım:** `EMBEDDING_RERANK_AKTIF=1` ile etkinleşir;
+  `sentence_transformers.CrossEncoder("BAAI/bge-reranker-v2-m3")` deseniyle
+  yüklenir (sbert.net resmî model listesinden doğrulanmıştır), logit çıktısı
+  sigmoid ile [0-1] aralığına taşınır. Erişilemezse bu adım sessizce atlanır.
+
+### Embedding modeli (eski/alternatif; yalnızca opsiyonel `chromadb` yolunda)
 - **Model:** paraphrase-multilingual-MiniLM-L12-v2
 - **Erişim:** https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 - **Sürüm:** v2
 - **Lisans:** Apache 2.0
-- **Kullanım:** BM25'e ek vektör tabanlı semantik arama; yalnızca `pip install -r requirements-optional.txt` ile `chromadb` + `sentence-transformers` kurulursa devreye girer. Kurulu değilse sistem BM25 ile tam işlevli çalışır.
+- **Kullanım:** ChromaDB yedek yolunda kullanılabilecek gömme modeli.
+  Hibritleşmeyle birlikte ChromaDB araması artık birincil yolu ÖNCELEMEZ;
+  yalnızca BM25 indeksi kurulamadığında yedek yol olarak denenir.
 
 ## OCR (yalnızca taranmış PDF / görüntü girdiler için, opsiyonel)
 

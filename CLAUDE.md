@@ -64,9 +64,12 @@ python scripts/build_presentation.py                 # sunum PPTX üretimi
   açıkça yazılmak ZORUNDADIR (mevcut şeffaflık geleneği sürdürülür).
 - `data/processed/eval_report*.json` dosyaları elle düzenlenmez; yalnızca
   `scripts/evaluate.py` ile üretilir.
-- Etiket şeması: `{tur, birim_kodu, eksik_alanlar, aciklama}`. `eksik_alanlar`
-  anahtarları `src/agents/missing_info_agent.py` içindeki `ZORUNLU_ALANLAR` ile birebir
-  uyumlu olmalıdır (ör. tutanak için `imzalar`, `imza` değil).
+- Etiket şeması: `{tur, birim_kodu, eksik_alanlar, aciklama, mevzuat_beklenen?}`.
+  `eksik_alanlar` anahtarları `src/agents/missing_info_agent.py` içindeki
+  `ZORUNLU_ALANLAR` ile birebir uyumlu olmalıdır (ör. tutanak için `imzalar`,
+  `imza` değil). Opsiyonel `mevzuat_beklenen`, mevzuat isabet@3 metriği için
+  1-3 korpus doc_id'si (dosya adı gövdesi) listeler; etiketler sistem çıktısına
+  bakılmadan, içerik + hukuki rehberle atanır (`data/README.md`).
 - Ölçüm sonuçları ne çıkarsa çıksın olduğu gibi raporlanır; sonuç manipülasyonu ve
   jüriyi yanıltıcı sunum şartnameye göre etik ihlaldir.
 

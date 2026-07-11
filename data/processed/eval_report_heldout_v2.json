@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-11T13:57:17",
+  "zaman_damgasi": "2026-07-11T20:32:39",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v2",
   "set_adi": "kurgu_evraklar_heldout_v2",
   "llm": {
@@ -83,20 +83,83 @@
     "fp": 0,
     "fn": 0
   },
+  "mevzuat_onerisi": {
+    "isabet_at_3": {
+      "k": 3,
+      "etiketli_evrak": 16,
+      "isabet": 12,
+      "isabet_orani": 0.75
+    },
+    "isabet_at_1": {
+      "k": 1,
+      "etiketli_evrak": 16,
+      "isabet": 11,
+      "isabet_orani": 0.6875
+    },
+    "isabetsizler": [
+      {
+        "dosya": "onayli_belge_v1.txt",
+        "beklenen": [
+          "elektronik_imza_kanunu_5070",
+          "kamu_ihale_kanunu_4734",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "tahmin": [
+          "resmi_yazisma_yonetmeligi",
+          "idari_yargilama_usulu_kanunu_2577",
+          "bilgi_edinme_kanunu_4982"
+        ]
+      },
+      {
+        "dosya": "onayli_belge_v2.txt",
+        "beklenen": [
+          "elektronik_imza_kanunu_5070",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "tahmin": [
+          "resmi_yazisma_yonetmeligi",
+          "e_yazisma_teknik_rehberi_bilgi_notu",
+          "imar_kanunu_3194"
+        ]
+      },
+      {
+        "dosya": "rapor_v1.txt",
+        "beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "tahmin": [
+          "cimer_vatandas_basvurulari_bilgi_notu",
+          "devlet_arsiv_hizmetleri_yonetmeligi",
+          "bilgi_edinme_kanunu_4982"
+        ]
+      },
+      {
+        "dosya": "tutanak_v2.txt",
+        "beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "tahmin": [
+          "devlet_arsiv_hizmetleri_yonetmeligi",
+          "e_yazisma_teknik_rehberi_bilgi_notu",
+          "dilekce_hakki_kanunu_3071"
+        ]
+      }
+    ]
+  },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0161,
-    "evrak_basina_medyan_sure_saniye": 0.011,
+    "evrak_basina_ortalama_sure_saniye": 0.2996,
+    "evrak_basina_medyan_sure_saniye": 0.027,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0001,
-      "classification": 0.0064,
-      "info_extraction": 0.0019,
-      "missing_info": 0.0003,
-      "legislation": 0.0014,
-      "triage": 0.0001,
-      "summarization": 0.0011,
-      "anonimlestirme": 0.0008,
-      "draft_writer": 0.0001,
-      "routing": 0.0041,
+      "ocr": 0.0023,
+      "classification": 0.2732,
+      "info_extraction": 0.0044,
+      "missing_info": 0.0018,
+      "legislation": 0.0039,
+      "triage": 0.001,
+      "summarization": 0.0025,
+      "anonimlestirme": 0.0013,
+      "draft_writer": 0.0012,
+      "routing": 0.0081,
       "user_info": 0.0
     }
   },

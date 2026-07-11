@@ -24,6 +24,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from scripts.evaluate import (
     hesapla_accuracy,
     hesapla_adim_ortalamalari,
+    hesapla_isabet_at_k,
+    hesapla_isabet_kacaklari,
     hesapla_medyan,
     hesapla_set_metrikleri,
     hesapla_sinif_metrikleri,
@@ -213,3 +215,63 @@ class TestAdimOrtalamalari:
 
     def test_bos_giris(self):
         assert hesapla_adim_ortalamalari([]) == {}
+
+
+class TestIsabetAtK:
+    """hesapla_isabet_at_k (mevzuat önerisi isabet@k) testleri."""
+
+    def test_tam_isabet(self):
+        """Beklenen mevzuat ilk 3'te geçiyorsa isabet sayılmalı."""
+        ciftler = [({"a"}, ["a", "b", "c"]), ({"b"}, ["x", "b", "y"])]
+        sonuc = hesapla_isabet_at_k(ciftler, k=3)
+        assert sonuc["isabet_orani"] == 1.0
+        assert sonuc["etiketli_evrak"] == 2
+        assert sonuc["isabet"] == 2
+
+    def test_kacirma(self):
+        """Beklenenlerden hiçbiri ilk k'da yoksa isabet sayılmamalı."""
+        sonuc = hesapla_isabet_at_k([({"x"}, ["a", "b", "c"])], k=3)
+        assert sonuc["isabet_orani"] == 0.0
+
+    def test_etiketsiz_evrak_dislanir(self):
+        """Beklenen kümesi boş evraklar metriğe katılmamalı."""
+        ciftler = [(set(), ["a", "b"]), ({"a"}, ["a"])]
+        sonuc = hesapla_isabet_at_k(ciftler, k=3)
+        assert sonuc["etiketli_evrak"] == 1
+        assert sonuc["isabet_orani"] == 1.0
+
+    def test_hic_etiket_yoksa_none(self):
+        """Hiç etiket yokken oran None olmalı (0.0 ile karışmamalı)."""
+        sonuc = hesapla_isabet_at_k([(set(), ["a"])], k=3)
+        assert sonuc["isabet_orani"] is None
+        assert sonuc["etiketli_evrak"] == 0
+
+    def test_k_siniri(self):
+        """k=1 yalnızca ilk tahmine bakmalı; k=2 ikinciyi de saymalı."""
+        ciftler = [({"b"}, ["a", "b", "c"])]
+        assert hesapla_isabet_at_k(ciftler, k=1)["isabet_orani"] == 0.0
+        assert hesapla_isabet_at_k(ciftler, k=2)["isabet_orani"] == 1.0
+
+    def test_coklu_beklenenden_biri_yeterli(self):
+        """Beklenen kümesinden herhangi biri ilk k'da ise isabettir (hit-rate)."""
+        sonuc = hesapla_isabet_at_k([({"x", "c"}, ["a", "b", "c"])], k=3)
+        assert sonuc["isabet_orani"] == 1.0
+
+
+class TestIsabetKacaklari:
+    """hesapla_isabet_kacaklari (isabet@k hata listesi) testleri."""
+
+    def test_kacirilanlar_listelenir(self):
+        """Yalnızca etiketli VE kaçırılan evraklar listelenmeli."""
+        sonuc = hesapla_isabet_kacaklari(
+            ["a.txt", "b.txt", "c.txt"],
+            [{"m1"}, set(), {"m2"}],
+            [["m1", "x"], ["y"], ["x", "y", "z"]],
+            k=3,
+        )
+        assert sonuc == [
+            {"dosya": "c.txt", "beklenen": ["m2"], "tahmin": ["x", "y", "z"]}
+        ]
+
+    def test_hepsi_isabetliyse_bos(self):
+        assert hesapla_isabet_kacaklari(["a.txt"], [{"m"}], [["m"]], k=3) == []

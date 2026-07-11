@@ -3,96 +3,112 @@
     "tur": "dilekce",
     "birim_kodu": "yazi_isleri",
     "eksik_alanlar": [],
-    "aciklama": "Vatandaşın kaymakamlığa verdiği başvuru ve cevap yazısının onaylı suretlerini isteyen, geçerli T.C. kimlik numarası içeren tam alanlı belge talebi dilekçesi."
+    "aciklama": "Vatandaşın kaymakamlığa verdiği başvuru ve cevap yazısının onaylı suretlerini isteyen, geçerli T.C. kimlik numarası içeren tam alanlı belge talebi dilekçesi.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "bilgi_edinme_kanunu_4982"]
   },
   "dilekce_v2.txt": {
     "tur": "dilekce",
     "birim_kodu": "mali_hizmetler",
     "eksik_alanlar": ["tc_kimlik", "adres"],
-    "aciklama": "Fazla tahakkuk eden sulama ücretinin iadesini isteyen dilekçe; T.C. kimlik numarası ve adres alanları kasıtlı olarak eksik."
+    "aciklama": "Fazla tahakkuk eden sulama ücretinin iadesini isteyen dilekçe; T.C. kimlik numarası ve adres alanları kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "belediye_kanunu_5393"]
   },
   "ust_yazi_v1.txt": {
     "tur": "ust_yazi",
     "birim_kodu": "insan_kaynaklari",
     "eksik_alanlar": [],
-    "aciklama": "İl Tarım ve Orman Müdürlüğünün mera ıslahı konulu hizmet içi eğitime ilçe personelinin görevlendirilmesini bildiren tam alanlı üst yazısı."
+    "aciklama": "İl Tarım ve Orman Müdürlüğünün mera ıslahı konulu hizmet içi eğitime ilçe personelinin görevlendirilmesini bildiren tam alanlı üst yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "devlet_memurlari_kanunu_657"]
   },
   "ust_yazi_v2.txt": {
     "tur": "ust_yazi",
     "birim_kodu": "bilgi_islem",
     "eksik_alanlar": ["sayi"],
-    "aciklama": "Üniversitenin il siber olay müdahale tatbikatı hazırlıklarını bildiren üst yazısı; sayı (evrak referans numarası) alanı kasıtlı olarak eksik."
+    "aciklama": "Üniversitenin il siber olay müdahale tatbikatı hazırlıklarını bildiren üst yazısı; sayı (evrak referans numarası) alanı kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kvkk_6698"]
   },
   "cevap_yazisi_v1.txt": {
     "tur": "cevap_yazisi",
     "birim_kodu": "basin_halkla_iliskiler",
     "eksik_alanlar": [],
-    "aciklama": "Vatandaşın CİMER üzerinden yaptığı halk kütüphanesi hizmet saatleri ve gezici kütüphane güzergahı bilgi talebine verilen tam alanlı cevap yazısı."
+    "aciklama": "Vatandaşın CİMER üzerinden yaptığı halk kütüphanesi hizmet saatleri ve gezici kütüphane güzergahı bilgi talebine verilen tam alanlı cevap yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "bilgi_edinme_kanunu_4982", "cimer_vatandas_basvurulari_bilgi_notu"]
   },
   "cevap_yazisi_v2.txt": {
     "tur": "cevap_yazisi",
     "birim_kodu": "mali_hizmetler",
     "eksik_alanlar": ["tarih"],
-    "aciklama": "OSB Müdürlüğünün atıksu arıtma katılım payı itirazına düzeltilmiş tahakkuk ve taksit planını bildiren cevap yazısı; evrak tarihi kasıtlı olarak eksik."
+    "aciklama": "OSB Müdürlüğünün atıksu arıtma katılım payı itirazına düzeltilmiş tahakkuk ve taksit planını bildiren cevap yazısı; evrak tarihi kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "belediye_kanunu_5393"]
   },
   "bilgilendirme_v1.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "destek_hizmetleri",
     "eksik_alanlar": [],
-    "aciklama": "Karla mücadele ve kış lojistiği hazırlık çalışmalarını maddeler halinde duyuran tam alanlı il özel idaresi bilgilendirme yazısı."
+    "aciklama": "Karla mücadele ve kış lojistiği hazırlık çalışmalarını maddeler halinde duyuran tam alanlı il özel idaresi bilgilendirme yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
   },
   "bilgilendirme_v2.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "bilgi_islem",
     "eksik_alanlar": [],
-    "aciklama": "Üniversite EBYS'sinde sürüm yükseltme ve e-imza modülü güncellemesi nedeniyle planlı kesintiyi duyuran tam alanlı bilgilendirme yazısı."
+    "aciklama": "Üniversite EBYS'sinde sürüm yükseltme ve e-imza modülü güncellemesi nedeniyle planlı kesintiyi duyuran tam alanlı bilgilendirme yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "e_yazisma_teknik_rehberi_bilgi_notu", "elektronik_imza_kanunu_5070"]
   },
   "tutanak_v1.txt": {
     "tur": "tutanak",
     "birim_kodu": "hukuk",
     "eksik_alanlar": [],
-    "aciklama": "Köy merasında izinsiz sürüm ve ekim faaliyetinin yerinde tespitine ilişkin, dosyanın yasal işlem için hukuka gönderilmesine karar verilen tam alanlı tutanak."
+    "aciklama": "Köy merasında izinsiz sürüm ve ekim faaliyetinin yerinde tespitine ilişkin, dosyanın yasal işlem için hukuka gönderilmesine karar verilen tam alanlı tutanak.",
+    "mevzuat_beklenen": ["kabahatler_kanunu_5326"]
   },
   "tutanak_v2.txt": {
     "tur": "tutanak",
     "birim_kodu": "destek_hizmetleri",
     "eksik_alanlar": ["katilimcilar"],
-    "aciklama": "Makine ikmal şantiyesi ambarının yıl ortası taşınır mal sayım tutanağı; katılımcı (hazirun) listesi bölümü kasıtlı olarak eksik."
+    "aciklama": "Makine ikmal şantiyesi ambarının yıl ortası taşınır mal sayım tutanağı; katılımcı (hazirun) listesi bölümü kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
   },
   "rapor_v1.txt": {
     "tur": "rapor",
     "birim_kodu": "strateji",
     "eksik_alanlar": ["hazirlayan"],
-    "aciklama": "İl stratejik planı performans göstergelerinin altı aylık gerçekleşmesini izleyen ara dönem raporu; hazırlayan alanı kasıtlı olarak eksik."
+    "aciklama": "İl stratejik planı performans göstergelerinin altı aylık gerçekleşmesini izleyen ara dönem raporu; hazırlayan alanı kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
   },
   "rapor_v2.txt": {
     "tur": "rapor",
     "birim_kodu": "mali_hizmetler",
     "eksik_alanlar": [],
-    "aciklama": "OSB atıksu arıtma tesisi kapasite artırım yatırımının fiziki ve mali gerçekleşmesini sunan, ödenek güncellemesi öneren tam alanlı rapor."
+    "aciklama": "OSB atıksu arıtma tesisi kapasite artırım yatırımının fiziki ve mali gerçekleşmesini sunan, ödenek güncellemesi öneren tam alanlı rapor.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "kamu_ihale_kanunu_4734"]
   },
   "genelge_v1.txt": {
     "tur": "genelge",
     "birim_kodu": "insan_kaynaklari",
     "eksik_alanlar": [],
-    "aciklama": "Hizmet içi eğitim planlaması ile yıllık izin kullanımını maddeler halinde düzenleyen tam alanlı il müdürlüğü genelgesi."
+    "aciklama": "Hizmet içi eğitim planlaması ile yıllık izin kullanımını maddeler halinde düzenleyen tam alanlı il müdürlüğü genelgesi.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "devlet_memurlari_kanunu_657"]
   },
   "genelge_v2.txt": {
     "tur": "genelge",
     "birim_kodu": "hukuk",
     "eksik_alanlar": ["dagitim"],
-    "aciklama": "İdari davalarda savunma hazırlığı ve yasal süre takibini düzenleyen belediye genelgesi; dağıtım listesi kasıtlı olarak eksik."
+    "aciklama": "İdari davalarda savunma hazırlığı ve yasal süre takibini düzenleyen belediye genelgesi; dağıtım listesi kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "idari_yargilama_usulu_kanunu_2577"]
   },
   "onayli_belge_v1.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "genel_mudurluk",
     "eksik_alanlar": [],
-    "aciklama": "Kış sezonu karla mücadelesi için iş makinesi kiralanmasına ilişkin tam alanlı bölge müdürlüğü makam oluru."
+    "aciklama": "Kış sezonu karla mücadelesi için iş makinesi kiralanmasına ilişkin tam alanlı bölge müdürlüğü makam oluru.",
+    "mevzuat_beklenen": ["elektronik_imza_kanunu_5070", "kamu_ihale_kanunu_4734", "kamu_mali_yonetimi_5018"]
   },
   "onayli_belge_v2.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "strateji",
     "eksik_alanlar": [],
-    "aciklama": "Uluslararası öğrenci değişim protokolünün imzalanması ve stratejik plan hedefleriyle izlenmesine ilişkin tam alanlı rektörlük oluru."
+    "aciklama": "Uluslararası öğrenci değişim protokolünün imzalanması ve stratejik plan hedefleriyle izlenmesine ilişkin tam alanlı rektörlük oluru.",
+    "mevzuat_beklenen": ["elektronik_imza_kanunu_5070", "kamu_mali_yonetimi_5018"]
   }
 }

@@ -71,6 +71,10 @@ class AgentState:
     extracted_info: dict = field(default_factory=dict)
     missing_info: list = field(default_factory=list)
     legislation_matches: list = field(default_factory=list)
+    # Mevzuat aramasının izlenebilirlik meta bilgisi: kullanılan yöntem
+    # (bm25 / bm25+semantik / +rerank / chromadb / kural_tabanli) ve
+    # düzeltici (corrective) sorgu genişletme döngüsünün kaydı
+    legislation_meta: dict = field(default_factory=dict)
     summary: str = ""
     summary_body: str = ""  # Künye satırı olmadan, cümle bütünlüğü korunmuş özet gövdesi
 
@@ -528,6 +532,7 @@ class OrchestratorAgent:
             "bilgi_cikarim": self.state.extracted_info,
             "eksik_bilgiler": self.state.missing_info,
             "mevzuat_eslestirme": self.state.legislation_matches,
+            "mevzuat_arama_meta": self.state.legislation_meta,
             "ozet": self.state.summary,
             "yazi_taslagi": self.state.draft_text,
             "yazi_turu": self.state.draft_type,

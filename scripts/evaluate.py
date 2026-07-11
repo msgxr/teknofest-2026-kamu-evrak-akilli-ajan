@@ -15,7 +15,10 @@ kurgu evrakları uçtan uca pipeline ile işler ve dört metrik grubu üretir:
        yanlış yönlendirmeler listesi
     3. Eksik bilgi tespiti: alan bazında set karşılaştırması ile
        micro precision/recall/F1
-    4. Performans: evrak başına ortalama/medyan işlem süresi ve
+    4. Mevzuat önerisi: isabet@3 / isabet@1 (etiketlerdeki opsiyonel
+       "mevzuat_beklenen" doc_id listesinden en az biri ilk k öneride
+       geçiyorsa isabet; etiketsiz evraklar bu metriğe katılmaz)
+    5. Performans: evrak başına ortalama/medyan işlem süresi ve
        adım bazında ortalama süreler (gerçek zamana yakınlık kanıtı)
 
 Çıktılar:
@@ -198,6 +201,63 @@ def hesapla_set_metrikleri(
     }
 
 
+def hesapla_isabet_at_k(
+    ciftler: Sequence[Tuple[Set[str], Sequence[str]]], k: int = 3
+) -> Dict[str, Any]:
+    """
+    Mevzuat önerisi isabet@k oranını hesaplar (saf Python).
+
+    Her evrak için (beklenen doc_id kümesi, tahmin edilen sıralı doc_id
+    listesi) çifti verilir. Beklenen kümesi BOŞ olan evraklar metriğe
+    KATILMAZ (etiketsiz sayılır). Bir evrak, beklenen mevzuatlardan en az
+    biri ilk k öneride geçiyorsa isabetli sayılır (hit-rate@k).
+
+    Args:
+        ciftler: (beklenen_kume, tahmin_sirali_listesi) çiftleri
+        k: İlk kaç önerinin dikkate alınacağı
+
+    Returns:
+        {"k", "etiketli_evrak", "isabet", "isabet_orani"} —
+        isabet_orani etiketli evrak yoksa None (0.0 ile karışmasın diye)
+    """
+    etiketli = [
+        (set(beklenen), list(tahmin))
+        for beklenen, tahmin in ciftler
+        if beklenen
+    ]
+    isabet = sum(
+        1 for beklenen, tahmin in etiketli if beklenen & set(tahmin[:k])
+    )
+    return {
+        "k": k,
+        "etiketli_evrak": len(etiketli),
+        "isabet": isabet,
+        "isabet_orani": (
+            round(isabet / len(etiketli), 4) if etiketli else None
+        ),
+    }
+
+
+def hesapla_isabet_kacaklari(
+    dosyalar: Sequence[str],
+    beklenenler: Sequence[Set[str]],
+    tahminler: Sequence[Sequence[str]],
+    k: int = 3,
+) -> List[Dict[str, Any]]:
+    """
+    isabet@k'da kaçırılan evrakların listesini üretir (hata analizi için).
+
+    Returns:
+        [{"dosya", "beklenen", "tahmin"}] — yalnızca etiketli VE ilk k
+        öneride beklenen mevzuatı hiç içermeyen evraklar için
+    """
+    return [
+        {"dosya": d, "beklenen": sorted(b), "tahmin": list(t[:k])}
+        for d, b, t in zip(dosyalar, beklenenler, tahminler)
+        if b and not (set(b) & set(list(t)[:k]))
+    ]
+
+
 def hesapla_medyan(degerler: Sequence[float]) -> float:
     """
     Medyan hesaplar (saf Python, statistics modülüne bile gerek yok).
@@ -275,7 +335,8 @@ def etiketleri_yukle(etiket_yolu: Path) -> Dict[str, dict]:
     Etiket dosyasını yükler; yoksa anlaşılır mesajla programı sonlandırır.
 
     Beklenen format:
-        {"dosya.txt": {"tur", "birim_kodu", "eksik_alanlar": [...], "aciklama"}}
+        {"dosya.txt": {"tur", "birim_kodu", "eksik_alanlar": [...], "aciklama",
+                       "mevzuat_beklenen": [...] (opsiyonel, doc_id listesi)}}
     """
     if not etiket_yolu.exists():
         print(
@@ -390,6 +451,11 @@ def evraklari_isle(
                 for e in (result.get("eksik_bilgiler") or [])
                 if e.get("alan")
             },
+            "tahmin_mevzuat": [
+                m.get("doc_id", "")
+                for m in (result.get("mevzuat_eslestirme") or [])
+                if m.get("doc_id")
+            ],
             "adimlar": adimlar,
             "toplam_sure": round(toplam_sure, 4),
         })
@@ -431,7 +497,15 @@ def metrikleri_hesapla(
         for s in sonuclar
     ]
 
-    # 4. Performans
+    # 4. Mevzuat önerisi (isabet@k — yalnızca mevzuat_beklenen etiketi
+    #    bulunan evraklar üzerinden hesaplanır)
+    beklenen_mevzuat = [
+        set(s["etiket"].get("mevzuat_beklenen", []) or []) for s in sonuclar
+    ]
+    tahmin_mevzuat = [s.get("tahmin_mevzuat", []) for s in sonuclar]
+    mevzuat_ciftler = list(zip(beklenen_mevzuat, tahmin_mevzuat))
+
+    # 5. Performans
     sureler = [s["toplam_sure"] for s in sonuclar]
     ortalama_sure = round(sum(sureler) / len(sureler), 4) if sureler else 0.0
 
@@ -458,6 +532,13 @@ def metrikleri_hesapla(
             ),
         },
         "eksik_bilgi_tespiti": hesapla_set_metrikleri(eksik_ciftler),
+        "mevzuat_onerisi": {
+            "isabet_at_3": hesapla_isabet_at_k(mevzuat_ciftler, k=3),
+            "isabet_at_1": hesapla_isabet_at_k(mevzuat_ciftler, k=1),
+            "isabetsizler": hesapla_isabet_kacaklari(
+                dosyalar, beklenen_mevzuat, tahmin_mevzuat, k=3
+            ),
+        },
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,
             "evrak_basina_medyan_sure_saniye": round(hesapla_medyan(sureler), 4),
@@ -549,9 +630,40 @@ def konsol_raporu_yazdir(rapor: Dict[str, Any]) -> None:
     tablo3.add_row("TP / FP / FN", f"{eksik['tp']} / {eksik['fp']} / {eksik['fn']}")
     console.print(tablo3)
 
-    # 4. Performans tablosu
+    # 4. Mevzuat önerisi tablosu (isabet@k)
+    mevzuat = rapor.get("mevzuat_onerisi") or {}
+    if mevzuat:
+        at3 = mevzuat.get("isabet_at_3", {})
+        at1 = mevzuat.get("isabet_at_1", {})
+        tablo_m = Table(title="4. Mevzuat Önerisi Başarımı (isabet@k)")
+        tablo_m.add_column("Metrik", style="cyan")
+        tablo_m.add_column("Değer", justify="right")
+        oran3 = at3.get("isabet_orani")
+        oran1 = at1.get("isabet_orani")
+        tablo_m.add_row(
+            "isabet@3", f"{oran3:.3f}" if oran3 is not None else "etiket yok"
+        )
+        tablo_m.add_row(
+            "isabet@1", f"{oran1:.3f}" if oran1 is not None else "etiket yok"
+        )
+        tablo_m.add_row("Etiketli evrak", str(at3.get("etiketli_evrak", 0)))
+        tablo_m.add_row("Kaçırılan (@3)", str(len(mevzuat.get("isabetsizler", []))))
+        console.print(tablo_m)
+
+        if mevzuat.get("isabetsizler"):
+            yanlis_m = Table(title="Mevzuat İsabetsizleri (@3)")
+            yanlis_m.add_column("Dosya", style="yellow")
+            yanlis_m.add_column("Beklenen")
+            yanlis_m.add_column("İlk 3 tahmin", style="red")
+            for y in mevzuat["isabetsizler"]:
+                yanlis_m.add_row(
+                    y["dosya"], ", ".join(y["beklenen"]), ", ".join(y["tahmin"])
+                )
+            console.print(yanlis_m)
+
+    # 5. Performans tablosu
     perf = rapor["performans"]
-    tablo4 = Table(title="4. Performans (gerçek zamana yakınlık)")
+    tablo4 = Table(title="5. Performans (gerçek zamana yakınlık)")
     tablo4.add_column("Adım / Metrik", style="cyan")
     tablo4.add_column("Süre (sn)", justify="right")
     tablo4.add_row(

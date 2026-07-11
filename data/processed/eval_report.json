@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-11T13:57:16",
+  "zaman_damgasi": "2026-07-11T20:32:29",
   "veri_dizini": "data/raw/kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "llm": {
@@ -77,20 +77,58 @@
     "fp": 0,
     "fn": 0
   },
+  "mevzuat_onerisi": {
+    "isabet_at_3": {
+      "k": 3,
+      "etiketli_evrak": 35,
+      "isabet": 33,
+      "isabet_orani": 0.9429
+    },
+    "isabet_at_1": {
+      "k": 1,
+      "etiketli_evrak": 35,
+      "isabet": 31,
+      "isabet_orani": 0.8857
+    },
+    "isabetsizler": [
+      {
+        "dosya": "tutanak_02.txt",
+        "beklenen": [
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "tahmin": [
+          "cimer_vatandas_basvurulari_bilgi_notu",
+          "bilgi_edinme_kanunu_4982",
+          "elektronik_imza_kanunu_5070"
+        ]
+      },
+      {
+        "dosya": "tutanak_04.txt",
+        "beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "tahmin": [
+          "devlet_arsiv_hizmetleri_yonetmeligi",
+          "dilekce_hakki_kanunu_3071",
+          "imar_kanunu_3194"
+        ]
+      }
+    ]
+  },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0122,
-    "evrak_basina_medyan_sure_saniye": 0.009,
+    "evrak_basina_ortalama_sure_saniye": 0.1485,
+    "evrak_basina_medyan_sure_saniye": 0.023,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
-      "classification": 0.0019,
-      "info_extraction": 0.0037,
-      "missing_info": 0.0001,
-      "legislation": 0.0012,
-      "triage": 0.0,
-      "summarization": 0.001,
-      "anonimlestirme": 0.0007,
-      "draft_writer": 0.0001,
-      "routing": 0.0035,
+      "classification": 0.0038,
+      "info_extraction": 0.1266,
+      "missing_info": 0.0016,
+      "legislation": 0.0037,
+      "triage": 0.001,
+      "summarization": 0.0023,
+      "anonimlestirme": 0.0011,
+      "draft_writer": 0.0011,
+      "routing": 0.0071,
       "user_info": 0.0
     }
   },

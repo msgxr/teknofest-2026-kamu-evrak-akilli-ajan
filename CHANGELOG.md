@@ -13,6 +13,34 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 ## [Yayınlanmamış]
 
 ### Eklendi
+
+- **Hibrit mevzuat RAG'i (P0-1, şartname izi: G1-e):**
+  - Mevzuat önerileri artık **madde referanslı ve gerekçeli**: her öneri
+    `{mevzuat_adi, madde_no, madde_etiketi, gerekce, benzerlik, doc_id, bolum}`
+    alanlarını taşır; gerekçe yalnızca gözlenen eşleşme sinyallerinden
+    (ortak ayırt edici terimler, tür önceliği, aktif alan teması) kurulur.
+  - **Düzeltici (corrective) sorgu genişletme döngüsü:** en iyi önerinin
+    benzerliği düzeltme tetiğinin (0.15; geliştirme setiyle kalibre)
+    altında kalırsa sorgu, evrak türünün usul söz dağarcığıyla bir kez
+    genişletilip arama yinelenir ve yalnızca benzerlik iyileşirse benimsenir
+    (Singh vd. 2025, arXiv:2501.09136; Li vd. 2025, arXiv:2507.09477).
+    Döngü kaydı pipeline çıktısındaki `mevzuat_arama_meta` alanında
+    izlenebilir; mutlak benzerlik ölçeği ve `zayif_esleme` işaretiyle uyumludur.
+  - **Opsiyonel yoğun (dense) katman:** `EMBEDDING_SEMANTIK_AKTIF=1` ile
+    turkish-e5-large adayları BM25 ile puan birleşimine girer;
+    `EMBEDDING_RERANK_AKTIF=1` ile bge-reranker-v2-m3 aday havuzunu yeniden
+    sıralar (`src/utils/semantik_arama.py`). Katmanlar varsayılan kapalıdır
+    ve yokluklarında salt-BM25 davranışı birebir korunur (offline-first).
+- **Mevzuat isabet@3 metriği (`scripts/evaluate.py`):** etiketlerdeki
+  opsiyonel `mevzuat_beklenen` doc_id listesine karşı isabet@3 / isabet@1
+  oranları ve kaçırılanlar listesi raporlanır; saf Python metrik
+  fonksiyonları birim testlidir.
+- Etiket şemasına opsiyonel `mevzuat_beklenen` alanı (üç veri setinde,
+  çift aşamalı etiketleme: etiketleyici + bağımsız doğrulayıcı; gerekçeler
+  `data/raw/mevzuat_beklenen_gerekceleri.json`).
+- Birim testler: `tests/test_legislation.py` (madde çıkarımı, öneri
+  şeması, usul mevzuatı garantisi, düzeltici döngü, hibrit puan birleşimi,
+  opsiyonel katman zarif düşüşü) ve `tests/test_evaluation.py` isabet@k testleri.
 - GitHub Actions CI iş akışı (`.github/workflows/ci.yml`): Python 3.9 + 3.12
   matrisinde derleme denetimi, tüm test paketi ve 5 evraklık hızlı değerlendirme smoke'u.
 - Katkı rehberi (`CONTRIBUTING.md`) ve mimari genişletme rehberi
@@ -20,6 +48,17 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 - `Dockerfile` + `.dockerignore` (container ile çalıştırma seçeneği; imaj
   yayınlanmaz, Dockerfile sağlanır) ve tek komut başlatma betiği `baslat.sh`.
 - Bu değişiklik günlüğü (`CHANGELOG.md`).
+
+### Değiştirildi
+
+- ChromaDB araması birincil yol olmaktan çıkarıldı; yalnızca BM25 indeksi
+  kurulamadığında denenen **yedek yol** oldu (önceden kuruluysa BM25'i
+  tamamen atlıyordu — hibrit tasarımla bu zayıflık giderildi).
+- `AgentState`'e `legislation_meta` izlenebilirlik alanı eklendi;
+  pipeline çıktısına `mevzuat_arama_meta` anahtarı yansır.
+- `docs/model_bilgileri.md` hibrit RAG modelleriyle güncellendi
+  (turkish-e5-large: MIT; bge-reranker-v2-m3: Apache 2.0 — bağlantı,
+  sürüm, lisans ve kullanım talimatıyla; ağırlıklar depoya yüklenmez).
 
 ## [0.4.0] — 2026-07-11 (kalite, üçlü ensemble ve entegrasyon yetenekleri)
 

@@ -3,96 +3,112 @@
     "tur": "dilekce",
     "birim_kodu": "hukuk",
     "eksik_alanlar": [],
-    "aciklama": "Vatandaşın trafik idari para cezası karar tutanağına yasal süresi içinde yaptığı, geçerli T.C. kimlik numarası içeren tam alanlı itiraz dilekçesi."
+    "aciklama": "Vatandaşın trafik idari para cezası karar tutanağına yasal süresi içinde yaptığı, geçerli T.C. kimlik numarası içeren tam alanlı itiraz dilekçesi.",
+    "mevzuat_beklenen": ["kabahatler_kanunu_5326", "dilekce_hakki_kanunu_3071"]
   },
   "dilekce_h2.txt": {
     "tur": "dilekce",
     "birim_kodu": "basin_halkla_iliskiler",
     "eksik_alanlar": ["imza", "adres"],
-    "aciklama": "Sahil dolgu alanına moloz dökülmesi ve kıyı işgaline ilişkin çevre şikayeti dilekçesi; imza ve adres alanları kasıtlı olarak eksik."
+    "aciklama": "Sahil dolgu alanına moloz dökülmesi ve kıyı işgaline ilişkin çevre şikayeti dilekçesi; imza ve adres alanları kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "belediye_kanunu_5393", "kabahatler_kanunu_5326"]
   },
   "ust_yazi_h1.txt": {
     "tur": "ust_yazi",
     "birim_kodu": "insan_kaynaklari",
     "eksik_alanlar": [],
-    "aciklama": "İl Sağlık Müdürlüğünün devlet hastanesine sağlık personeli geçici görevlendirmesini bildiren tam alanlı üst yazısı."
+    "aciklama": "İl Sağlık Müdürlüğünün devlet hastanesine sağlık personeli geçici görevlendirmesini bildiren tam alanlı üst yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "devlet_memurlari_kanunu_657"]
   },
   "ust_yazi_h2.txt": {
     "tur": "ust_yazi",
     "birim_kodu": "destek_hizmetleri",
     "eksik_alanlar": [],
-    "aciklama": "İl özel idaresinin afet lojistik depolarının kış hazırlığı, bakım-onarım ve ihtiyaç cetvellerini isteyen tam alanlı üst yazısı."
+    "aciklama": "İl özel idaresinin afet lojistik depolarının kış hazırlığı, bakım-onarım ve ihtiyaç cetvellerini isteyen tam alanlı üst yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
   },
   "cevap_yazisi_h1.txt": {
     "tur": "cevap_yazisi",
     "birim_kodu": "mali_hizmetler",
     "eksik_alanlar": [],
-    "aciklama": "Öğrencinin yurt ücreti ve depozito iadesi başvurusuna ödeme tutarı ve süresini bildiren tam alanlı cevap yazısı."
+    "aciklama": "Öğrencinin yurt ücreti ve depozito iadesi başvurusuna ödeme tutarı ve süresini bildiren tam alanlı cevap yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "dilekce_hakki_kanunu_3071", "kamu_mali_yonetimi_5018"]
   },
   "cevap_yazisi_h2.txt": {
     "tur": "cevap_yazisi",
     "birim_kodu": "basin_halkla_iliskiler",
     "eksik_alanlar": ["ilgi"],
-    "aciklama": "Derneğin kültür festivali alan tahsisi talebine verilen olumlu cevap; ilgi (referans) bölümü kasıtlı olarak eksik."
+    "aciklama": "Derneğin kültür festivali alan tahsisi talebine verilen olumlu cevap; ilgi (referans) bölümü kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "belediye_kanunu_5393", "dilekce_hakki_kanunu_3071"]
   },
   "bilgilendirme_h1.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "bilgi_islem",
     "eksik_alanlar": [],
-    "aciklama": "Hastane bilgi yönetim sistemi sunucu taşıması nedeniyle planlı kesintiyi duyuran tam alanlı bilgilendirme yazısı."
+    "aciklama": "Hastane bilgi yönetim sistemi sunucu taşıması nedeniyle planlı kesintiyi duyuran tam alanlı bilgilendirme yazısı.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kvkk_6698"]
   },
   "bilgilendirme_h2.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "yazi_isleri",
     "eksik_alanlar": [],
-    "aciklama": "Kurum arşivi sayımı süresince evrak kabul ve arşiv hizmet düzenini duyuran tam alanlı bilgilendirme yazısı."
+    "aciklama": "Kurum arşivi sayımı süresince evrak kabul ve arşiv hizmet düzenini duyuran tam alanlı bilgilendirme yazısı.",
+    "mevzuat_beklenen": ["devlet_arsiv_hizmetleri_yonetmeligi", "resmi_yazisma_yonetmeligi"]
   },
   "tutanak_h1.txt": {
     "tur": "tutanak",
     "birim_kodu": "destek_hizmetleri",
     "eksik_alanlar": ["tarih"],
-    "aciklama": "Fırtına sonrası kapalı spor salonundaki çatı ve zemin hasarının tespitine ilişkin tutanak; tarih alanı kasıtlı olarak eksik."
+    "aciklama": "Fırtına sonrası kapalı spor salonundaki çatı ve zemin hasarının tespitine ilişkin tutanak; tarih alanı kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
   },
   "tutanak_h2.txt": {
     "tur": "tutanak",
     "birim_kodu": "strateji",
     "eksik_alanlar": [],
-    "aciklama": "Kış afet eylem planının stratejik plan göstergeleriyle uyumlaştırıldığı il afet koordinasyon toplantısının tam alanlı tutanağı."
+    "aciklama": "Kış afet eylem planının stratejik plan göstergeleriyle uyumlaştırıldığı il afet koordinasyon toplantısının tam alanlı tutanağı.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
   },
   "rapor_h1.txt": {
     "tur": "rapor",
     "birim_kodu": "mali_hizmetler",
     "eksik_alanlar": [],
-    "aciklama": "Yurt ve burs hizmetleri ödeneklerinin altı aylık gerçekleşmesini ve ek ödenek ihtiyacını sunan tam alanlı rapor."
+    "aciklama": "Yurt ve burs hizmetleri ödeneklerinin altı aylık gerçekleşmesini ve ek ödenek ihtiyacını sunan tam alanlı rapor.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
   },
   "rapor_h2.txt": {
     "tur": "rapor",
     "birim_kodu": "insan_kaynaklari",
     "eksik_alanlar": [],
-    "aciklama": "Devlet hastanesinde nöbet dağılımı ve fazla çalışma yükünü analiz edip personel planlaması öneren tam alanlı rapor."
+    "aciklama": "Devlet hastanesinde nöbet dağılımı ve fazla çalışma yükünü analiz edip personel planlaması öneren tam alanlı rapor.",
+    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657"]
   },
   "genelge_h1.txt": {
     "tur": "genelge",
     "birim_kodu": "bilgi_islem",
     "eksik_alanlar": [],
-    "aciklama": "Kişisel sağlık verilerinin korunması ve bilgi sistemi erişim yetkilerini düzenleyen tam alanlı il sağlık müdürlüğü genelgesi."
+    "aciklama": "Kişisel sağlık verilerinin korunması ve bilgi sistemi erişim yetkilerini düzenleyen tam alanlı il sağlık müdürlüğü genelgesi.",
+    "mevzuat_beklenen": ["kvkk_6698", "resmi_yazisma_yonetmeligi"]
   },
   "genelge_h2.txt": {
     "tur": "genelge",
     "birim_kodu": "hukuk",
     "eksik_alanlar": ["dagitim"],
-    "aciklama": "Sözleşme uyuşmazlıkları ve dava süreçlerinin hukuk müşavirliğince takibini düzenleyen genelge; dağıtım listesi kasıtlı olarak eksik."
+    "aciklama": "Sözleşme uyuşmazlıkları ve dava süreçlerinin hukuk müşavirliğince takibini düzenleyen genelge; dağıtım listesi kasıtlı olarak eksik.",
+    "mevzuat_beklenen": ["idari_yargilama_usulu_kanunu_2577", "resmi_yazisma_yonetmeligi"]
   },
   "onayli_belge_h1.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "genel_mudurluk",
     "eksik_alanlar": [],
-    "aciklama": "Bölgesel afet tatbikatı hazırlıkları için personel görevlendirmesine ilişkin tam alanlı bölge müdürlüğü makam oluru."
+    "aciklama": "Bölgesel afet tatbikatı hazırlıkları için personel görevlendirmesine ilişkin tam alanlı bölge müdürlüğü makam oluru.",
+    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657", "elektronik_imza_kanunu_5070"]
   },
   "onayli_belge_h2.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "strateji",
     "eksik_alanlar": [],
-    "aciklama": "Hastane performans programı revizyonunun yürürlüğe konulmasına ilişkin tam alanlı başhekimlik oluru."
+    "aciklama": "Hastane performans programı revizyonunun yürürlüğe konulmasına ilişkin tam alanlı başhekimlik oluru.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "elektronik_imza_kanunu_5070"]
   }
 }

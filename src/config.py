@@ -58,9 +58,20 @@ class OCRSettings(BaseSettings):
 
 
 class EmbeddingSettings(BaseSettings):
-    """Embedding model ayarları."""
+    """Embedding ve hibrit mevzuat RAG (opsiyonel semantik katman) ayarları."""
 
     model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
+    # Hibrit mevzuat RAG'in opsiyonel yoğun (dense) arama katmanı.
+    # Bilinçli olarak varsayılan KAPALI: ilk kullanımda model indirme
+    # gerektirdiğinden kapalı ağda sürpriz ağ trafiği oluşturmamalıdır
+    # (offline-first ilkesi). EMBEDDING_SEMANTIK_AKTIF=1 ile açılır.
+    semantik_aktif: bool = False
+    semantik_model: str = "ytu-ce-cosmos/turkish-e5-large"
+
+    # Opsiyonel yeniden sıralama (rerank) katmanı; EMBEDDING_RERANK_AKTIF=1
+    rerank_aktif: bool = False
+    rerank_model: str = "BAAI/bge-reranker-v2-m3"
 
     class Config:
         env_prefix = "EMBEDDING_"

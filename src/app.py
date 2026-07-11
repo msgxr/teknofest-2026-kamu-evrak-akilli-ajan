@@ -704,11 +704,15 @@ def _bolum_mevzuat(sonuc: dict) -> None:
             continue
         baslik = kayit.get("baslik", f"Mevzuat {i}")
         benzerlik = kayit.get("benzerlik")
-        with st.expander(f"{i}. {baslik}  ({_fmt_yuzde(benzerlik)} benzerlik)"):
+        madde = kayit.get("madde_etiketi") or ""
+        ek_baslik = f" — {madde}" if madde else ""
+        with st.expander(f"{i}. {baslik}{ek_baslik}  ({_fmt_yuzde(benzerlik)} benzerlik)"):
             if benzerlik is not None:
                 st.progress(_oran_0_1(benzerlik))
             if kayit.get("icerik_ozeti"):
                 st.markdown(str(kayit["icerik_ozeti"]))
+            if kayit.get("gerekce"):
+                st.caption(f"Gerekçe: {kayit['gerekce']}")
             if kayit.get("kaynak"):
                 st.caption(f"Kaynak: {kayit['kaynak']}")
 

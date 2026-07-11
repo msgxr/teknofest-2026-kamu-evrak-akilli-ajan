@@ -1,0 +1,548 @@
+{
+  "_yontem": "mevzuat_beklenen etiketleri, sistem çıktısına bakılmadan, evrak içeriği + hukuki kural rehberi ile atanmış (etiketleyici) ve bağımsız ikinci bir gözden geçirmeyle (adversarial doğrulayıcı) sıfır itirazla onaylanmıştır. Tarih: 2026-07-11.",
+  "setler": {
+    "kurgu_evraklar": {
+      "ornek_dilekce.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071"
+        ],
+        "gerekce": "Personelin kuruma öneri/şikayet niteliğinde dilekçesi olup usul olarak 3071 kapsamındadır; ağ altyapısı ve lisans konuları listedeki alan mevzuatlarıyla güçlü bir bağ kurmaz.",
+        "guven": "kesin"
+      },
+      "ornek_ust_yazi.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "e_yazisma_teknik_rehberi_bilgi_notu"
+        ],
+        "gerekce": "Üst yazı türü gereği resmi yazışma yönetmeliği; içerikte EBYS kullanım oranı ve fiziksel evrakın sonlandırılması gibi e-yazışma dönüşümü merkezi konu olduğundan e-yazışma rehberi eklenir.",
+        "guven": "kesin"
+      },
+      "ornek_tutanak.txt": {
+        "mevzuat_beklenen": [
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "Tutanağın konusu personel alım planı, uzaktan çalışma düzeni ve performans değerlendirme gibi personel yönetimi başlıkları olduğundan 657 alan mevzuatı olarak işlevseldir.",
+        "guven": "kesin"
+      },
+      "dilekce_01.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "belediye_kanunu_5393",
+          "kabahatler_kanunu_5326"
+        ],
+        "gerekce": "Vatandaş dilekçesi olarak 3071 zorunlu; park aydınlatması ve zabıta denetimi belediye hizmeti (5393), büfenin gece yüksek sesli müzik yayını ise gürültü kabahati (5326) kapsamındadır.",
+        "guven": "kesin"
+      },
+      "dilekce_02.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "Dilekçe türü gereği 3071; intibak, kademe ilerlemesi ve hizmet birleştirmesi talepleri metinde de anılan 657 sayılı Kanunun doğrudan uygulama alanıdır.",
+        "guven": "kesin"
+      },
+      "dilekce_03.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "bilgi_edinme_kanunu_4982",
+          "devlet_arsiv_hizmetleri_yonetmeligi"
+        ],
+        "gerekce": "Dilekçe olarak 3071; kurum arşivindeki belgenin onaylı örneğinin (ücret karşılığı) istenmesi 4982 kapsamında bir belge erişim talebidir ve arşiv kaydından belge çıkarılması arşiv hizmetleri yönetmeliğini ilgilendirir.",
+        "guven": "kesin"
+      },
+      "dilekce_04.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "kamu_mali_yonetimi_5018",
+          "belediye_kanunu_5393"
+        ],
+        "gerekce": "Vatandaş dilekçesi olarak 3071; mükerrer tahsil edilen verginin iadesi bir kamu geliri/tahsilat düzeltme işlemi (5018) olup emlak vergisi tahsilatı belediyenin görev alanındadır (5393).",
+        "guven": "kesin"
+      },
+      "ust_yazi_01.txt": {
+        "mevzuat_beklenen": [
+          "kamu_ihale_kanunu_4734",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Yazının konusu temizlik hizmeti alımı ihalesi için teknik şartname ve yaklaşık maliyet hazırlığı olup metinde de anılan 4734 birincil mevzuattır; üst yazı türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "ust_yazi_02.txt": {
+        "mevzuat_beklenen": [
+          "idari_yargilama_usulu_kanunu_2577",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "İdare mahkemesindeki iptal davasına otuz gün içinde savunma sunulması süreci 2577'nin doğrudan konusudur; üst yazı türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "ust_yazi_03.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "kvkk_6698"
+        ],
+        "gerekce": "Üst yazı türü gereği resmi yazışma yönetmeligi; oltalama saldırılarına karşı hesap kimlik doğrulama verilerinin korunmasına yönelik tedbirler kişisel veri güvenliği boyutuyla KVKK'yı ilgilendirir.",
+        "guven": "kesin"
+      },
+      "ust_yazi_04.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "belediye_kanunu_5393",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Ek ödenek aktarımı talebi bütçe/ödenek işlemi olarak 5018 alanına girer, metinde anılan 5393 belediye bütçe sürecini düzenler; üst yazı türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_01.txt": {
+        "mevzuat_beklenen": [
+          "bilgi_edinme_kanunu_4982",
+          "resmi_yazisma_yonetmeligi",
+          "belediye_kanunu_5393"
+        ],
+        "gerekce": "Metinde açıkça 4982 kapsamındaki bilgi edinme başvurusuna verilen cevap olduğundan 4982 birincil; cevap yazısı türü gereği resmi yazışma yönetmeliği, park yenileme projesi belediye hizmeti olarak 5393 eklenir.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_02.txt": {
+        "mevzuat_beklenen": [
+          "devlet_memurlari_kanunu_657",
+          "resmi_yazisma_yonetmeligi",
+          "dilekce_hakki_kanunu_3071"
+        ],
+        "gerekce": "Eş durumu naklen atama talebi metinde anılan 657 md.72 çerçevesinde değerlendirilmiştir; cevap yazısı türü gereği resmi yazışma yönetmeliği ve cevabın bir dilekçeye verilmesi nedeniyle 3071 eklenir.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_03.txt": {
+        "mevzuat_beklenen": [
+          "kamu_ihale_kanunu_4734",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Hizmet alımı sözleşmesinin feshi, kesin teminatın gelir kaydı ve yüklenici yasaklama süreci kamu ihale mevzuatı alanına girer (listede 4735 bulunmadığından 4734 işlevsel karşılıktır); cevap yazısı türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_04.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "kamu_ihale_kanunu_4734",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Hakediş ödemesi ve ödeme emri belgesi düzenlenmesi 5018 alanındaki harcama/ödeme sürecidir, yüklenici ile hizmet alımı sözleşmesi ilişkisi 4734 alanına girer; cevap yazısı türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "bilgilendirme_01.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "e_yazisma_teknik_rehberi_bilgi_notu"
+        ],
+        "gerekce": "Bilgilendirme türü gereği resmi yazışma yönetmeliği; kesintinin merkezinde EBYS üzerinden evrak oluşturma, imzalama ve havale işlemlerinin durması olduğundan e-yazışma rehberi işlevseldir.",
+        "guven": "kesin"
+      },
+      "bilgilendirme_02.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "belediye_kanunu_5393",
+          "dilekce_hakki_kanunu_3071"
+        ],
+        "gerekce": "Bilgilendirme türü gereği resmi yazışma yönetmeliği; Halk Günü belediyenin vatandaş katılımı uygulaması olarak 5393 alanına girer ve başvuruların kaydı ile başvurana geri bildirim yükümlülüğü 3071 ile bağlantılıdır.",
+        "guven": "supheli"
+      },
+      "bilgilendirme_03.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "devlet_arsiv_hizmetleri_yonetmeligi"
+        ],
+        "gerekce": "Bilgilendirme türü gereği resmi yazışma yönetmeliği; taşınma sürecinde arşivlik ve gizlilik dereceli evrakın nakli düzenlendiğinden arşiv yönetmeliği sınırlı ama savunulabilir bir bağ kurar.",
+        "guven": "supheli"
+      },
+      "bilgilendirme_04.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "dilekce_hakki_kanunu_3071",
+          "e_yazisma_teknik_rehberi_bilgi_notu"
+        ],
+        "gerekce": "Evrak kabul, kayıt ve havale usulleri doğrudan resmi yazışma yönetmeliği konusudur; vatandaş dilekçelerinin kabulü ve alındı belgesi verilmesi 3071'e, yazışmaların EBYS'ye taşınması e-yazışma rehberine bağlanır.",
+        "guven": "kesin"
+      },
+      "tutanak_01.txt": {
+        "mevzuat_beklenen": [
+          "kamu_ihale_kanunu_4734",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Doğrudan temin kapsamındaki alımın muayene ve kabul işlemleri 4734 ve ikincil mevzuatının konusudur; kabul sonucunun ödeme belgesine şerh düşülmesi 5018 alanındaki ödeme sürecini ilgilendirir.",
+        "guven": "kesin"
+      },
+      "tutanak_02.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Sunucu arızası tespiti teknik bir olay olup listedeki alan mevzuatlarıyla güçlü bir bağ kurmadığından yalnızca tutanağın resmî belge düzeni yönünden resmi yazışma yönetmeliği sınırlı fayda sağlar.",
+        "guven": "supheli"
+      },
+      "tutanak_03.txt": {
+        "mevzuat_beklenen": [
+          "devlet_arsiv_hizmetleri_yonetmeligi"
+        ],
+        "gerekce": "Saklama süresi dolan dosyaların birim arşivinden kurum arşivine devri, metinde de anılan Devlet Arşiv Hizmetleri Yönetmeliğinin doğrudan uygulamasıdır.",
+        "guven": "kesin"
+      },
+      "tutanak_04.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Kamu hizmet aracına üçüncü şahsın verdiği zararın tespiti ve tazmin sürecinin başlatılması, kamu kaynağının korunması ve kamu zararının takibi yönüyle 5018 ilkeleriyle ilişkilidir.",
+        "guven": "supheli"
+      },
+      "rapor_01.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Stratejik plan performans göstergelerinin izlenmesi ve değerlendirilmesi, 5018'in stratejik planlama ve performans esaslı yönetim hükümlerinin uygulamasıdır.",
+        "guven": "kesin"
+      },
+      "rapor_02.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "belediye_kanunu_5393"
+        ],
+        "gerekce": "Rapor metinde anılan 5018 md.30 uyarınca hazırlanan bütçe gerçekleşme raporudur; belediye bütçe süreci ayrıca 5393 çerçevesinde yürütülür.",
+        "guven": "kesin"
+      },
+      "rapor_03.txt": {
+        "mevzuat_beklenen": [
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "İdari personelin hizmet içi eğitim ihtiyacının analizi ve eğitim planlaması, 657 kapsamındaki personel yönetimi ve hizmet içi eğitim alanına girer.",
+        "guven": "kesin"
+      },
+      "rapor_04.txt": {
+        "mevzuat_beklenen": [
+          "belediye_kanunu_5393",
+          "dilekce_hakki_kanunu_3071"
+        ],
+        "gerekce": "Rapor belediye hizmetlerine yönelik vatandaş memnuniyetini değerlendirdiğinden 5393 birincil alandır; dilekçeyle başvuranlara sonuç bildiriminin sistematikleştirilmesi önerisi 3071'in cevap yükümlülüğüyle doğrudan bağlantılıdır.",
+        "guven": "kesin"
+      },
+      "genelge_01.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Tasarruf tedbirleri metinde anılan 5018'in kaynakların etkili, ekonomik ve verimli kullanımı ilkesine dayanır; genelge türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "genelge_02.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "e_yazisma_teknik_rehberi_bilgi_notu"
+        ],
+        "gerekce": "Genelgenin konusu doğrudan resmi yazışma usulleri yönetmeliğinin uygulanmasıdır; EBYS zorunluluğu ve belge üst verisi düzenlemeleri e-yazışma rehberini de işlevsel kılar.",
+        "guven": "kesin"
+      },
+      "genelge_03.txt": {
+        "mevzuat_beklenen": [
+          "kvkk_6698",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Parola politikası, erişim yetkilerinin kapatılması ve kurumsal veri varlıklarının korunması veri güvenliği tedbiri olarak KVKK alanına girer; genelge türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "genelge_04.txt": {
+        "mevzuat_beklenen": [
+          "belediye_kanunu_5393",
+          "kamu_mali_yonetimi_5018",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Stratejik plan hazırlığı metinde anılan 5393 md.41'e dayanır ve kamu idarelerinde stratejik planlama 5018 çerçevesinde yürütülür; genelge türü gereği resmi yazışma yönetmeliği eklenir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_01.txt": {
+        "mevzuat_beklenen": [
+          "devlet_memurlari_kanunu_657",
+          "elektronik_imza_kanunu_5070",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Personelin geçici görevlendirilmesi 657 kapsamındaki personel işlemi olup e-imzalı makam oluru niteliği 5070'i, giderlerin proje bütçesi tertibinden karşılanması ise 5018'i ilgilendirir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_02.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "elektronik_imza_kanunu_5070"
+        ],
+        "gerekce": "İmza yetkilerinin devri ve yazışmalarda imza düzeni resmi yazışma yönetmeliğinin alanına girer; e-imzalı olur niteliği gereği 5070 eklenir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_03.txt": {
+        "mevzuat_beklenen": [
+          "kamu_ihale_kanunu_4734",
+          "elektronik_imza_kanunu_5070"
+        ],
+        "gerekce": "İhale onay belgesi, metinde anılan 4734 md.19 uyarınca açık ihale sürecini başlatan belgedir; e-imzalı onay niteliği gereği 5070 eklenir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_04.txt": {
+        "mevzuat_beklenen": [
+          "belediye_kanunu_5393",
+          "elektronik_imza_kanunu_5070"
+        ],
+        "gerekce": "Üniversite ile iş birliği protokolü metinde anılan 5393 md.75'e dayanılarak imzalanmaktadır; e-imzalı başkanlık oluru niteliği gereği 5070 eklenir.",
+        "guven": "kesin"
+      }
+    },
+    "kurgu_evraklar_heldout": {
+      "dilekce_h1.txt": {
+        "mevzuat_beklenen": [
+          "kabahatler_kanunu_5326",
+          "dilekce_hakki_kanunu_3071"
+        ],
+        "gerekce": "Trafik idari para cezası karar tutanağına itiraz, Kabahatler Kanunu'nun idari yaptırımlara başvuru hükümlerine dayanır; belge bir vatandaş dilekçesi olduğundan 3071 usul gereği dahildir.",
+        "guven": "kesin"
+      },
+      "dilekce_h2.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "belediye_kanunu_5393",
+          "kabahatler_kanunu_5326"
+        ],
+        "gerekce": "Belediyeye verilen şikayet dilekçesi 3071 kapsamındadır; sahil, çevre ve kıyı işgali belediye görev alanına (5393) girer ve moloz dökümü ile işgal için istenen yaptırımlar kabahat rejimini (5326) ilgilendirir.",
+        "guven": "kesin"
+      },
+      "ust_yazi_h1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "Üst yazı türü gereği resmi yazışma kuralları geçerlidir; sağlık personelinin geçici görevlendirmesi, özlük ve puantaj işlemleri 657 sayılı Kanunun personel rejimine girer.",
+        "guven": "kesin"
+      },
+      "ust_yazi_h2.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Afet lojistik depolarının bakım ve hazırlık talimatını içeren üst yazıda usul gereği resmi yazışma kuralları geçerlidir; ihale, bütçe veya personel gibi bir alan mevzuatına güçlü ve savunulabilir bir bağlantı bulunmamaktadır.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_h1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "dilekce_hakki_kanunu_3071",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Vatandaş başvurusuna verilen resmi cevap yazısı olduğundan resmi yazışma kuralları ve 3071 geçerlidir; ödeme emri belgesi düzenlenerek yapılacak ücret ve depozito iadesi 5018 kapsamındaki harcama sürecidir.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_h2.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "belediye_kanunu_5393",
+          "dilekce_hakki_kanunu_3071"
+        ],
+        "gerekce": "Cevap yazısı türü gereği resmi yazışma kuralları geçerlidir; belediye encümeni kararıyla alan tahsisi 5393 kapsamındaki belediye yetkisidir ve yazı derneğin başvuru dilekçesine cevap niteliğinde olduğundan 3071 de ilgilidir.",
+        "guven": "kesin"
+      },
+      "bilgilendirme_h1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "kvkk_6698"
+        ],
+        "gerekce": "Bilgilendirme yazısı türü gereği resmi yazışma kuralları geçerlidir; kesinti sırasında hasta verilerinin yedeklenmesi ve manuel formlarla işlenmesi kişisel sağlık verilerinin güvenliği yönüyle KVKK'ya ikincil düzeyde temas eder.",
+        "guven": "supheli"
+      },
+      "bilgilendirme_h2.txt": {
+        "mevzuat_beklenen": [
+          "devlet_arsiv_hizmetleri_yonetmeligi",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Saklama planları, ayıklama ve imha komisyonu ile kurum arşivi sayımı doğrudan Devlet Arşiv Hizmetleri Yönetmeliği kapsamındadır; bilgilendirme yazısı türü gereği resmi yazışma kuralları da geçerlidir.",
+        "guven": "kesin"
+      },
+      "tutanak_h1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Fırtına hasarı tespit tutanağının içeriği listedeki alan mevzuatlarından hiçbirine güçlü bağlanmaz; tarih alanı eksik olduğundan belgenin biçim ve zorunlu öğe denetimi için resmi yazışma kuralları en işlevsel dayanaktır.",
+        "guven": "supheli"
+      },
+      "tutanak_h2.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Toplantının merkezinde il stratejik planı performans göstergelerinin izlenmesi ve uyumlaştırılması yer aldığından, stratejik planlama ve performans esaslı yönetimi düzenleyen 5018 işlevsel olarak en ilgili mevzuattır.",
+        "guven": "kesin"
+      },
+      "rapor_h1.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Ödenek tahsisi, gerçekleşme oranları, ek ödenek ihtiyacı ve aktarma önerisi doğrudan 5018 kapsamındaki bütçe ve mali yönetim konularıdır; ihale yalnızca gecikme gerekçesi olarak anıldığından 4734 eklenmemiştir.",
+        "guven": "kesin"
+      },
+      "rapor_h2.txt": {
+        "mevzuat_beklenen": [
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "Nöbet dağılımı, fazla çalışma, yıllık izin planlaması ve geçici görevlendirme gibi konuların tamamı 657 sayılı Kanunun personel rejimine ilişkindir.",
+        "guven": "kesin"
+      },
+      "genelge_h1.txt": {
+        "mevzuat_beklenen": [
+          "kvkk_6698",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Kişisel sağlık verilerinin gizliliği, erişim yetkilerinin sınırlandırılması ve veri güvenliği tedbirleri doğrudan KVKK kapsamındadır; genelge türü gereği resmi yazışma kuralları da geçerlidir.",
+        "guven": "kesin"
+      },
+      "genelge_h2.txt": {
+        "mevzuat_beklenen": [
+          "idari_yargilama_usulu_kanunu_2577",
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "İdare aleyhine açılan davalarda savunma sürelerinin korunması ve dava süreçlerinin takibi idari yargılama usulünü (2577) ilgilendirir; genelge türü gereği resmi yazışma kuralları da geçerlidir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_h1.txt": {
+        "mevzuat_beklenen": [
+          "devlet_memurlari_kanunu_657",
+          "elektronik_imza_kanunu_5070"
+        ],
+        "gerekce": "Makam oluru personelin geçici görevlendirilmesine ilişkin olduğundan 657 alan mevzuatıdır; belgenin e-imzalı olur niteliği gereği 5070 de dahildir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_h2.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "elektronik_imza_kanunu_5070"
+        ],
+        "gerekce": "Performans programı revizyonunun onaylanması 5018'in performans esaslı yönetim hükümlerine girer; e-imzalı başhekimlik oluru niteliği gereği 5070 de dahildir.",
+        "guven": "kesin"
+      }
+    },
+    "kurgu_evraklar_heldout_v2": {
+      "dilekce_v1.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "bilgi_edinme_kanunu_4982"
+        ],
+        "gerekce": "Vatandaş dilekçesi olduğu için 3071 usul gereği zorunlu; kendi başvurusunun ve kurum cevabının onaylı suretlerini (belgeye erişim) talep ettiğinden 4982 kapsamında bilgi/belge edinme talebidir.",
+        "guven": "kesin"
+      },
+      "dilekce_v2.txt": {
+        "mevzuat_beklenen": [
+          "dilekce_hakki_kanunu_3071",
+          "belediye_kanunu_5393"
+        ],
+        "gerekce": "Vatandaş dilekçesi olduğu için 3071 usul gereği zorunlu; talep, belediye sorumluluğundaki sulama şebekesi ücretinin iadesine ilişkin bir belediye hizmeti uyuşmazlığı olduğundan 5393 alan mevzuatıdır.",
+        "guven": "kesin"
+      },
+      "ust_yazi_v1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "Üst yazı türü gereği resmi yazışma yönetmeliği zorunlu; konu memur personelin hizmet içi eğitime görevlendirilmesi olduğundan 657 (hizmet içi eğitim ve görevlendirme hükümleri) alan mevzuatıdır.",
+        "guven": "kesin"
+      },
+      "ust_yazi_v2.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "kvkk_6698"
+        ],
+        "gerekce": "Üst yazı türü gereği resmi yazışma yönetmeliği zorunlu; erişim kayıtlarının bütünlük doğrulaması ve günlük kayıtlarının anonimleştirilerek paylaşılması veri güvenliği/kişisel veri işleme bağlamı taşıdığından KVKK eklendi, ancak evrakın ana konusu tatbikat hazırlığı olduğundan bağlantı orta düzeydedir.",
+        "guven": "supheli"
+      },
+      "cevap_yazisi_v1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "bilgi_edinme_kanunu_4982",
+          "cimer_vatandas_basvurulari_bilgi_notu"
+        ],
+        "gerekce": "Cevap yazısı türü gereği resmi yazışma yönetmeliği zorunlu; yazı açıkça bir CİMER başvurusuna verilen ve metinde 'bilgi edinme hakkınız kapsamında' denilen bilgi talebi cevabı olduğundan 4982 ve CİMER bilgi notu işlevsel olarak gereklidir.",
+        "guven": "kesin"
+      },
+      "cevap_yazisi_v2.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "belediye_kanunu_5393"
+        ],
+        "gerekce": "Cevap yazısı türü gereği resmi yazışma yönetmeliği zorunlu; atıksu arıtma katılım payı itirazının belediye encümeni kararıyla karara bağlanması belediye hizmet ve organlarına ilişkin olduğundan 5393 alan mevzuatıdır.",
+        "guven": "kesin"
+      },
+      "bilgilendirme_v1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi"
+        ],
+        "gerekce": "Bilgilendirme yazısı türü gereği resmi yazışma yönetmeliği zorunlu; karla mücadele lojistiği içeriği listedeki alan mevzuatlarından hiçbiriyle güçlü bağ kurmadığından (il özel idaresi mevzuatı listede yok) tek etiket bırakıldı.",
+        "guven": "kesin"
+      },
+      "bilgilendirme_v2.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "e_yazisma_teknik_rehberi_bilgi_notu",
+          "elektronik_imza_kanunu_5070"
+        ],
+        "gerekce": "Bilgilendirme yazısı türü gereği resmi yazışma yönetmeliği zorunlu; konu doğrudan EBYS sürüm yükseltmesi (e-yazışma rehberi) ve elektronik imza modülü/istemci güncellemesi (5070) olduğundan her iki alan mevzuatı da işlevsel olarak gereklidir.",
+        "guven": "kesin"
+      },
+      "tutanak_v1.txt": {
+        "mevzuat_beklenen": [
+          "kabahatler_kanunu_5326"
+        ],
+        "gerekce": "Kamuya tahsisli mera alanının izinsiz sürülüp tel çekilerek işgalinin tespiti listedeki en yakın karşılık olan Kabahatler Kanunu'nun işgal hükmüyle örtüşür; ancak metnin bizzat atıf yaptığı asıl dayanak Mera Kanunu listede bulunmadığından karar şüpheli işaretlendi.",
+        "guven": "supheli"
+      },
+      "tutanak_v2.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Taşınır mal sayımı, taşınır işlem fişi düzenlenmesi ve hurdaya ayırma süreçleri 5018 sayılı Kanuna dayanan taşınır mal yönetimi rejiminin konusu olduğundan işleyen görevliye 5018 önerilmesi işlevsel olarak doğrudur.",
+        "guven": "kesin"
+      },
+      "rapor_v1.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "Stratejik plan performans göstergelerinin izlenmesi ve gerçekleşme raporlaması 5018'in stratejik planlama ve performans esaslı yönetim hükümlerinin doğrudan uygulamasıdır; rapor türünde usul zorunluluğu yoktur.",
+        "guven": "kesin"
+      },
+      "rapor_v2.txt": {
+        "mevzuat_beklenen": [
+          "kamu_mali_yonetimi_5018",
+          "kamu_ihale_kanunu_4734"
+        ],
+        "gerekce": "Rapor ödenek ihtiyacı güncellemesi ve harcama gerçekleşmesi (5018) ile sözleşme bedeli, hakediş, fiyat farkı ve yüklenici süreçlerini (4734 ihale/sözleşme düzeni) merkezine aldığından her iki alan mevzuatı da işlevsel olarak gereklidir.",
+        "guven": "kesin"
+      },
+      "genelge_v1.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "devlet_memurlari_kanunu_657"
+        ],
+        "gerekce": "Genelge türü gereği resmi yazışma yönetmeliği zorunlu; düzenlenen konular hizmet içi eğitim, yıllık izin planlaması ve özlük dosyası işlemleri olduğundan 657 alan mevzuatıdır.",
+        "guven": "kesin"
+      },
+      "genelge_v2.txt": {
+        "mevzuat_beklenen": [
+          "resmi_yazisma_yonetmeligi",
+          "idari_yargilama_usulu_kanunu_2577"
+        ],
+        "gerekce": "Genelge türü gereği resmi yazışma yönetmeliği zorunlu; içerik, metinde açıkça anılan İdari Yargılama Usulü Kanunu'ndaki savunma ve yasal sürelerin kaçırılmamasına yönelik iç düzenleme olduğundan 2577 alan mevzuatıdır.",
+        "guven": "kesin"
+      },
+      "onayli_belge_v1.txt": {
+        "mevzuat_beklenen": [
+          "elektronik_imza_kanunu_5070",
+          "kamu_ihale_kanunu_4734",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "E-imzalı makam oluru niteliği gereği 5070 dahil; iş makinelerinin hizmet alımı yoluyla kiralanması bir kamu alım süreci (4734), giderin bütçe tertiplerinden karşılanması ise harcama/ödenek işlemi (5018) olduğundan her iki alan mevzuatı da gereklidir.",
+        "guven": "kesin"
+      },
+      "onayli_belge_v2.txt": {
+        "mevzuat_beklenen": [
+          "elektronik_imza_kanunu_5070",
+          "kamu_mali_yonetimi_5018"
+        ],
+        "gerekce": "E-imzalı rektörlük oluru niteliği gereği 5070 dahil; protokolün stratejik plan uluslararasılaşma hedefleriyle izlenmesi ve yıllık gerçekleşme raporlaması 5018'in stratejik plan/performans izleme çerçevesine girmekle birlikte evrakın ana konusu öğrenci değişimi olduğundan bağlantı orta düzeydedir.",
+        "guven": "supheli"
+      }
+    }
+  }
+}
