@@ -157,3 +157,27 @@ def kokpit_ozeti(sonuclar: "list[dict]") -> dict:
             "tasarruf_orani": round(tasarruf_orani, 4),
         },
     }
+
+
+def kokpit_iliskiler(sonuclar: "list[dict]") -> dict:
+    """
+    Toplu işlenen evraklar arasındaki ilişki zincirlerini döndürür.
+
+    Kurum kokpitinin 'evrak ilişkileri' göstergesi: dilekçe → cevap →
+    itiraz gibi yazışma zincirlerini İlgi referansları ve konu/taraf
+    benzerliğinden otomatik kurar (bkz. src/utils/iliski_zinciri modül
+    docstring'i — sinyal gerekçeleri orada).
+
+    İlişki modülü tembel (lazy) import edilir: kokpit_ozeti kullanan
+    mevcut çağrılar iliski_zinciri modülünü yüklemek zorunda kalmaz ve
+    olası bir import hatası kokpitin diğer göstergelerini düşürmez.
+
+    Args:
+        sonuclar: EndToEndPipeline.process/process_batch çıktısı sözlükler.
+
+    Returns:
+        zincir_kur sözleşmesiyle aynı: {"zincirler": [...], "bagimsiz": [...]}.
+    """
+    from src.utils.iliski_zinciri import zincir_kur
+
+    return zincir_kur(sonuclar)

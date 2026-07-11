@@ -42,6 +42,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 import streamlit as st
 
 from src.utils.eyazisma import uret_ustveri
+from src.utils.islem_raporu import uret_html_rapor
 from src.utils.kokpit import kokpit_ozeti
 
 logger = logging.getLogger("kamu_evrak_ajan.app")
@@ -113,10 +114,17 @@ YONTEM_ETIKETLERI = {
 
 @st.cache_resource(show_spinner="Ajanlar yükleniyor...")
 def _pipeline_kur():
-    """Uçtan uca pipeline'ı bir kez kurar ve önbelleğe alır."""
+    """
+    Uçtan uca pipeline'ı bir kez kurar ve önbelleğe alır.
+
+    Arayüz gerçek kullanım akışıdır: kayıt defteri (SQLite denetim izi)
+    burada AÇIK kurulur; işlenen her evrak Kayıt Defteri sekmesinde
+    listelenir. Değerlendirme betikleri ise varsayılan (kapalı) kurulumla
+    çalışır ve etkilenmez.
+    """
     from src.pipelines.end_to_end_pipeline import EndToEndPipeline
 
-    return EndToEndPipeline()
+    return EndToEndPipeline(kayit_defteri_aktif=True)
 
 
 @st.cache_resource(show_spinner=False)
@@ -213,9 +221,9 @@ def _dosya_isle(pipeline: Any, dosya_yolu: str, mode: str) -> dict:
 
 
 def _metin_isle(pipeline: Any, metin: str, mode: str) -> dict:
-    """Doğrudan metin girişini orkestratör üzerinden işler."""
+    """Doğrudan metin girişini pipeline üzerinden işler (kayıt defteri dahil)."""
     baslangic = time.time()
-    sonuc = pipeline.orchestrator.process_text(metin, mode=mode)
+    sonuc = pipeline.process_text(metin, mode=mode)
     sonuc.setdefault("islem_suresi_saniye", round(time.time() - baslangic, 2))
     return sonuc
 
@@ -686,6 +694,30 @@ def _bolum_eyazisma_ustveri(sonuc: dict, key_prefix: str) -> None:
         )
 
 
+def _bolum_islem_raporu(sonuc: dict, key_prefix: str) -> None:
+    """
+    Tek tıkla indirilebilir HTML işlem denetim raporu düğmesi.
+
+    Evrakın tüm işlem sonucunu kendine yeten, kurumsal görünümlü bir
+    HTML raporuna döker (arşiv/denetim çıktısı; bkz. src/utils/islem_raporu).
+    """
+    try:
+        rapor_html = uret_html_rapor(sonuc)
+    except Exception as exc:  # rapor üretimi sonuç ekranını düşürmemeli
+        logger.warning(f"HTML işlem raporu üretilemedi: {exc}")
+        return
+
+    dosya_koku = Path(str(sonuc.get("input_file", "evrak"))).stem or "evrak"
+    st.download_button(
+        label="📄 HTML İşlem Raporu İndir",
+        data=rapor_html.encode("utf-8"),
+        file_name=f"islem_raporu_{dosya_koku}.html",
+        mime="text/html",
+        key=f"{key_prefix}_islem_raporu_indir",
+        help="Evrakın tüm işlem sonuçlarını içeren denetim raporu (arşive/denetime verilebilir).",
+    )
+
+
 def _birim_secenekleri() -> dict:
     """Yönlendirme birim seçeneklerini {kod: ad} olarak döndürür."""
     try:
@@ -774,6 +806,7 @@ def _sonuclari_goster(sonuc: dict, key_prefix: str) -> None:
     """Tüm sonuç bölümlerini düzenli bir yerleşimle çizer."""
     _metrik_satiri(sonuc)
     _bolum_oncelik(sonuc)  # önceliklendirme sonucu varsa gösterilir (guard'lı)
+    _bolum_islem_raporu(sonuc, key_prefix)  # HTML denetim raporu indirme
     st.divider()
 
     sol, sag = st.columns(2, gap="large")
@@ -1048,6 +1081,174 @@ def _sekme_kokpit(pipeline: Any) -> None:
     if satirlar:
         st.dataframe(satirlar, width="stretch", hide_index=True)
 
+    # Evrak ilişki zinciri (yenilik): İlgi referansları ve konu/muhatap
+    # benzerliğinden yazışma zincirleri (dilekçe → cevap → itiraz)
+    if len(sonuclar) > 1:
+        try:
+            from src.utils.kokpit import kokpit_iliskiler
+
+            iliskiler = kokpit_iliskiler(sonuclar)
+            zincirler = iliskiler.get("zincirler") or []
+            with st.container(border=True):
+                st.subheader("🔗 Evrak İlişki Zinciri")
+                if zincirler:
+                    for zincir in zincirler:
+                        evraklar = " → ".join(
+                            Path(str(ad)).name for ad in zincir.get("evraklar", [])
+                        )
+                        st.markdown(
+                            f"- **{evraklar}**  \n"
+                            f"  _{zincir.get('aciklama', '')}_ "
+                            f"(bağlantı: {zincir.get('baglanti_turu', '?')})"
+                        )
+                    st.caption(
+                        f"ℹ️ {len(zincirler)} zincir, "
+                        f"{len(iliskiler.get('bagimsiz') or [])} bağımsız evrak."
+                    )
+                else:
+                    st.caption(
+                        "Bu kümede İlgi referansı veya konu benzerliğiyle "
+                        "bağlanan evrak zinciri bulunamadı."
+                    )
+        except Exception as exc:  # zincir analizi kokpiti düşürmesin
+            st.caption(f"İlişki zinciri analizi yapılamadı: {exc}")
+
+
+def _sekme_kayit_defteri(pipeline: Any) -> None:
+    """
+    Sekme: Kayıt Defteri — işlenen evrakların SQLite denetim izi.
+
+    Kamu evrak yönetimindeki 'evrak kayıt defteri' pratiğinin karşılığı:
+    arayüzde işlenen her evrak tek satırlık denetim kaydıyla listelenir,
+    tür/birim/öncelik/serbest metin ölçütleriyle filtrelenebilir.
+    """
+    st.markdown(
+        "Bu arayüzde işlenen her evrak, **denetlenebilirlik** için evrak kayıt "
+        "defterine (SQLite) işlenir — kamu evrak sistemlerindeki kayıt defteri / "
+        "denetim izi (audit trail) pratiğinin karşılığıdır."
+    )
+
+    defter = getattr(pipeline, "kayit_defteri", None)
+    if defter is None:
+        st.info(
+            "Kayıt defteri bu oturumda etkin değil (pipeline kayıt kapalı kuruldu "
+            "veya veritabanı açılamadı)."
+        )
+        return
+
+    try:
+        istatistik = defter.istatistik()
+    except Exception as exc:
+        logger.error(f"Kayıt defteri istatistiği okunamadı: {exc}")
+        st.error(f"Kayıt defteri okunamadı: {exc}")
+        return
+
+    if not istatistik.get("toplam"):
+        st.info(
+            "📭 Kayıt defteri henüz boş.\n\n"
+            "**Evrak İşle**, **Demo Evrakları** veya **Kurum Kokpiti** sekmesinde "
+            "bir evrak işlediğinizde, işlem burada denetim kaydı olarak listelenir."
+        )
+        return
+
+    # İstatistik kartları
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Toplam Kayıt", str(istatistik["toplam"]))
+    k2.metric("Ort. İşlem Süresi", f"{istatistik['ort_sure_saniye']:.2f} sn")
+    k3.metric("İnsan Onayı Gerekli", str(istatistik["insan_onayi_sayisi"]))
+    k4.metric("Kritik Eksikli", str(istatistik["kritik_eksikli_sayisi"]))
+
+    # Dağılım grafikleri (pandas, streamlit'in zorunlu bağımlılığıdır)
+    import pandas as pd
+
+    g1, g2 = st.columns(2, gap="large")
+    with g1:
+        st.subheader("🏷️ Tür Dağılımı")
+        tur_dagilimi = {
+            EVRAK_TUR_ADLARI.get(kod, kod): adet
+            for kod, adet in (istatistik.get("tur_dagilimi") or {}).items()
+        }
+        if tur_dagilimi:
+            st.bar_chart(pd.Series(tur_dagilimi, name="Kayıt sayısı"))
+        else:
+            st.info("Tür dağılımı üretilemedi.")
+    with g2:
+        st.subheader("🏢 Birim Dağılımı")
+        if istatistik.get("birim_dagilimi"):
+            st.bar_chart(pd.Series(istatistik["birim_dagilimi"], name="Kayıt sayısı"))
+        else:
+            st.info("Birim dağılımı üretilemedi.")
+
+    # Filtreler — seçenekler defterde GERÇEKTEN geçen değerlerden üretilir
+    st.subheader("🔎 Kayıt Sorgulama")
+    TUMU = "(Tümü)"
+    f1, f2, f3, f4 = st.columns(4)
+    with f1:
+        tur_secimi = st.selectbox(
+            "Evrak türü",
+            [TUMU] + sorted(istatistik.get("tur_dagilimi") or {}),
+            format_func=lambda k: EVRAK_TUR_ADLARI.get(k, k),
+            key="kd_tur",
+        )
+    with f2:
+        birim_secimi = st.selectbox(
+            "Birim",
+            [TUMU] + sorted(istatistik.get("birim_dagilimi") or {}),
+            key="kd_birim",
+        )
+    with f3:
+        oncelik_secimi = st.selectbox(
+            "Öncelik",
+            [TUMU] + sorted(istatistik.get("oncelik_dagilimi") or {}),
+            key="kd_oncelik",
+        )
+    with f4:
+        metin_ara = st.text_input(
+            "Metin ara (özet/kaynak)",
+            key="kd_metin",
+            placeholder="örn. su kesintisi",
+        )
+
+    try:
+        kayitlar = defter.sorgula(
+            tur=None if tur_secimi == TUMU else tur_secimi,
+            birim=None if birim_secimi == TUMU else birim_secimi,
+            oncelik=None if oncelik_secimi == TUMU else oncelik_secimi,
+            metin_ara=metin_ara.strip() or None,
+            limit=50,
+        )
+    except Exception as exc:
+        logger.error(f"Kayıt defteri sorgusu başarısız: {exc}")
+        st.error(f"Kayıtlar sorgulanamadı: {exc}")
+        return
+
+    if not kayitlar:
+        st.warning("Bu ölçütlerle eşleşen kayıt bulunamadı.")
+        return
+
+    satirlar = []
+    for kayit in kayitlar:
+        satirlar.append({
+            "No": kayit.get("id"),
+            "Zaman": kayit.get("zaman"),
+            "Kaynak": Path(str(kayit.get("kaynak") or "")).name or "—",
+            "Tür": EVRAK_TUR_ADLARI.get(str(kayit.get("tur")), kayit.get("tur")) or "—",
+            "Birim": kayit.get("birim") or "—",
+            "Öncelik": kayit.get("oncelik") or "—",
+            "Son Tarih": kayit.get("son_tarih") or "—",
+            "Eksik": kayit.get("eksik_sayisi"),
+            "Kritik": "⚠️" if kayit.get("kritik_eksik") else "—",
+            "Format": _fmt_yuzde(kayit.get("format_skoru")),
+            "Süre (sn)": kayit.get("sure_saniye"),
+            "İnsan Onayı": "✋" if kayit.get("insan_onayi") else "—",
+            "Özet (ilk 200)": kayit.get("ozet_ilk_200") or "—",
+        })
+    st.dataframe(satirlar, width="stretch", hide_index=True)
+    st.caption(
+        f"En yeni {len(satirlar)} kayıt gösteriliyor (azami 50). "
+        "Kayıtlar `data/processed/kayit_defteri.db` dosyasında kalıcıdır."
+    )
+
 
 def _sekme_hakkinda() -> None:
     """Sekme 3: mimari özeti, görev eşleşmesi ve veri kullanımı notu."""
@@ -1172,8 +1373,8 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Sekmeler
     # ------------------------------------------------------------------
-    sekme1, sekme2, sekme3, sekme4 = st.tabs(
-        ["📄 Evrak İşle", "🎬 Demo Evrakları", "📊 Kurum Kokpiti", "ℹ️ Hakkında"]
+    sekme1, sekme2, sekme3, sekme4, sekme5 = st.tabs(
+        ["📄 Evrak İşle", "🎬 Demo Evrakları", "📊 Kurum Kokpiti", "🗂️ Kayıt Defteri", "ℹ️ Hakkında"]
     )
 
     with sekme1:
@@ -1186,6 +1387,9 @@ def main() -> None:
         _sekme_kokpit(pipeline)
 
     with sekme4:
+        _sekme_kayit_defteri(pipeline)
+
+    with sekme5:
         _sekme_hakkinda()
 
 
