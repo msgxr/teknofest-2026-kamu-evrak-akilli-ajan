@@ -99,7 +99,7 @@
 - 37 birim ve entegrasyon testi sürekli yeşil (pytest)
 - Bağımlılık disiplini: çekirdek kurulum minimal; OCR/semantik arama/LLM opsiyonel katman
 - Değerlendirme aracı (scripts/evaluate.py): sınıflandırma, yönlendirme, eksik bilgi ve süre metriklerini otomatik raporlar
-- 67 etiketli sentetik evrak (35 geliştirme + 16 tutulmuş + 16 yeni tutulmuş v2) + 15 belgelik mevzuat korpusu
+- 100 etiketli sentetik evrak (52 geliştirme + 16 tutulmuş v1 + 16 tutulmuş v2 + 16 adversarial v3) + 15 belgelik mevzuat korpusu
 - Apache 2.0 açık kaynak; tüm dokümantasyon Türkçe; model ağırlığı depoya yüklenmez
 
 > not: "Hedefliyoruz" değil "çalışıyor" — ön değerlendirmede en güçlü kart. Uygulama (35p) kriterine doğrudan oynuyor. Sentetik veri ve lisans uyumu şartname m.6.5 ve m.7'yi karşılıyor.
@@ -109,15 +109,18 @@
 # Ölçülebilir Başarım (Tamamen Çevrimdışı Modda)
 
 - Geliştirme seti (52 evrak): sınıflandırma 1,000 - yönlendirme 0,962 - eksik bilgi F1 1,000 - mevzuat isabet@3 0,962
-- Tutulmuş set (16 evrak): sınıflandırma 1,000 - yönlendirme 1,000 - eksik bilgi F1 1,000
-- Yeni tutulmuş set v2 (16 evrak, hiç dokunulmamış, tek sefer ölçüldü):
-  - Sınıflandırma doğruluğu: 1,000 (16/16)
-  - Birim yönlendirme doğruluğu: 0,875 (14/16)
-  - Eksik bilgi tespiti micro-F1: 0,857
-- Evrak başına medyan işleme süresi ~0,02 sn — gerçek zamana yakın
-- Şeffaflık: geliştirme seti üst sınırı gösterir; v2 sonuçları hiçbir düzeltme yapılmadan olduğu gibi raporlanmıştır
+- Tutulmuş set v1 (16 evrak): sınıflandırma 1,000 - yönlendirme 1,000 - eksik bilgi F1 1,000
+- Tutulmuş set v2 (16 evrak): sınıflandırma 1,000 - yönlendirme 0,938 - eksik bilgi F1 1,000
+  - İlk ölçümü 1,000 / 0,875 / 0,857 idi; hata analizinde bulunan İKİ kök neden
+    (Türkçe ünsüz yumuşaması + belge "Sayı"sı ↔ İlgi atıf no ayrımı) DOSYAYA ÖZGÜ
+    ezber olmadan İLKESEL düzeltilip yeniden ölçüldü. Bu düzeltme v2'nin saflığını
+    zayıflattığı için, ↓ tamamen dokunulmamış v3 oluşturuldu.
+- **Adversarial set v3 (16 evrak, HİÇ DOKUNULMAMIŞ, TEK SEFER ölçüldü):**
+  sınıflandırma 0,938 - **yönlendirme 1,000** - eksik bilgi F1 0,667 - mevzuat isabet@3 0,875 - taslak kalitesi 95,8
+- Evrak başına medyan işleme süresi ~0,02-0,03 sn — gerçek zamana yakın
+- Şeffaflık: geliştirme seti üst sınırı gösterir; v3 sonuçları hiçbir düzeltme yapılmadan olduğu gibi raporlanmıştır
 
-> not: Dürüstlük burada güç: "İlk held-out set hata analizi sonrası saflığını yitirdi, bu yüzden üçüncü bir evrende yepyeni bir set yazıp TEK SEFER ölçtük ve sayıları olduğu gibi koyduk." Jüri sorusu gelirse iki yönlendirme hatası: karla mücadele duyurusu İK'ya, rektörlük oluru genel müdürlüğe gitti — ikisi de düşük güven kapısına takılıp insan onayına düşecek türden sınır vakaları.
+> not: Dürüstlük burada güç: "v1 ve v2'de hata analizi sonrası İLKESEL düzeltmeler yaptık, ama bu setlerin saflığını zayıflattığı için dördüncü bir kurgu evrende (Puslupınar/Kavakdüzü) ZORLAYICI/adversarial yepyeni bir set yazıp TEK SEFER ölçtük ve sayıları olduğu gibi koyduk — bozuk sayı bloğu, kopuk İlgi zinciri, sözel tarih ve KVKK-yoğun içeriğe rağmen yönlendirme 16/16." Jüri v3 eksik-bilgi F1'ini (0,667) sorarsa: bu tam da adversarial tuzakların (gövdede olmayan İlgi'ye atıf, tamamen sözel tarih) hedefidir ve DÜZELTME YAPMADAN raporlanmıştır — sınır davranışı gizlenmedi.
 
 ---
 
@@ -152,8 +155,8 @@
 # Yol Haritası ve Kapanış
 
 - Finale kadar: Türkçe NER modeli entegrasyonu (kişi adı çıkarımını güçlendirme)
-- Finale kadar: opsiyonel semantik arama (ChromaDB + çok dilli embedding) ile mevzuat RAG derinleştirme
-- Finale kadar: kullanıcı testleri ve v2 üzerinde dürüst sürekli ölçüm
+- Finale kadar: opsiyonel hibrit semantik katmanın (turkish-e5-large + bge-reranker-v2-m3; hâlihazırda kurulu, varsayılan kapalı) GPU'lu makinede kalibrasyonu ve varsayılan açılması
+- Finale kadar: kullanıcı testleri ve yeni/dokunulmamış tutulmuş setler üzerinde dürüst sürekli ölçüm
 - Ürünleşme: EBYS/e-Yazışma Paketi uyumluluğu, pilot kurum çalışması
 - Kod deposu: github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan (Apache 2.0)
 - Teşekkürler — Sorularınızı bekliyoruz
