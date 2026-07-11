@@ -1,0 +1,43 @@
+# ============================================================
+# Container imajına KOPYALANMAYACAK dosyalar
+# (imajı küçük tutar; yerel artefakt/sır sızıntısını önler)
+# ============================================================
+
+# Sürüm kontrolü ve CI
+.git
+.github
+
+# Python artıkları
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.mypy_cache
+htmlcov
+.coverage
+.coverage.*
+
+# Sanal ortamlar
+venv
+.venv
+env
+
+# Yerel üretilen veriler (SQLite kayıt defteri imaja gömülmez;
+# container içinde çalışma anında oluşturulur)
+data/processed/*.db
+data/chroma_db
+chroma_db
+output
+*.log
+logs
+
+# Sırlar / yerel yapılandırma
+.env
+.env.*
+.streamlit/secrets.toml
+
+# İmaj için gereksiz büyük içerik
+presentations
+.DS_Store
+Dockerfile
+.dockerignore

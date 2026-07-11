@@ -6,6 +6,7 @@
 ![Mimari](https://img.shields.io/badge/Mimari-Özgün_Çok--Ajanlı_Orkestrasyon_(saf_Python)-FF6F00?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Apache_2.0-green?style=for-the-badge)
 ![TEKNOFEST](https://img.shields.io/badge/TEKNOFEST-2026-red?style=for-the-badge)
+[![CI](https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan/actions/workflows/ci.yml/badge.svg)](https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan/actions/workflows/ci.yml)
 
 **Yapay Zeka Dil Ajanları Yarışması — 1. Senaryo**
 
@@ -140,6 +141,24 @@ Sistem, **framework bağımsız, stdlib tabanlı özgün bir orkestrasyon** üze
 | Evrak okuma | TXT + pypdf (çekirdek); pytesseract/pdf2image/easyocr (opsiyonel OCR) |
 | Arayüz | Streamlit (web) + rich (konsol) |
 | Bağımlılık ayrımı | `requirements.txt` (çekirdek — sistem bunlarla TAM çalışır) / `requirements-optional.txt` (OCR, semantik arama, yerel model) — LangChain/LangGraph/torch çekirdekte **yer almaz** |
+
+---
+
+## ⚡ Hızlı Başlangıç
+
+Bağımlılıklar kuruluysa (`pip install -r requirements.txt`) tek komut yeterlidir:
+
+```bash
+./baslat.sh          # Streamlit web arayüzü (http://localhost:8501)
+./baslat.sh --api    # REST API (http://127.0.0.1:8765)
+```
+
+Container ile çalıştırmak isteyenler için hazır imaj yayınlanmaz; **Dockerfile sağlanır**:
+
+```bash
+docker build -t kamu-evrak-ajan .
+docker run --rm -p 8501:8501 kamu-evrak-ajan
+```
 
 ---
 
@@ -351,6 +370,17 @@ python demo/demo_scenario.py
 ```
 
 Demo hakkında detaylı bilgi için `demo/README.md` dosyasına bakınız.
+
+---
+
+## 🔧 Katkı ve Sürdürülebilirlik
+
+Proje, sürdürülebilir açık kaynak geliştirme için gerekli altyapıyla gelir:
+
+- **CI**: Her push/PR'da GitHub Actions, Python 3.9 ve 3.12 üzerinde derleme denetimi, tüm test paketini ve 5 evraklık hızlı değerlendirme smoke'unu çalıştırır ([.github/workflows/ci.yml](.github/workflows/ci.yml)).
+- **Katkı kuralları**: Kurulum, üslup, dal/commit düzeni ve değerlendirme bütünlüğü kuralları için [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Mimari genişletme**: Yeni ajan / evrak türü / birim / mevzuat belgesi / API ucu ekleme adımları gerçek dosya-satır referanslarıyla [docs/gelistirici_rehberi.md](docs/gelistirici_rehberi.md) içindedir.
+- **Sürüm geçmişi**: [CHANGELOG.md](CHANGELOG.md) (Keep a Changelog biçimi).
 
 ---
 

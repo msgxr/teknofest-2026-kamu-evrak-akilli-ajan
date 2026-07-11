@@ -1,0 +1,57 @@
+# ============================================================
+# Sürekli Tümleştirme (CI) — GitHub Actions
+#
+# Her push ve pull request'te çalışır:
+#   1. Derleme denetimi (compileall) — sözdizimi/py39 uyumu
+#   2. Test paketi (pytest, tests/ altındaki tüm testler)
+#   3. Hızlı değerlendirme smoke'u (5 evrak, JSON çıktı) —
+#      uçtan uca boru hattının gerçek veriyle çalıştığını kanıtlar
+#
+# Matris: Python 3.9 (proje taban sürümü) ve 3.12 (güncel sürüm).
+# Rozet: https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan/actions/workflows/ci.yml/badge.svg
+# ============================================================
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: "Test (Python ${{ matrix.python-version }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+
+    steps:
+      - name: Depoyu indir
+        uses: actions/checkout@v4
+
+      - name: Python kur (pip önbellekli)
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Çekirdek bağımlılıkları yükle
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Derleme denetimi (compileall)
+        run: python -m compileall -q src scripts
+
+      - name: Testleri çalıştır
+        run: pytest tests/ -q
+
+      # Hızlı smoke: 5 etiketli evrak üzerinde uçtan uca değerlendirme.
+      # Rapor, depo içindeki eval_report.json'un üzerine yazılmasın diye
+      # runner'ın geçici dizinine yönlendirilir (değerlendirme bütünlüğü).
+      - name: Hızlı değerlendirme smoke'u (5 evrak)
+        run: >
+          python scripts/evaluate.py --limit 5 --json-only
+          --rapor-dosyasi "${{ runner.temp }}/eval_smoke.json"
