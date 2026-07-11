@@ -310,16 +310,19 @@ pytest tests/ --cov=src --cov-report=html
 Etiketli sentetik setlerde, tamamen çevrimdışı (kural tabanlı) modda ölçülmüştür
 (`python scripts/evaluate.py`; ayrıntı ve metodolojik notlar: [docs/teknik_rapor.md](docs/teknik_rapor.md)):
 
-| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) |
-|---|---|---|
-| Sınıflandırma doğruluğu | 1.000 | 1.000 |
-| Birim yönlendirme doğruluğu | 1.000 | 1.000 |
-| Eksik bilgi tespiti (micro-F1) | 1.000 | 1.000 |
-| Evrak başına ortalama süre | 0.012 sn | 0.017 sn |
+| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) | Yeni tutulmuş set v2 (16 evrak) |
+|---|---|---|---|
+| Sınıflandırma doğruluğu | 1.000 | 1.000 | 1.000 |
+| Birim yönlendirme doğruluğu | 1.000 | 1.000 | 0.875 |
+| Eksik bilgi tespiti (micro-F1) | 1.000 | 1.000 | 0.857 |
+| Evrak başına medyan süre | 0.019 sn | 0.020 sn | 0.020 sn |
 
-> Not: Geliştirme seti kural kalibrasyonunda kullanılmıştır; tutulmuş set bağımsız
-> yazılmıştır. Sentetik set ölçeği sınırlıdır; düşük güvenli kararlar sistemde
-> "insan onayı gerekli" işaretiyle döner.
+> Not: Geliştirme seti kural kalibrasyonunda kullanılmıştır; ilk tutulmuş set,
+> tek turluk hata analizi sonrası yeniden ölçüldüğü için saf held-out niteliğini
+> yitirmiştir. **Yeni tutulmuş set v2 hiçbir aşamada kullanılmamış ve yalnızca bir
+> kez ölçülmüştür**; genelleme başarımının güncel kestirimi v2 sütunudur ve sonuçlar
+> hiçbir düzeltme yapılmadan olduğu gibi raporlanmıştır. Sentetik set ölçeği
+> sınırlıdır; düşük güvenli kararlar sistemde "insan onayı gerekli" işaretiyle döner.
 
 ---
 

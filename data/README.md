@@ -65,6 +65,28 @@ python3 scripts/evaluate.py \
     --rapor-dosyasi data/processed/eval_report_heldout.json
 ```
 
+### 2b. Yeni Tutulmuş Set v2 (`raw/kurgu_evraklar_heldout_v2/`)
+
+İlk held-out set üzerindeki tek turluk hata analizi ve ilkesel düzeltmeler sonrasında (bkz. `docs/teknik_rapor.md` §5, not 2) setin held-out niteliği zayıfladığından, **tamamen dokunulmamış** ikinci bir tutulmuş set oluşturulmuştur.
+
+- **Amaç:** Sistemin genelleme başarımının güncel ve güvenilir kestirimi. Bu set kural geliştirme, kalibrasyon ve hata analizi süreçlerinin **hiçbir aşamasında kullanılmamıştır** ve **yalnızca bir kez ölçülmüştür**; üzerinde çıkan hatalar olduğu gibi raporlanmış, hiçbir kural düzeltmesi yapılmamıştır.
+- **Dosya sayısı:** 16 adet `.txt` (UTF-8) + 1 adet `etiketler.json` — 8 evrak türü × 2 örnek
+- **Adlandırma şeması:** `<tur>_v1.txt`, `<tur>_v2.txt` (aynı 8 tür anahtarı)
+- **Önceki setlerden bilinçli farklılaşma:** Üçüncü bir kurgu kurum evreni (iç bozkır ili "Bozkırova" / "Sarpdere" ilçesi: valilik, il tarım ve orman müdürlüğü, il özel idaresi, belediye, kurgu "Dağyeli Teknik Üniversitesi", organize sanayi bölgesi müdürlüğü, bölge müdürlüğü), önceki setlerde hiç kullanılmamış konular (tarımsal sulama ücreti, mera işgali, karla mücadele/kış lojistiği, taşınır mal sayımı, siber olay tatbikatı, EBYS bakım kesintisi, OSB atıksu arıtma yatırımı, uluslararası öğrenci değişimi, gezici kütüphane) ve farklı üslup dokusu (gövde metinlerinde yazıyla tarih "9 Temmuz 2026", genelge/bilgilendirmede numaralı madde yapısı, raporda tire imli bulgu listeleri, `Uzm.`, `Müh.`, `İl Müdürü a.`, `Doç. Dr.` imza kısaltmaları) kullanılmıştır. 9 hedef birimin her biri en az 1 evrakta doğru yönlendirme hedefidir.
+- **Kasıtlı eksik alanlar:** 6 dosyada, ilk held-out setin kullanmadığı alanlar da dahil olmak üzere kasıtlı eksikler vardır (dilekçede tc_kimlik+adres, üst yazıda sayı, cevap yazısında tarih, tutanakta katılımcılar, raporda hazırlayan, genelgede dağıtım); kalan 10 dosya tam alanlıdır.
+- **Etiket formatı:** Diğer setlerle birebir aynı şema (`tur`, `birim_kodu`, `eksik_alanlar`, `aciklama`).
+- **Üretim yöntemi:** Sentetik — diğer setlerle aynı yöntemle takım tarafından elle yazılmıştır. Geçen tüm kişi, kurum, yer adı, sayı ve T.C. kimlik numaraları kurgudur; kurgu T.C. kimlik numaraları yalnızca checksum doğrulaması geçecek şekilde üretilmiştir ve gerçek kişilere ait değildir.
+- **Kaynak:** Takım üretimi
+- **Lisans:** Apache 2.0
+
+v2 ölçümü çalıştırma:
+
+```bash
+python3 scripts/evaluate.py \
+    --veri-dizini data/raw/kurgu_evraklar_heldout_v2 \
+    --rapor-dosyasi data/processed/eval_report_heldout_v2.json
+```
+
 ### 3. Mevzuat Metinleri (`raw/mevzuat_metinleri/`)
 - Kamuya açık mevzuat metinleri
 - **Kaynak:** [mevzuat.gov.tr](https://mevzuat.gov.tr)
@@ -73,7 +95,7 @@ python3 scripts/evaluate.py \
 ### 4. İşlenmiş Veriler (`processed/`)
 - Ham verilerin temizlenmiş ve yapılandırılmış halleri
 - Sınıflandırma etiketleri ve metadata
-- Değerlendirme raporları: `eval_report.json` (geliştirme seti), `eval_report_heldout.json` (held-out set)
+- Değerlendirme raporları: `eval_report.json` (geliştirme seti), `eval_report_heldout.json` (held-out set), `eval_report_heldout_v2.json` (yeni tutulmuş set v2)
 
 ## Kullanım Hakları
 

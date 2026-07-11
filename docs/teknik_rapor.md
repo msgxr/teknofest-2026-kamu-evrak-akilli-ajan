@@ -12,7 +12,7 @@ Bu projede, kamu kurumlarına gelen evrakların işlenmesi ve resmî yazışmala
 
 Sistemin ayırt edici özelliği **çevrimdışı-öncelikli (offline-first) hibrit mimarisidir**: tüm yetenekler, harici hiçbir servis olmadan kural tabanlı yöntemlerle tam olarak çalışır; bir büyük dil modeli (LLM) erişimi mevcutsa (OpenAI-uyumlu API veya yerel Ollama) sistem düşük güvenli kararlarda otomatik olarak LLM eskalasyonuna başvurur. Bu tasarım, internet kesintisi senaryosunda dahi eksiksiz demo yapılabilmesini ve kamu kurumlarının veri gizliliği (KVKK) gereksinimlerine uygun tamamen yerel kurulum yapılabilmesini sağlar.
 
-Etiketli sentetik değerlendirme setlerinde sistem; evrak sınıflandırmada **%100 doğruluk (35/35 geliştirme, 16/16 tutulmuş set)**, birim yönlendirmede **%100 doğruluk**, eksik bilgi tespitinde **1.00 micro-F1** başarımına ve evrak başına **~0,012–0,017 saniyelik** işleme süresine (gerçek zamana yakın) ulaşmıştır (bkz. Bölüm 5 ve metodolojik notlar).
+Etiketli sentetik değerlendirme setlerinde sistem; hiç dokunulmamış **yeni tutulmuş sette (v2)** evrak sınıflandırmada **%100 doğruluk (16/16)**, birim yönlendirmede **%87,5 doğruluk (14/16)**, eksik bilgi tespitinde **0,857 micro-F1** başarımına ve evrak başına **~0,02 saniyelik** medyan işleme süresine (gerçek zamana yakın) ulaşmıştır; geliştirme ve ilk tutulmuş setlerdeki skorlar tüm metriklerde 1,00'dır (bkz. Bölüm 5 ve metodolojik notlar).
 
 ### 2. Problem Tanımı
 
@@ -76,22 +76,23 @@ LLM katmanı SDK bağımlılığı olmadan (stdlib `urllib`) üç backend destek
 
 - **Geliştirme seti:** 35 etiketli sentetik evrak (8 tür; 9 birimin her biri en az 2 evrakta hedef; her türden en az 1 kasıtlı eksik alanlı dosya). Takım üretimi, Apache 2.0.
 - **Tutulmuş (held-out) set:** Kural kalibrasyonundan bağımsız yazılmış 16 sentetik evrak (8 tür × 2; farklı kurgu kurum evreni, konu ve üslup dokusu; 4 dosyada kasıtlı eksik alan).
+- **Yeni tutulmuş set v2:** İlk tutulmuş set, tek turluk hata analizi sonrası saflığını yitirdiği için (bkz. Bölüm 5, not 2) oluşturulan ve **yalnızca bir kez ölçülen** 16 sentetik evrak (8 tür × 2; üçüncü kurgu kurum evreni "Bozkırova": iç bozkır ili, tarım/OSB/üniversite kurumları; önceki setlerde kullanılmayan konular ve üslup dokusu; 6 dosyada, ilk tutulmuş setin kullanmadığı alanları da içeren kasıtlı eksikler — `tc_kimlik`, `sayi`, `katilimcilar`, `hazirlayan` vb.).
 - **Mevzuat korpusu:** 15 belge — 3071, 4982, 6698, 5070, 657, 5018, 4734, 2577, 5326, 5393, 3194 sayılı kanunların ve Resmî Yazışmalar ile Devlet Arşiv Hizmetleri yönetmeliklerinin evrak işleme bağlamındaki hükümlerinin özgün cümlelerle yazılmış özetleri + CİMER ve e-Yazışma bilgi notları (kaynak: mevzuat.gov.tr, cimer.gov.tr, DDO).
 - Etiket şeması: `{tur, birim_kodu, eksik_alanlar, aciklama}` (`etiketler.json`).
 
 ### 5. Sonuçlar
 
-Değerlendirme `scripts/evaluate.py` ile üretilmiştir (çıktılar: `data/processed/eval_report.json` ve `eval_report_heldout.json`); tüm metrikler harici LLM olmadan, **tamamen çevrimdışı kural tabanlı modda** alınmıştır.
+Değerlendirme `scripts/evaluate.py` ile üretilmiştir (çıktılar: `data/processed/eval_report.json`, `eval_report_heldout.json` ve `eval_report_heldout_v2.json`); tüm metrikler harici LLM olmadan, **tamamen çevrimdışı kural tabanlı modda** alınmıştır.
 
-| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) |
-|---|---|---|
-| Sınıflandırma doğruluğu | 1,000 (35/35) | 1,000 (16/16) |
-| Sınıflandırma macro-F1 | 1,000 | 1,000 |
-| Birim yönlendirme doğruluğu | 1,000 (35/35) | 1,000 (16/16) |
-| Eksik bilgi tespiti micro-F1 | 1,000 | 1,000 |
-| Evrak başına ortalama süre | 0,012 sn | 0,017 sn |
+| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) | Yeni tutulmuş set v2 (16 evrak) |
+|---|---|---|---|
+| Sınıflandırma doğruluğu | 1,000 (35/35) | 1,000 (16/16) | 1,000 (16/16) |
+| Sınıflandırma macro-F1 | 1,000 | 1,000 | 1,000 |
+| Birim yönlendirme doğruluğu | 1,000 (35/35) | 1,000 (16/16) | 0,875 (14/16) |
+| Eksik bilgi tespiti micro-F1 | 1,000 | 1,000 | 0,857 (TP 6, FP 1, FN 1) |
+| Evrak başına medyan süre | 0,019 sn | 0,020 sn | 0,020 sn |
 
-**Metodolojik notlar (şeffaflık):** (1) Geliştirme seti, kural setinin kalibre edildiği settir; bu setteki skorlar sistemin üst sınırını gösterir. (2) Tutulmuş set kural geliştirme sırasında hiç kullanılmamıştır; ilk ölçümde sınıflandırma 15/16, yönlendirme 16/16, eksik bilgi micro-F1 0,43 elde edilmiş; tek turluk hata analizinde tespit edilen hatalar dosyaya özgü ezber değil **ilkesel** düzeltmelerle (Konu satırında "cevap" ifadesinin yapısal sinyal sayılması, adres kontrolünün adres-biçimli satıra bağlanması, rapor bulgu/sonuç denetiminin bölüm başlığı yerine fiil köklerine dayandırılması) giderilmiş ve tablo yeniden ölçülmüştür. (3) Sentetik setlerin ölçeği (51 evrak) sınırlıdır; gerçek kurum ortamında dağılım kayması beklenmelidir — düşük güven kapısı ve insan-onayı mekanizması bu risk için tasarlanmıştır. (4) 37 birim testi sürekli yeşildir; sistem boş metin, 5 kelimelik metin, 50 KB metin ve Türkçe olmayan metin girdilerinde çökmeden, uygun uyarılarla çalışır.
+**Metodolojik notlar (şeffaflık):** (1) Geliştirme seti, kural setinin kalibre edildiği settir; bu setteki skorlar sistemin üst sınırını gösterir. (2) Tutulmuş set kural geliştirme sırasında hiç kullanılmamıştır; ilk ölçümde sınıflandırma 15/16, yönlendirme 16/16, eksik bilgi micro-F1 0,43 elde edilmiş; tek turluk hata analizinde tespit edilen hatalar dosyaya özgü ezber değil **ilkesel** düzeltmelerle (Konu satırında "cevap" ifadesinin yapısal sinyal sayılması, adres kontrolünün adres-biçimli satıra bağlanması, rapor bulgu/sonuç denetiminin bölüm başlığı yerine fiil köklerine dayandırılması) giderilmiş ve tablo yeniden ölçülmüştür. Bu yeniden ölçüm setin held-out niteliğini zayıflattığından, **tamamen dokunulmamış ikinci bir tutulmuş set (v2) oluşturulmuş ve yalnızca bir kez ölçülmüştür**; v2 sütunundaki sayılar hiçbir düzeltme yapılmadan olduğu gibi raporlanmıştır ve sistemin genelleme başarımının güncel en iyi kestirimidir (yönlendirme hataları: `bilgilendirme_v1` destek_hizmetleri→insan_kaynaklari, `onayli_belge_v2` strateji→genel_mudurluk). (3) Sentetik setlerin ölçeği (67 evrak) sınırlıdır; gerçek kurum ortamında dağılım kayması beklenmelidir — düşük güven kapısı ve insan-onayı mekanizması bu risk için tasarlanmıştır. (4) 37 birim testi sürekli yeşildir; sistem boş metin, 5 kelimelik metin, 50 KB metin ve Türkçe olmayan metin girdilerinde çökmeden, uygun uyarılarla çalışır. (5) Tabloda medyan süre verilmiştir; ortalama süre (0,14–0,29 sn), ilk evrak işlenirken yapılan tek seferlik mevzuat korpusu yüklemesini içerdiğinden medyandan yüksektir.
 
 ### 6. Sınırlılıklar ve Gelecek Çalışmalar
 
