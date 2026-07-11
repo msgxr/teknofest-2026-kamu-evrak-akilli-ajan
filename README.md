@@ -225,7 +225,7 @@ python demo/demo_scenario.py
 # Streamlit web arayüzü
 streamlit run src/app.py
 
-# Ölçülebilir başarım raporu (35 etiketli evrak üzerinde
+# Ölçülebilir başarım raporu (52 etiketli evrak üzerinde
 # sınıflandırma / yönlendirme / eksik bilgi / süre metrikleri)
 python scripts/evaluate.py
 ```
@@ -280,7 +280,7 @@ teknofest-2026-kamu-evrak-akilli-ajan/
 │   ├── templates/                  # Yazı şablonları
 │   ├── app.py                      # Streamlit web arayüzü
 │   └── main.py                     # Komut satırı giriş noktası
-├── data/                           # Veri setleri (35 etiketli kurgu evrak + mevzuat)
+├── data/                           # Veri setleri (52 geliştirme + 48 tutulmuş kurgu evrak + mevzuat)
 ├── scripts/                        # Değerlendirme aracı (evaluate.py)
 ├── tests/                          # Test dosyaları
 ├── demo/                           # Demo senaryoları
@@ -344,14 +344,14 @@ pytest tests/ --cov=src --cov-report=html
 Etiketli sentetik setlerde, tamamen çevrimdışı (kural tabanlı) modda ölçülmüştür
 (`python scripts/evaluate.py`; ayrıntı ve metodolojik notlar: [docs/teknik_rapor.md](docs/teknik_rapor.md)):
 
-| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) | Tutulmuş set v2 (16 evrak) |
+| Metrik | Geliştirme seti (52 evrak) | Tutulmuş set (16 evrak) | Tutulmuş set v2 (16 evrak) |
 |---|---|---|---|
 | Sınıflandırma doğruluğu | 1.000 | 1.000 | 1.000 |
-| Birim yönlendirme doğruluğu | 1.000 | 1.000 | 0.938 |
+| Birim yönlendirme doğruluğu | 0.962 | 1.000 | 0.938 |
 | Eksik bilgi tespiti (micro-F1) | 1.000 | 1.000 | 1.000 |
-| Mevzuat önerisi isabet@3 | 0.943 | 0.875 | 0.750 |
-| Taslak kalitesi (bağımsız hakem, 0-100) | 92.9 | 95.8 | 94.6 |
-| Evrak başına medyan süre | 0.023 sn | 0.028 sn | 0.027 sn |
+| Mevzuat önerisi isabet@3 | 0.962 | 0.875 | 0.750 |
+| Taslak kalitesi (bağımsız hakem, 0-100) | 93.6 | 95.8 | 94.6 |
+| Evrak başına medyan süre | 0.033 sn | 0.028 sn | 0.027 sn |
 
 **Adversarial dayanıklılık (tutulmuş set v3, 16 zorlayıcı evrak — İLK ölçüm, düzeltmesiz):**
 sınıflandırma 0.938 · **yönlendirme 1.000** · eksik bilgi micro-F1 0.667 · mevzuat isabet@3 0.875 ·

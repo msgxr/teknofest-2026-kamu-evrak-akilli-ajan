@@ -108,7 +108,7 @@
 
 # Ölçülebilir Başarım (Tamamen Çevrimdışı Modda)
 
-- Geliştirme seti (35 evrak): sınıflandırma 1,000 - yönlendirme 1,000 - eksik bilgi F1 1,000
+- Geliştirme seti (52 evrak): sınıflandırma 1,000 - yönlendirme 0,962 - eksik bilgi F1 1,000 - mevzuat isabet@3 0,962
 - Tutulmuş set (16 evrak): sınıflandırma 1,000 - yönlendirme 1,000 - eksik bilgi F1 1,000
 - Yeni tutulmuş set v2 (16 evrak, hiç dokunulmamış, tek sefer ölçüldü):
   - Sınıflandırma doğruluğu: 1,000 (16/16)

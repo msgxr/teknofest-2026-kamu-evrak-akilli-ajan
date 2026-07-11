@@ -55,7 +55,7 @@ ihtiyaçlardan türetilen özgün modüller:
 | Şartname gereksinimi | Kanıt (dosya) | Durum |
 |---|---|---|
 | Gerçek kamu verisi kullanılmaması | `data/README.md` (tamamı sentetik; kurgu TCKN'ler yalnızca checksum geçer) | ✅ |
-| Kurgu evrak örnekleri ve yapay resmî yazışma taslakları | `data/raw/kurgu_evraklar/` (35), `data/raw/kurgu_evraklar_heldout/` (16), `data/raw/kurgu_evraklar_heldout_v2/` (16) — tümü etiketli | ✅ |
+| Kurgu evrak örnekleri ve yapay resmî yazışma taslakları | `data/raw/kurgu_evraklar/` (52), `data/raw/kurgu_evraklar_heldout/` (16), `data/raw/kurgu_evraklar_heldout_v2/` (16), `data/raw/kurgu_evraklar_heldout_v3/` (16 adversarial) — tümü etiketli | ✅ |
 | Kamuya açık mevzuat metinleri | `data/raw/mevzuat_metinleri/` (15 belge; kaynak: mevzuat.gov.tr) | ✅ |
 | Veri seti çeşitliliği | 8 evrak türü × 3 farklı kurgu kurum evreni ve üslup dokusu | ✅ |
 | Demo verisinin kaynağı ve kullanım haklarının beyanı | `data/README.md` (kaynak + Apache 2.0), `src/app.py` "Hakkında" sekmesi | ✅ |

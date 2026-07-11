@@ -6,8 +6,8 @@ Bu dizin, proje kapsamında kullanılan veri setlerini içerir.
 
 **Bu projede gerçek kamu verisi kullanılmamaktadır.** Tüm evraklar sentetiktir; geçen kişi adları, kurumlar, sayılar ve olaylar kurgudur. Kişisel veri niteliğindeki alanlar bilinçli olarak açıkça-kurgu değerlerden seçilmiştir:
 
-- **T.C. kimlik numaraları:** NVİ entegrasyon dokümanlarında test amaçlı kullanılan, vatandaşlara atanmayan düşük numara aralığından (`10000000xxx`) seçilmiş, checksum-geçerli test numaralarıdır (ör. `10000000146`). Gerçek hiçbir kişiye ait değildir.
-- **Telefon numaraları:** `0555 000 00 XX` kurgu kalıbındadır; gerçek abone numarası değildir.
+- **T.C. kimlik numaraları:** Yalnızca checksum (Kimlik No doğrulama algoritması) geçen, gerçek hiçbir kişiye atanmamış kurgu değerlerdir. Veri setinde iki kurgu konvansiyon birlikte bulunur: (a) NVİ test dokümanlarındaki düşük aralık (`10000000xxx`, ör. `10000000146`); (b) çalışma kurallarında sabitlenen dört kurgu değer (`34624777178`, `66123774556`, `72926652458`, `56375893488`). Her ikisi de kurgudur ve gerçek bir kişiye ait olamaz.
+- **Telefon numaraları:** `05XX 000 XX XX` kurgu kalıbındadır (ör. `0555 000 00 01`, `0532 000 11 22`); biçim testleri için geçerli GSM biçimindedir ancak gerçek abone numarası değildir.
 - **Kişi adları:** Tamamen kurgu ad-soyad kombinasyonlarıdır; gerçek kişilerle benzerlik tesadüftür.
 - **Kurum ve yer adları:** Ağırlıklı olarak kurgu kurum evreni kullanılır; geçen il/ilçe adları yalnızca coğrafi bağlam içindir ve gerçek kamu verisi içermez.
 
@@ -30,12 +30,26 @@ Aynı ilke evraklardaki diğer tanımlayıcı görünümlü değerler için de g
 
 Değerlendirme ve demo amaçlı, etiketli sentetik resmî evrak veri seti.
 
-- **Dosya sayısı:** 35 adet `.txt` (UTF-8) + 1 adet `etiketler.json`
-  - 32 adet sistematik örnek: 8 evrak türü × 4 örnek
+- **Dosya sayısı:** 52 adet `.txt` (UTF-8) + 1 adet `etiketler.json`
+  - 32 adet sistematik örnek: 8 evrak türü × 4 örnek (`<tur>_01`…`<tur>_04`)
   - 3 adet ilk sürümden gelen örnek (`ornek_*.txt`)
-- **Adlandırma şeması:** `<tur>_01.txt` … `<tur>_04.txt`
+  - 17 adet genişletme örneği (12.07.2026; `<tur>_05`…`<tur>_07`) — aşağıya bakınız
+- **Adlandırma şeması:** `<tur>_01.txt` … `<tur>_07.txt`
   - Tür anahtarları: `dilekce`, `ust_yazi`, `cevap_yazisi`, `bilgilendirme`, `tutanak`, `rapor`, `genelge`, `onayli_belge`
 - **Çeşitlilik:** Farklı kurumlar (bakanlık, valilik, kaymakamlık, belediye, üniversite, genel müdürlük) ve farklı konular; 9 hedef birimin (yazı işleri, hukuk, insan kaynakları, mali hizmetler, bilgi işlem, strateji, basın ve halkla ilişkiler, destek hizmetleri, genel müdürlük) her biri en az 2 evrakta doğru yönlendirme hedefidir.
+
+#### Genişletme partisi (12.07.2026, +17 evrak → 35'ten 52'ye)
+
+Kapsama genişletme amacıyla, geliştirme setine 17 yeni etiketli evrak eklenmiştir. Yeni evraklar gerçek kamu süreçlerinde sık karşılaşılan ancak ilk 35'lik sette az temsil edilen desenleri hedefler:
+
+- **CİMER kaynaklı başvurular (3):** Gövdesinde "CİMER üzerinden … sayılı başvuru" ibaresi + kurgu başvuru numarası taşıyan vatandaş dilekçeleri (başıboş hayvan/park güvenliği → basın-halkla ilişkiler; imar+bilgi edinme → hukuk; sosyal yardım ödemesi → mali hizmetler).
+- **Dağıtımlı yazılar (3):** "DAĞITIM YERLERİNE" muhataplı, sonda `Dağıtım: Gereği/Bilgi` listeli üst yazı/genelge/bilgilendirme (e-imza sertifika yenileme, evrak-arşiv süreleri, promosyon ihalesi bilgilendirmesi).
+- **Süreli/damgalı yazılar (3):** Sağ üst köşede `GÜNLÜDÜR` veya `ACELE` damgalı (2020 Yönetmelik m.26) bütçe cetveli, mahkeme savunması ve stratejik plan izleme yazıları.
+- **Tür çeşitliliği (8):** Gıda denetim/numune tutanağı, iç kontrol öz-değerlendirme raporu, doğrudan temin onay belgesi, bilgi edinme cevabı (kısmi ret), nöbet/vekâlet genelgesi, arşiv devir üst yazısı, imha tutanağı, yurt dışı görevlendirme makam oluru.
+
+**Üretim + çift-etiketleme:** İki bağımsız yazar spesifikasyona göre üretmiş; her set, diğer yazarın çıktısını denetleyen bağımsız kontrolle (çift-etiketleme) doğrulanmıştır. Çıkan iki itiraz kabul edilip düzeltilmiştir: (1) bir üst yazının İlgi satırında gerçek bir kuruma ait ad geçmesi → jenerik ifadeyle değiştirildi (KVKK/kurgu-evren ilkesi); (2) bir makam olurunun geliştirme setindeki bir dosyaya yakın klon olması ve birim etiketinin dev geleneğiyle çelişmesi → icra cümleleri yeniden yazıldı ve birim, makam-oluru arketipinin dev geleneğine (`genel_mudurluk`) hizalandı.
+
+**Şeffaflık — yönlendirme belirsizliği (12.07.2026 ölçümü):** Genişletilmiş 52'lik sette yönlendirme doğruluğu 0.9615'tir (2 hata). Her iki hata da yeni dosyalardadır ve **etiket hatası değil, gerçek işlevsel belirsizliktir**: `cevap_yazisi_06` (bilgi edinme cevabı; antet "İl Yazı İşleri Müdürlüğü" olduğundan etiket `yazi_isleri`, sistem içeriğe bakıp `basin_halkla_iliskiler` demiştir) ve `tutanak_06` (imha tutanağı; antet ve komisyon başkanı yazı işleri olduğundan etiket `yazi_isleri`, sistem komisyondaki hukuk üyesi/"hukuki değer" ifadesi nedeniyle `hukuk` demiştir). Etiketler antet+işlev temelli ve savunulabilir olduğundan **hiçbir etiket/kod değişikliği yapılmamıştır**; bu iki vaka sistemin gerçek davranışını gösteren hata analizidir.
 - **Kasıtlı eksik alanlar:** Her evrak türünden en az 1 dosyada, eksik bilgi tespiti (Görev 1) ölçümü için kasıtlı olarak eksik bırakılmış alanlar vardır (ör. imzasız dilekçe, sayısız üst yazı, tarihsiz tutanak). Eksiklikler etiket dosyasında belirtilmiştir.
 - **Üretim yöntemi:** Sentetik — takım tarafından, Resmî Yazışmalarda Uygulanacak Usul ve Esaslar Hakkında Yönetmelik'teki biçim öğeleri (sayı, konu, ilgi, imza, dağıtım vb.) örnek alınarak elle yazılmıştır.
 - **Kaynak:** Takım üretimi
@@ -58,7 +72,7 @@ Tüm `.txt` dosyaları için tek bir JSON sözlüğü:
 
 - `tur`: Evrak türü anahtarı (yukarıdaki 8 tür + `diger`).
 - `birim_kodu`: Doğru yönlendirme hedefi olan birimin anahtarı (`yazi_isleri`, `hukuk`, `insan_kaynaklari`, `mali_hizmetler`, `bilgi_islem`, `strateji`, `basin_halkla_iliskiler`, `destek_hizmetleri`, `genel_mudurluk`).
-- `eksik_alanlar`: Evrakta gerçekten eksik olan alanların listesi; alan adları eksik bilgi tespit modülüyle uyumludur (`tarih`, `sayi`, `konu`, `muhatap`, `ilgi`, `imza`, `ad_soyad`, `tc_kimlik`, `adres`, `kurum_bilgisi`, `dagitim`, `katilimcilar`). Tam evraklarda boş listedir.
+- `eksik_alanlar`: Evrakta gerçekten eksik olan alanların listesi; alan adları eksik bilgi tespit modülüyle uyumludur (`tarih`, `sayi`, `konu`, `muhatap`, `ilgi`, `imza`, `ad_soyad`, `tc_kimlik`, `adres`, `kurum_bilgisi`, `dagitim`, `katilimcilar`, `hazirlayan`). Tam evraklarda boş listedir.
 - `aciklama`: Evrağı tek cümlede tanımlayan açıklama.
 - `mevzuat_beklenen`: Mevzuat önerisi isabet@3 metriği için, evrakı işleyen görevliye önerilmesi işlevsel olarak doğru/faydalı olan 1-3 mevzuatın korpus belge kimliği (`raw/mevzuat_metinleri/` dosya adı gövdesi). **Etiketleme yöntemi (11.07.2026):** etiketler sistem çıktısına bakılmadan, yalnızca evrak içeriği + hukuki kural rehberi (usul katmanı: dilekçe→3071, yazışma türleri→Resmî Yazışma Yönetmeliği; alan katmanı: içerikteki tema → ilgili kanun) ile atanmış, ardından bağımsız ikinci bir gözden geçirmeyle (adversarial doğrulama) sıfır itirazla onaylanmıştır. Dosya bazlı gerekçeler `raw/mevzuat_beklenen_gerekceleri.json` dosyasındadır. **Dürüstlük notu:** usul katmanı etiketleri, sistemin tür-öncelik kuralıyla aynı hukuki gerçeklikten türediğinden isabet@3 kısmen iyimser olabilir; metrik esasen regresyon siperi ve tutulmuş-set genelleme ölçüsü olarak okunmalıdır.
 

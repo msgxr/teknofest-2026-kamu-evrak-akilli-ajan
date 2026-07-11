@@ -14,6 +14,26 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Geliştirme seti genişletildi: 35 → 52 evrak (+17, şartname izi: Uygulama-35 / Yöntem-35):**
+  Gerçek kamu süreçlerinde sık ancak ilk sette az temsil edilen desenler
+  eklendi — CİMER kaynaklı başvurular (3), `DAĞITIM YERLERİNE` muhataplı
+  dağıtımlı yazılar (3), `GÜNLÜDÜR`/`ACELE` damgalı süreli yazılar (3),
+  tür çeşitliliği (gıda denetim tutanağı, iç kontrol raporu, doğrudan
+  temin onayı, bilgi edinme cevabı, nöbet/vekâlet genelgesi, arşiv devir
+  üst yazısı, imha tutanağı, yurt dışı görevlendirme oluru). Üretim + iki
+  yönlü bağımsız çift-etiketleme; çıkan iki itiraz düzeltildi (gerçek
+  kurum adı → jenerikleştirme; makam-oluru klonu → yeniden yazım + birim
+  etiketinin dev geleneğine `genel_mudurluk` hizalanması). KVKK: yalnız
+  izinli 4 kurgu TCKN, gerçek kurum/yer sızıntısı yok (otomatik denetim).
+  Yeniden ölçüm (12.07.2026, tamamen çevrimdışı): sınıflandırma 1,000,
+  yönlendirme **0,962** (50/52), eksik bilgi micro-F1 1,000, mevzuat
+  isabet@3 **0,962** (50/52), taslak kalitesi 93,6. Yönlendirmedeki 2
+  hata yeni dosyalarda ve **gerçek işlevsel belirsizliktir** (antet yazı
+  işleri, içerik başka birime işaret ediyor); etiket/kural değişikliği
+  YAPILMADI, olduğu gibi raporlandı (`docs/teknik_rapor.md` §5,
+  `data/README.md`). Tutulmuş setler (v1/v2/v3) güncel kodla yeniden
+  doğrulandı: metrikler birebir aynı (kararlılık + held-out bütünlüğü
+  teyit edildi). 321/321 test yeşil.
 - **Yerli LLM karşılaştırma protokolü (P2-10, şartname izi: Yöntem-35):**
   `scripts/llm_karsilastirma.py` — aynı tutulmuş set üzerinde Ollama
   modellerinin eskalasyon kalitesi vekilleri (LLM-only tür doğruluğu,

@@ -99,7 +99,7 @@ Bu proje ölçülebilir başarım raporluyor; ölçümün güvenilirliği her ş
   bu setlerdeki hatalara bakılarak kural/kod kalibre edilirse set held-out
   niteliğini KAYBEDER ve bu durum `docs/teknik_rapor.md` §5'e açıkça
   yazılmak zorundadır. Kural geliştirme yalnızca geliştirme seti
-  (`data/raw/kurgu_evraklar`, 35 evrak) üzerinde yapılır.
+  (`data/raw/kurgu_evraklar`, 52 evrak) üzerinde yapılır.
 - **Rapor dosyaları elle düzenlenmez.** `data/processed/eval_report*.json`
   yalnızca `scripts/evaluate.py` ile üretilir.
 - **Sonuçlar olduğu gibi raporlanır.** Ölçüm ne çıkarsa çıksın gizlenmez,

@@ -54,7 +54,7 @@ python scripts/build_presentation.py                 # sunum PPTX üretimi
 | `src/utils/bm25.py` | Saf Python BM25-Okapi (mevzuat RAG) |
 | `src/templates/` | 5 resmi yazı şablonu |
 | `scripts/evaluate.py` | Saf Python metrikler (sınıflandırma, yönlendirme, eksik bilgi, süreler) |
-| `data/raw/` | Etiketli sentetik setler: geliştirme (35), tutulmuş (16), tutulmuş v2 (16) + 15 mevzuat metni |
+| `data/raw/` | Etiketli sentetik setler: geliştirme (52), tutulmuş (16), tutulmuş v2 (16), tutulmuş v3 adversarial (16) + 15 mevzuat metni |
 | `docs/` | Teknik rapor, model bilgileri, şartname uyum matrisi |
 | `presentations/` | Sunum kaynakları (md) ve üretilen PPTX'ler |
 

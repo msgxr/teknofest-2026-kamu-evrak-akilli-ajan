@@ -1,247 +1,558 @@
 {
-  "ornek_dilekce.txt": {
-    "tur": "dilekce",
-    "birim_kodu": "bilgi_islem",
-    "eksik_alanlar": ["tc_kimlik", "adres"],
-    "aciklama": "Kurum personelinin ağ altyapısı sorunlarına ilişkin dilekçesi; T.C. kimlik numarası ve adres bilgisi bulunmuyor.",
-    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071"]
-  },
-  "ornek_ust_yazi.txt": {
-    "tur": "ust_yazi",
-    "birim_kodu": "strateji",
-    "eksik_alanlar": ["tarih"],
-    "aciklama": "Dijital dönüşüm eylem planının birimlere duyurulduğu üst yazı; evrakın kendi tarih alanı eksik.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "e_yazisma_teknik_rehberi_bilgi_notu"]
-  },
-  "ornek_tutanak.txt": {
-    "tur": "tutanak",
-    "birim_kodu": "insan_kaynaklari",
-    "eksik_alanlar": [],
-    "aciklama": "Personel alım planı ve uzaktan çalışma politikasının görüşüldüğü tam alanlı toplantı tutanağı.",
-    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657"]
-  },
-  "dilekce_01.txt": {
-    "tur": "dilekce",
-    "birim_kodu": "basin_halkla_iliskiler",
-    "eksik_alanlar": [],
-    "aciklama": "Vatandaşın park aydınlatması ve gürültü şikayetine ilişkin, geçerli T.C. kimlik numarası içeren tam alanlı dilekçesi.",
-    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "belediye_kanunu_5393", "kabahatler_kanunu_5326"]
-  },
-  "dilekce_02.txt": {
-    "tur": "dilekce",
-    "birim_kodu": "insan_kaynaklari",
-    "eksik_alanlar": [],
-    "aciklama": "Bakanlık personelinin intibak, kademe ilerlemesi ve hizmet belgesi talebine ilişkin tam alanlı dilekçesi.",
-    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "devlet_memurlari_kanunu_657"]
-  },
-  "dilekce_03.txt": {
-    "tur": "dilekce",
-    "birim_kodu": "yazi_isleri",
-    "eksik_alanlar": ["imza", "tc_kimlik"],
-    "aciklama": "Kaymakamlık arşivinden yapı ruhsatı örneği talebi; imza ve T.C. kimlik numarası kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "bilgi_edinme_kanunu_4982", "devlet_arsiv_hizmetleri_yonetmeligi"]
-  },
-  "dilekce_04.txt": {
-    "tur": "dilekce",
-    "birim_kodu": "mali_hizmetler",
-    "eksik_alanlar": ["adres", "tc_kimlik"],
-    "aciklama": "Mükerrer tahsil edilen emlak vergisinin iadesi talebi; adres ve T.C. kimlik numarası kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "kamu_mali_yonetimi_5018", "belediye_kanunu_5393"]
-  },
-  "ust_yazi_01.txt": {
-    "tur": "ust_yazi",
-    "birim_kodu": "destek_hizmetleri",
-    "eksik_alanlar": [],
-    "aciklama": "Valilikten temizlik hizmeti alımı ihalesi teknik şartname hazırlığını isteyen tam alanlı üst yazı.",
-    "mevzuat_beklenen": ["kamu_ihale_kanunu_4734", "resmi_yazisma_yonetmeligi"]
-  },
-  "ust_yazi_02.txt": {
-    "tur": "ust_yazi",
-    "birim_kodu": "hukuk",
-    "eksik_alanlar": [],
-    "aciklama": "Üniversitede açılan idari davaya karşı savunma hazırlanması için Hukuk Müşavirliğine gönderilen tam alanlı üst yazı.",
-    "mevzuat_beklenen": ["idari_yargilama_usulu_kanunu_2577", "resmi_yazisma_yonetmeligi"]
-  },
-  "ust_yazi_03.txt": {
-    "tur": "ust_yazi",
-    "birim_kodu": "bilgi_islem",
-    "eksik_alanlar": ["sayi"],
-    "aciklama": "Siber güvenlik tedbirlerinin uygulanmasını isteyen üst yazı; sayı (belge kayıt numarası) alanı kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kvkk_6698"]
-  },
-  "ust_yazi_04.txt": {
-    "tur": "ust_yazi",
-    "birim_kodu": "mali_hizmetler",
-    "eksik_alanlar": [],
-    "aciklama": "Yol bakım çalışmaları için ek ödenek aktarımı talep eden tam alanlı üst yazı.",
-    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "belediye_kanunu_5393", "resmi_yazisma_yonetmeligi"]
-  },
-  "cevap_yazisi_01.txt": {
-    "tur": "cevap_yazisi",
-    "birim_kodu": "basin_halkla_iliskiler",
-    "eksik_alanlar": [],
-    "aciklama": "Vatandaşın bilgi edinme başvurusuna park yenileme projesi hakkında verilen tam alanlı cevap yazısı.",
-    "mevzuat_beklenen": ["bilgi_edinme_kanunu_4982", "resmi_yazisma_yonetmeligi", "belediye_kanunu_5393"]
-  },
-  "cevap_yazisi_02.txt": {
-    "tur": "cevap_yazisi",
-    "birim_kodu": "insan_kaynaklari",
-    "eksik_alanlar": [],
-    "aciklama": "Personelin eş durumu nedeniyle naklen atanma talebine verilen tam alanlı cevap yazısı.",
-    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657", "resmi_yazisma_yonetmeligi", "dilekce_hakki_kanunu_3071"]
-  },
-  "cevap_yazisi_03.txt": {
-    "tur": "cevap_yazisi",
-    "birim_kodu": "hukuk",
-    "eksik_alanlar": ["ilgi"],
-    "aciklama": "Hizmet alımı sözleşmesinin feshine ilişkin hukuki görüş cevabı; ilgi (referans) bölümü kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["kamu_ihale_kanunu_4734", "resmi_yazisma_yonetmeligi"]
-  },
-  "cevap_yazisi_04.txt": {
-    "tur": "cevap_yazisi",
-    "birim_kodu": "mali_hizmetler",
-    "eksik_alanlar": [],
-    "aciklama": "Yüklenicinin hakediş ödemesi talebine eksik belgelerin bildirildiği tam alanlı cevap yazısı.",
-    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "kamu_ihale_kanunu_4734", "resmi_yazisma_yonetmeligi"]
-  },
   "bilgilendirme_01.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "bilgi_islem",
     "eksik_alanlar": [],
     "aciklama": "EBYS ve e-posta hizmetlerindeki planlı bakım kesintisini duyuran tam alanlı bilgilendirme yazısı.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "e_yazisma_teknik_rehberi_bilgi_notu"]
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "e_yazisma_teknik_rehberi_bilgi_notu"
+    ]
   },
   "bilgilendirme_02.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "basin_halkla_iliskiler",
     "eksik_alanlar": [],
     "aciklama": "Halk Günü uygulaması ve basın tanıtım toplantısını duyuran tam alanlı bilgilendirme yazısı.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "belediye_kanunu_5393", "dilekce_hakki_kanunu_3071"]
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "belediye_kanunu_5393",
+      "dilekce_hakki_kanunu_3071"
+    ]
   },
   "bilgilendirme_03.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "destek_hizmetleri",
-    "eksik_alanlar": ["dagitim"],
+    "eksik_alanlar": [
+      "dagitim"
+    ],
     "aciklama": "Ek hizmet binasına taşınma ve servis güzergahlarını duyuran bilgilendirme; dağıtım listesi kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "devlet_arsiv_hizmetleri_yonetmeligi"]
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "devlet_arsiv_hizmetleri_yonetmeligi"
+    ]
   },
   "bilgilendirme_04.txt": {
     "tur": "bilgilendirme",
     "birim_kodu": "yazi_isleri",
     "eksik_alanlar": [],
     "aciklama": "Genel evrak kabul saatleri ve elden evrak teslimi uygulamasını duyuran tam alanlı bilgilendirme yazısı.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "dilekce_hakki_kanunu_3071", "e_yazisma_teknik_rehberi_bilgi_notu"]
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "dilekce_hakki_kanunu_3071",
+      "e_yazisma_teknik_rehberi_bilgi_notu"
+    ]
   },
-  "tutanak_01.txt": {
-    "tur": "tutanak",
+  "bilgilendirme_05.txt": {
+    "tur": "bilgilendirme",
     "birim_kodu": "destek_hizmetleri",
     "eksik_alanlar": [],
-    "aciklama": "Satın alınan kırtasiye malzemelerinin muayene ve kabul işlemlerine ilişkin tam alanlı komisyon tutanağı.",
-    "mevzuat_beklenen": ["kamu_ihale_kanunu_4734", "kamu_mali_yonetimi_5018"]
+    "aciklama": "Tüm müdürlüklere dağıtımlı, personel maaş promosyonu ihalesi sürecini ve takvimini açıklayan tam alanlı bilgilendirme yazısı.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "kamu_ihale_kanunu_4734"
+    ]
   },
-  "tutanak_02.txt": {
-    "tur": "tutanak",
-    "birim_kodu": "bilgi_islem",
-    "eksik_alanlar": ["tarih"],
-    "aciklama": "Uygulama sunucusu arızasının tespitine ilişkin tutanak; tarih alanı kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
-  },
-  "tutanak_03.txt": {
-    "tur": "tutanak",
-    "birim_kodu": "yazi_isleri",
-    "eksik_alanlar": [],
-    "aciklama": "Saklama süresi dolan dosyaların kurum arşivine devrine ilişkin tam alanlı devir teslim tutanağı.",
-    "mevzuat_beklenen": ["devlet_arsiv_hizmetleri_yonetmeligi"]
-  },
-  "tutanak_04.txt": {
-    "tur": "tutanak",
-    "birim_kodu": "hukuk",
-    "eksik_alanlar": [],
-    "aciklama": "Hizmet aracına üçüncü şahsın verdiği hasarın tespiti ve yasal işlem önerisine ilişkin tam alanlı tutanak.",
-    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
-  },
-  "rapor_01.txt": {
-    "tur": "rapor",
+  "bilgilendirme_06.txt": {
+    "tur": "bilgilendirme",
     "birim_kodu": "strateji",
     "eksik_alanlar": [],
-    "aciklama": "Stratejik plan performans göstergelerinin yıllık gerçekleşmesini değerlendiren tam alanlı rapor.",
-    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
+    "aciklama": "Sağ üst köşesi GÜNLÜDÜR damgalı, stratejik plan izleme verilerinin son gönderim gününü hatırlatan dağıtımlı tam alanlı bilgilendirme yazısı.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "kamu_mali_yonetimi_5018"
+    ]
   },
-  "rapor_02.txt": {
-    "tur": "rapor",
-    "birim_kodu": "mali_hizmetler",
-    "eksik_alanlar": [],
-    "aciklama": "Belediye bütçesinin ilk altı aylık gelir-gider gerçekleşmelerini sunan tam alanlı rapor.",
-    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "belediye_kanunu_5393"]
-  },
-  "rapor_03.txt": {
-    "tur": "rapor",
-    "birim_kodu": "insan_kaynaklari",
-    "eksik_alanlar": ["tarih", "imza"],
-    "aciklama": "İdari personel eğitim ihtiyaç analizi raporu; tarih ve imza alanları kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657"]
-  },
-  "rapor_04.txt": {
-    "tur": "rapor",
+  "cevap_yazisi_01.txt": {
+    "tur": "cevap_yazisi",
     "birim_kodu": "basin_halkla_iliskiler",
     "eksik_alanlar": [],
-    "aciklama": "Vatandaş memnuniyeti anketi sonuçlarını değerlendiren tam alanlı rapor.",
-    "mevzuat_beklenen": ["belediye_kanunu_5393", "dilekce_hakki_kanunu_3071"]
+    "aciklama": "Vatandaşın bilgi edinme başvurusuna park yenileme projesi hakkında verilen tam alanlı cevap yazısı.",
+    "mevzuat_beklenen": [
+      "bilgi_edinme_kanunu_4982",
+      "resmi_yazisma_yonetmeligi",
+      "belediye_kanunu_5393"
+    ]
+  },
+  "cevap_yazisi_02.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Personelin eş durumu nedeniyle naklen atanma talebine verilen tam alanlı cevap yazısı.",
+    "mevzuat_beklenen": [
+      "devlet_memurlari_kanunu_657",
+      "resmi_yazisma_yonetmeligi",
+      "dilekce_hakki_kanunu_3071"
+    ]
+  },
+  "cevap_yazisi_03.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [
+      "ilgi"
+    ],
+    "aciklama": "Hizmet alımı sözleşmesinin feshine ilişkin hukuki görüş cevabı; ilgi (referans) bölümü kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "kamu_ihale_kanunu_4734",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "cevap_yazisi_04.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Yüklenicinin hakediş ödemesi talebine eksik belgelerin bildirildiği tam alanlı cevap yazısı.",
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018",
+      "kamu_ihale_kanunu_4734",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "cevap_yazisi_05.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Sağ üst köşesi ACELE damgalı, idare mahkemesinin ara kararı üzerine süreli savunmaya esas belgeleri hukuk birimine ileten tam alanlı cevap yazısı.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "idari_yargilama_usulu_kanunu_2577"
+    ]
+  },
+  "cevap_yazisi_06.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "4982 sayılı Kanun kapsamında sosyal yardım programı belgeleri talebine verilen tam alanlı cevap yazısı; istenen belgelerin kamuya açık kısmı gönderilir, üçüncü kişilerin kişisel verilerini içeren liste 21'inci madde gereği reddedilerek başvuru kısmen kabul-kısmen ret sonuçlandırılır ve itiraz yolu belirtilir. İlgi, muhatap ve imza tamdır. Evrak kayıt, başvuru ve yazışma dili yazı işleri yönlendirme sinyalidir.",
+    "mevzuat_beklenen": [
+      "bilgi_edinme_kanunu_4982",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "dilekce_01.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Vatandaşın park aydınlatması ve gürültü şikayetine ilişkin, geçerli T.C. kimlik numarası içeren tam alanlı dilekçesi.",
+    "mevzuat_beklenen": [
+      "dilekce_hakki_kanunu_3071",
+      "belediye_kanunu_5393",
+      "kabahatler_kanunu_5326"
+    ]
+  },
+  "dilekce_02.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Bakanlık personelinin intibak, kademe ilerlemesi ve hizmet belgesi talebine ilişkin tam alanlı dilekçesi.",
+    "mevzuat_beklenen": [
+      "dilekce_hakki_kanunu_3071",
+      "devlet_memurlari_kanunu_657"
+    ]
+  },
+  "dilekce_03.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [
+      "imza",
+      "tc_kimlik"
+    ],
+    "aciklama": "Kaymakamlık arşivinden yapı ruhsatı örneği talebi; imza ve T.C. kimlik numarası kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "dilekce_hakki_kanunu_3071",
+      "bilgi_edinme_kanunu_4982",
+      "devlet_arsiv_hizmetleri_yonetmeligi"
+    ]
+  },
+  "dilekce_04.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [
+      "adres",
+      "tc_kimlik"
+    ],
+    "aciklama": "Mükerrer tahsil edilen emlak vergisinin iadesi talebi; adres ve T.C. kimlik numarası kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "dilekce_hakki_kanunu_3071",
+      "kamu_mali_yonetimi_5018",
+      "belediye_kanunu_5393"
+    ]
+  },
+  "dilekce_05.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "CİMER üzerinden belediyeye yönlendirilen, başıboş köpekler ve park güvenliğine ilişkin zabıta ve veteriner işleri talepli tam alanlı vatandaş şikâyet dilekçesi.",
+    "mevzuat_beklenen": [
+      "cimer_vatandas_basvurulari_bilgi_notu",
+      "dilekce_hakki_kanunu_3071",
+      "belediye_kanunu_5393"
+    ]
+  },
+  "dilekce_06.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "CİMER üzerinden yönlendirilen, imar durumu bilgisi ile yapı ruhsatına itiraz ve idari dava sürecine ilişkin hukuki değerlendirme isteyen tam alanlı bilgi edinme dilekçesi.",
+    "mevzuat_beklenen": [
+      "bilgi_edinme_kanunu_4982",
+      "imar_kanunu_3194",
+      "cimer_vatandas_basvurulari_bilgi_notu"
+    ]
+  },
+  "dilekce_07.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [
+      "adres"
+    ],
+    "aciklama": "CİMER üzerinden yönlendirilen, sosyal yardım ödemesinin yapılmamasına ilişkin şikâyet dilekçesi; T.C. kimlik ve telefon mevcut, adres bilgisi kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "cimer_vatandas_basvurulari_bilgi_notu",
+      "dilekce_hakki_kanunu_3071",
+      "kamu_mali_yonetimi_5018"
+    ]
   },
   "genelge_01.txt": {
     "tur": "genelge",
     "birim_kodu": "mali_hizmetler",
     "eksik_alanlar": [],
     "aciklama": "İl genelinde uygulanacak tasarruf tedbirlerini belirleyen tam alanlı valilik genelgesi.",
-    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "resmi_yazisma_yonetmeligi"]
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018",
+      "resmi_yazisma_yonetmeligi"
+    ]
   },
   "genelge_02.txt": {
     "tur": "genelge",
     "birim_kodu": "yazi_isleri",
     "eksik_alanlar": [],
     "aciklama": "Resmi yazışma usulleri ve EBYS kullanım kurallarını düzenleyen tam alanlı genelge.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "e_yazisma_teknik_rehberi_bilgi_notu"]
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "e_yazisma_teknik_rehberi_bilgi_notu"
+    ]
   },
   "genelge_03.txt": {
     "tur": "genelge",
     "birim_kodu": "bilgi_islem",
-    "eksik_alanlar": ["sayi", "dagitim"],
+    "eksik_alanlar": [
+      "sayi",
+      "dagitim"
+    ],
     "aciklama": "Kurumsal parola politikası ve erişim güvenliği genelgesi; sayı ve dağıtım alanları kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["kvkk_6698", "resmi_yazisma_yonetmeligi"]
+    "mevzuat_beklenen": [
+      "kvkk_6698",
+      "resmi_yazisma_yonetmeligi"
+    ]
   },
   "genelge_04.txt": {
     "tur": "genelge",
     "birim_kodu": "strateji",
     "eksik_alanlar": [],
     "aciklama": "2027-2031 dönemi stratejik plan hazırlık çalışmalarını başlatan tam alanlı genelge.",
-    "mevzuat_beklenen": ["belediye_kanunu_5393", "kamu_mali_yonetimi_5018", "resmi_yazisma_yonetmeligi"]
+    "mevzuat_beklenen": [
+      "belediye_kanunu_5393",
+      "kamu_mali_yonetimi_5018",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "genelge_05.txt": {
+    "tur": "genelge",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "İl genelindeki kurumlara geniş dağıtımla gönderilen, evrak havale ve arşivleme sürelerine uyum talimatlarını içeren tam alanlı genelge.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "devlet_arsiv_hizmetleri_yonetmeligi"
+    ]
+  },
+  "genelge_06.txt": {
+    "tur": "genelge",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Yaz döneminde yıllık izin planı, nöbet çizelgesi ve vekâlet düzenini 657 sayılı Devlet Memurları Kanunu çerçevesinde düzenleyen tam alanlı genelge; personel, izin, vekâlet ve özlük dili insan kaynakları yönlendirme sinyalidir. Sayı, genelge numarası, konu, tarih, gövde, dağıtım ve imza mevcuttur.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "devlet_memurlari_kanunu_657"
+    ]
   },
   "onayli_belge_01.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "genel_mudurluk",
     "eksik_alanlar": [],
     "aciklama": "Proje saha çalışması için personel görevlendirmesine ilişkin makam oluru; tüm onay alanları tam.",
-    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657", "elektronik_imza_kanunu_5070", "kamu_mali_yonetimi_5018"]
+    "mevzuat_beklenen": [
+      "devlet_memurlari_kanunu_657",
+      "elektronik_imza_kanunu_5070",
+      "kamu_mali_yonetimi_5018"
+    ]
   },
   "onayli_belge_02.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "genel_mudurluk",
     "eksik_alanlar": [],
     "aciklama": "İmza yetkileri yönergesi değişikliğinin yürürlüğe konulmasına ilişkin tam alanlı makam oluru.",
-    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "elektronik_imza_kanunu_5070"]
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "elektronik_imza_kanunu_5070"
+    ]
   },
   "onayli_belge_03.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "destek_hizmetleri",
-    "eksik_alanlar": ["tarih"],
+    "eksik_alanlar": [
+      "tarih"
+    ],
     "aciklama": "Özel güvenlik hizmeti alımına ilişkin ihale onay belgesi; tarih alanı kasıtlı olarak eksik.",
-    "mevzuat_beklenen": ["kamu_ihale_kanunu_4734", "elektronik_imza_kanunu_5070"]
+    "mevzuat_beklenen": [
+      "kamu_ihale_kanunu_4734",
+      "elektronik_imza_kanunu_5070"
+    ]
   },
   "onayli_belge_04.txt": {
     "tur": "onayli_belge",
     "birim_kodu": "genel_mudurluk",
     "eksik_alanlar": [],
     "aciklama": "Üniversite ile kültürel miras iş birliği protokolünün imzalanmasına ilişkin tam alanlı başkanlık oluru.",
-    "mevzuat_beklenen": ["belediye_kanunu_5393", "elektronik_imza_kanunu_5070"]
+    "mevzuat_beklenen": [
+      "belediye_kanunu_5393",
+      "elektronik_imza_kanunu_5070"
+    ]
+  },
+  "onayli_belge_05.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": [],
+    "aciklama": "Hizmet aracının 4734 sayılı Kanun'un 22/d maddesi kapsamında doğrudan temin usulüyle üç ay süreyle kiralanmasına ilişkin, harcama yetkilisince e-imzayla onaylanan tam alanlı makam oluru; sayı, tarih, onaylayan ve onay metni mevcuttur. Doğrudan temin, yaklaşık maliyet ve piyasa fiyat araştırması dili destek hizmetleri yönlendirme sinyalidir.",
+    "mevzuat_beklenen": [
+      "kamu_ihale_kanunu_4734",
+      "elektronik_imza_kanunu_5070"
+    ]
+  },
+  "onayli_belge_06.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "genel_mudurluk",
+    "eksik_alanlar": [],
+    "aciklama": "Yurt dışı çalışma ziyareti için iki personelin geçici görevlendirilmesine ve harcırahın bütçe tertibinden karşılanmasına ilişkin, en üst makamca (Vali) e-imzayla onaylanan makam oluru. Makam/olur/onay sinyali yönlendirmeyi belirler; dev setindeki makam-oluru arketipi (onayli_belge_01/02/04) ile tutarlı olarak genel_mudurluk etiketlenmiştir. Sayı, tarih, onaylayan ve onay metni tamdır.",
+    "mevzuat_beklenen": [
+      "devlet_memurlari_kanunu_657",
+      "elektronik_imza_kanunu_5070"
+    ]
+  },
+  "ornek_dilekce.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [
+      "tc_kimlik",
+      "adres"
+    ],
+    "aciklama": "Kurum personelinin ağ altyapısı sorunlarına ilişkin dilekçesi; T.C. kimlik numarası ve adres bilgisi bulunmuyor.",
+    "mevzuat_beklenen": [
+      "dilekce_hakki_kanunu_3071"
+    ]
+  },
+  "ornek_tutanak.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Personel alım planı ve uzaktan çalışma politikasının görüşüldüğü tam alanlı toplantı tutanağı.",
+    "mevzuat_beklenen": [
+      "devlet_memurlari_kanunu_657"
+    ]
+  },
+  "ornek_ust_yazi.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": [
+      "tarih"
+    ],
+    "aciklama": "Dijital dönüşüm eylem planının birimlere duyurulduğu üst yazı; evrakın kendi tarih alanı eksik.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "e_yazisma_teknik_rehberi_bilgi_notu"
+    ]
+  },
+  "rapor_01.txt": {
+    "tur": "rapor",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": [],
+    "aciklama": "Stratejik plan performans göstergelerinin yıllık gerçekleşmesini değerlendiren tam alanlı rapor.",
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018"
+    ]
+  },
+  "rapor_02.txt": {
+    "tur": "rapor",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Belediye bütçesinin ilk altı aylık gelir-gider gerçekleşmelerini sunan tam alanlı rapor.",
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018",
+      "belediye_kanunu_5393"
+    ]
+  },
+  "rapor_03.txt": {
+    "tur": "rapor",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [
+      "tarih",
+      "imza"
+    ],
+    "aciklama": "İdari personel eğitim ihtiyaç analizi raporu; tarih ve imza alanları kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "devlet_memurlari_kanunu_657"
+    ]
+  },
+  "rapor_04.txt": {
+    "tur": "rapor",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Vatandaş memnuniyeti anketi sonuçlarını değerlendiren tam alanlı rapor.",
+    "mevzuat_beklenen": [
+      "belediye_kanunu_5393",
+      "dilekce_hakki_kanunu_3071"
+    ]
+  },
+  "rapor_05.txt": {
+    "tur": "rapor",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": [],
+    "aciklama": "5018 sayılı Kanun ve Kamu İç Kontrol Standartları çerçevesinde iç kontrol eylem planı gerçekleşmelerini birim öz değerlendirme anketlerine dayanarak değerlendiren tam alanlı rapor; tarih, başlık, hazırlayan, bulgular, sonuç ve imza mevcuttur. İç kontrol, eylem planı ve stratejik plan performans dili strateji yönlendirme sinyalidir.",
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018"
+    ]
+  },
+  "tutanak_01.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": [],
+    "aciklama": "Satın alınan kırtasiye malzemelerinin muayene ve kabul işlemlerine ilişkin tam alanlı komisyon tutanağı.",
+    "mevzuat_beklenen": [
+      "kamu_ihale_kanunu_4734",
+      "kamu_mali_yonetimi_5018"
+    ]
+  },
+  "tutanak_02.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [
+      "tarih"
+    ],
+    "aciklama": "Uygulama sunucusu arızasının tespitine ilişkin tutanak; tarih alanı kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "tutanak_03.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Saklama süresi dolan dosyaların kurum arşivine devrine ilişkin tam alanlı devir teslim tutanağı.",
+    "mevzuat_beklenen": [
+      "devlet_arsiv_hizmetleri_yonetmeligi"
+    ]
+  },
+  "tutanak_04.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Hizmet aracına üçüncü şahsın verdiği hasarın tespiti ve yasal işlem önerisine ilişkin tam alanlı tutanak.",
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018"
+    ]
+  },
+  "tutanak_05.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Belediye zabıtası ve sağlık işleri ekibinin gıda işletmesinde yaptığı denetim, hijyen eksikliklerinin tespiti ve numune alınmasına ilişkin tam alanlı tutanak; 5326 ve 5393 kapsamında idari yaptırım süreci başlatılarak dosya Hukuk İşleri Müdürlüğüne ve Encümene sevk edilir. Tarih, katılımcılar ve imzalar tamdır. İdari yaptırım, kabahat ve yasal itiraz dili hukuk yönlendirme sinyalidir.",
+    "mevzuat_beklenen": [
+      "kabahatler_kanunu_5326",
+      "belediye_kanunu_5393"
+    ]
+  },
+  "tutanak_06.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Saklama süresi dolan ve saklanmasına gerek görülmeyen evrakın Ayıklama ve İmha Komisyonunca imhasına ilişkin, Devlet Arşiv Hizmetleri Hakkında Yönetmelik dayanaklı tam alanlı tutanak; tarih, saat, yer, katılımcılar, kararlar ve imzalar tamdır. Arşiv, evrak, saklama ve imha dili yazı işleri yönlendirme sinyalidir.",
+    "mevzuat_beklenen": [
+      "devlet_arsiv_hizmetleri_yonetmeligi"
+    ]
+  },
+  "ust_yazi_01.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": [],
+    "aciklama": "Valilikten temizlik hizmeti alımı ihalesi teknik şartname hazırlığını isteyen tam alanlı üst yazı.",
+    "mevzuat_beklenen": [
+      "kamu_ihale_kanunu_4734",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "ust_yazi_02.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Üniversitede açılan idari davaya karşı savunma hazırlanması için Hukuk Müşavirliğine gönderilen tam alanlı üst yazı.",
+    "mevzuat_beklenen": [
+      "idari_yargilama_usulu_kanunu_2577",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "ust_yazi_03.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [
+      "sayi"
+    ],
+    "aciklama": "Siber güvenlik tedbirlerinin uygulanmasını isteyen üst yazı; sayı (belge kayıt numarası) alanı kasıtlı olarak eksik.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "kvkk_6698"
+    ]
+  },
+  "ust_yazi_04.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Yol bakım çalışmaları için ek ödenek aktarımı talep eden tam alanlı üst yazı.",
+    "mevzuat_beklenen": [
+      "kamu_mali_yonetimi_5018",
+      "belediye_kanunu_5393",
+      "resmi_yazisma_yonetmeligi"
+    ]
+  },
+  "ust_yazi_05.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [],
+    "aciklama": "DAĞITIM YERLERİNE hitaplı, altı birime gereği ve iki birime bilgi dağıtımlı, elektronik imza sertifikalarının yenilenmesini isteyen tam alanlı üst yazı.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "elektronik_imza_kanunu_5070"
+    ]
+  },
+  "ust_yazi_06.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Sağ üst köşesi GÜNLÜDÜR damgalı, 2027 yılı bütçe teklif cetvellerinin on gün içinde gönderilmesini isteyen tam alanlı süreli üst yazı.",
+    "mevzuat_beklenen": [
+      "resmi_yazisma_yonetmeligi",
+      "kamu_mali_yonetimi_5018"
+    ]
+  },
+  "ust_yazi_07.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [
+      "ilgi"
+    ],
+    "aciklama": "Birim arşivinden kurum arşivine evrak devrini başlatan üst yazı; kurumsal saklama planı ve Ayıklama ve İmha Komisyonuna atıfla devredilecek dosyalar listelenir. İlgi (referans) alanı kasıtlı olarak yoktur ve gövde önceki bir yazıya atıf yapmaz; yalnızca ilgi alanı eksiktir. Arşiv, evrak, saklama ve devir teslim dili yazı işleri yönlendirme sinyalidir.",
+    "mevzuat_beklenen": [
+      "devlet_arsiv_hizmetleri_yonetmeligi",
+      "resmi_yazisma_yonetmeligi"
+    ]
   }
 }
