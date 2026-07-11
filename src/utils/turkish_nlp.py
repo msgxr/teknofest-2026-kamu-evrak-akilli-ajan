@@ -61,15 +61,133 @@ def remove_stopwords(text: str) -> str:
 
 
 def extract_sentences(text: str) -> list[str]:
-    """Metinden cümleleri çıkarır."""
-    # Türkçe cümle sonu işaretleri
-    sentences = re.split(r"(?<=[.!?])\s+", text)
-    return [s.strip() for s in sentences if len(s.strip()) > 10]
+    """
+    Metinden cümleleri çıkarır.
+
+    Nokta her zaman cümle sonu değildir (TDK Yazım Kılavuzu, "Nokta"):
+    - Sayıdan sonra gelen nokta sıra bildirir ("5. etap" = beşinci etap)
+      ve cümleyi bitirmez.
+    - Kısaltmalardan sonraki nokta (vb., vs., Dr., Av., Sk., Mah., No.,
+      md. ...) cümle sonu değildir.
+    - Nokta ile yazılan büyük harfli kısaltmalar ve ad baş harfleri
+      (T.C., A.Ş., "Ahmet Y.") cümleyi bitirmez.
+    Bu konumlarda yanlış bölünen parçalar sonraki parçayla birleştirilir.
+    """
+    # Noktayla biten ama cümleyi bitirmeyen yaygın kısaltmalar: unvan,
+    # adres ve gönderme kısaltmaları (resmî yazışmalarda sık geçer).
+    kisaltmalar = {
+        # Unvan/hitap kısaltmaları
+        "dr", "av", "prof", "doç", "yrd", "uzm", "öğr", "arş", "sn",
+        # Adres kısaltmaları
+        "mah", "sk", "sok", "cad", "cd", "bulv", "blv", "apt", "no", "kat",
+        # Gönderme/genelleme kısaltmaları
+        "vb", "vs", "vd", "bkz", "örn", "md", "hk", "tel",
+    }
+
+    parcalar = re.split(r"(?<=[.!?])\s+", text)
+    cumleler: list[str] = []
+    for parca in parcalar:
+        parca = parca.strip()
+        if not parca:
+            continue
+        if cumleler and cumleler[-1].endswith("."):
+            onceki = cumleler[-1]
+            son = re.search(r"(\S+)\.$", onceki)
+            birlestir = False
+            if son:
+                govde = son.group(1).strip("(\"'“”‘’")
+                if govde.isdigit():
+                    # Sıra sayısı: kısa sayılar ("5.", "12.") hemen her
+                    # zaman ordinaldir; uzun sayılar (yıl vb.) yalnızca
+                    # devamı büyük harfle başlamıyorsa (yeni cümle
+                    # başlangıcı değilse) birleştirilir.
+                    ilk = parca[0]
+                    birlestir = len(govde) <= 2 or not (
+                        ilk.isalpha() and turkish_upper(ilk) == ilk
+                    )
+                elif turkish_lower(govde) in kisaltmalar:
+                    birlestir = True
+                elif re.fullmatch(r"(?:[A-ZÇĞİÖŞÜ]\.)*[A-ZÇĞİÖŞÜ]", govde):
+                    # T.C., A.Ş. gibi noktalı kısaltmalar ve ad baş harfleri
+                    birlestir = True
+            if birlestir:
+                cumleler[-1] = onceki + " " + parca
+                continue
+        cumleler.append(parca)
+    return [s for s in cumleler if len(s) > 10]
 
 
 def count_words(text: str) -> int:
     """Metindeki kelime sayısını döndürür."""
     return len(text.split())
+
+
+# ----------------------------------------------------------------------
+# Morfolojik desen üretimi (son-ünsüz yumuşaması)
+# ----------------------------------------------------------------------
+
+# Türkçe küçük harf sınıfı (regex köşeli parantez içeriği). Sözcük-başı
+# sınırı denetiminde kullanılır; düzeltme işaretli â/î/û harfleri de
+# resmî yazışma Türkçesinde geçtiği için dahildir.
+TR_KUCUK_HARF_SINIFI = "a-zçğıöşüâîû"
+
+# Süreksiz sert ünsüzlerin (p, ç, t, k) yumuşamış karşılıkları.
+# k → ğ tipik biçimdir (ekmek → ekmeği); "nk" ile biten ve bazı alıntı
+# sözcüklerde ise g'ye döner (renk → rengi) — bu yüzden k için üç seçenek.
+_YUMUSAMA_SINIFLARI = {
+    "p": "[pb]",
+    "ç": "[çc]",
+    "t": "[td]",
+    "k": "[kğg]",
+}
+
+# Yumuşama alternatifi uygulanacak asgari kök uzunluğu: çok kısa köklerde
+# ("at" → "a[td]" deseni "ad" sözcüğünü de yakalar) alternatif biçim başka
+# sözcüklerle çakışabilir; üç harf ve üzeri köklerde bu risk pratikte yoktur.
+_YUMUSAMA_MIN_UZUNLUK = 3
+
+
+def govde_desen(kelime: str, harf_sinifi: str = TR_KUCUK_HARF_SINIFI) -> str:
+    """
+    Türkçe son-ünsüz yumuşamasına dayanıklı, sözcük-başı sınırlı regex
+    desen kaynağı üretir.
+
+    Dilbilgisel gerekçe: Türkçede süreksiz sert ünsüzlerle (p, ç, t, k)
+    biten sözcükler ünlüyle başlayan bir ek aldığında son ünsüz iki ünlü
+    arasında kalır ve YUMUŞAR (ünsüz yumuşaması): kitap → kitabı,
+    sonuç → sonucu, kanat → kanadı, lojistik → lojistiği, renk → rengi.
+    Yalın biçimle yapılan önek araması bu çekimlenmiş biçimleri kaçırır;
+    üretilen desen son ünsüzün hem sert hem yumuşamış biçimine izin verir:
+        'lojistik' → '(?<![harf])lojisti[kğg]'
+        'sonuç'    → '(?<![harf])sonu[çc]'
+        'kitap'    → '(?<![harf])kita[pb]'
+    Desen sözcük başında bir harf sınırı arar (önünde harf olamaz) ve
+    kelimenin SONUNU açık bırakır; böylece ek almış biçimler ("lojistiğin",
+    "sonucuna") eşleşirken alakasız köklerin içindeki rastlantısal
+    parçalar eşleşmez. Kelime öbeklerinde ("eğitim ihtiyaç") ek kelime
+    sonuna geldiği için yumuşama yalnızca son karaktere uygulanır.
+
+    Not: Yumuşama bazı tek heceli ve alıntı sözcüklerde gerçekleşmez
+    (süt → sütü, hukuk → hukuku); desen iki biçime de izin verdiğinden bu
+    istisnalar eşleşmeyi bozmaz. ASCII'ye katlanmış (aksansız) metinlerde
+    de çalışır: ç'nin katlanmış hali (c) yumuşamış biçimle, ğ'nin
+    katlanmış hali (g) '[kğg]' sınıfıyla zaten örtüşür.
+
+    Args:
+        kelime: Küçük harfli anahtar kelime veya kelime öbeği
+        harf_sinifi: Sözcük-başı sınırında "harf" sayılacak regex
+            karakter sınıfı içeriği
+
+    Returns:
+        re.compile'a verilebilecek desen kaynağı (str)
+    """
+    kelime = kelime.strip()
+    son = kelime[-1:]
+    if son in _YUMUSAMA_SINIFLARI and len(kelime) >= _YUMUSAMA_MIN_UZUNLUK:
+        govde = re.escape(kelime[:-1]) + _YUMUSAMA_SINIFLARI[son]
+    else:
+        govde = re.escape(kelime)
+    return "(?<![%s])%s" % (harf_sinifi, govde)
 
 
 def clean_text(text: str) -> str:
