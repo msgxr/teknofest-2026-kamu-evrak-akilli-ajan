@@ -14,6 +14,13 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **MCP entegrasyon vizyonu (P1-8, şartname izi: Yenilikçilik-15):**
+  `docs/mcp_vizyonu.md` — mevcut REST API'nin Model Context Protocol
+  araçlarına birebir eşlenmesi: mimari çizim, 5 araç şeması taslağı
+  (evrak_isle, evrak_anonimlestir, birimleri_listele,
+  evrak_turlerini_listele, sistem_sagligi), KVKK-varsayılan ve öneri-dili
+  ilkeleri, ürünleşme yol haritası. Çalışan MCP sunucusu İDDİA EDİLMEZ
+  (dürüst kapsam beyanı belgededir).
 - **Bağımsız taslak kalite hakemi (P1-6, şartname izi: G2/Uygulama-35 kanıtı):**
   - `src/utils/taslak_hakemi.py`: taslaklar üretici ajandan bağımsız 0-100
     ölçeğinde puanlanır — LLM varsa dört boyutlu rubrik (LLM-as-judge),
