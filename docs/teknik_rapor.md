@@ -22,7 +22,7 @@ Kamu kurumlarında resmî yazışma ve evrak işlemleri; belgenin okunması, iç
 
 #### 3.1. Çok Ajanlı Mimari
 
-Sistem, her biri tek bir sorumluluğu üstlenen **9 uzman ajan** ile bunları koordine eden bir **orkestratör**den oluşur:
+Sistem, her biri tek bir sorumluluğu üstlenen **11 uzman ajan** ile bunları koordine eden bir **orkestratör**den oluşur:
 
 | Ajan | Görev | Şartname isteri |
 |---|---|---|
@@ -34,7 +34,9 @@ Sistem, her biri tek bir sorumluluğu üstlenen **9 uzman ajan** ile bunları ko
 | Özet Agent | Skorlamalı extractive özet (künye + gövde) | G1: özet |
 | Taslak Yazma Agent | Yönetmelik-uyumlu resmî yazı üretimi + format öz-denetimi | G2: taslak + resmî üslup |
 | Yönlendirme Agent | 9 birimlik organizasyon şemasına gerekçeli yönlendirme | G2: birim yönlendirme |
-| Bilgilendirme Agent | Süreç bilgilendirmesi + eksik bilgi talepleri | G2: bilgilendirme + eksik bilgi talebi |
+| Bilgilendirme Agent | Süreç bilgilendirmesi + eksik bilgi talepleri + süreli evrak uyarısı | G2: bilgilendirme + eksik bilgi talebi |
+| Önceliklendirme (Triage) Agent | Aciliyet damgası + yasal süre tespiti, son işlem tarihi hesabı | G1 destekleyici (yenilik) |
+| KVKK Anonimleştirme Agent | Kişisel verileri maskeleyen paylaşım nüshası üretimi | G1 destekleyici (yenilik) |
 
 Orkestrasyon **framework bağımsız, saf Python** ile özgün olarak gerçekleştirilmiştir; ajanlar paylaşılan bir durum nesnesi (`AgentState`) üzerinden haberleşir. Her adımın süresi ve durumu ölçülür (izlenebilirlik/denetlenebilirlik).
 
@@ -69,6 +71,15 @@ Dokuz birimlik temsili kamu organizasyon şeması üzerinde, sözcük-başı sı
 #### 3.8. LLM Entegrasyon Katmanı
 
 LLM katmanı SDK bağımlılığı olmadan (stdlib `urllib`) üç backend destekler: **OpenAI-uyumlu API** (OpenAI, OpenRouter, Groq, vLLM, LM Studio), **Ollama** (tamamen yerel) ve **offline** (kural tabanlı mod). Backend otomatik tespit edilir; yapılandırılmış çıktı (`generate_json`) bozuk JSON onarımı ve yeniden denemeyle sağlanır. Model eğitimi yapılmamıştır (şartname m. 6.6 uyarınca zorunlu değildir); üçüncü taraf model lisans bilgileri `docs/model_bilgileri.md` dosyasındadır ve depoya hiçbir model ağırlığı yüklenmemiştir.
+
+#### 3.9. Yenilik Modülleri
+
+Puanlama kriterlerindeki "yenilikçilik, özgünlük ve ticarileşme potansiyeli" doğrultusunda, iki görevi güçlendiren dört özgün modül eklenmiştir; tümü çevrimdışı kural tabanlı çalışır:
+
+1. **Akıllı Önceliklendirme (Triage):** Resmî yazışma pratiğindeki aciliyet damgaları (ÇOK İVEDİ/İVEDİ/GÜNLÜDÜR/SÜRELİDİR), metin içi açık süre ifadeleri ("en geç ... tarihine kadar", "15 iş günü içinde" — yazıyla sayılar dahil) ve kaynaklı yasal süre tablosu (4982 m.11: 15 iş günü; 3071 m.7: 30 gün; 2577 m.7: 60 gün; CİMER: 30 gün) üzerinden evrakın önceliğini ve **son işlem tarihini** hesaplar (iş günü hesabında hafta sonları atlanır). Kamu pratiğinde süre kaçırma idari sorumluluk doğurduğundan "süreli evrak takibi" gerçek bir ihtiyaçtır.
+2. **KVKK Anonimleştirme (Paylaşım Nüshası):** 6698 sayılı Kanun bağlamında; T.C. kimlik (checksum doğrulamalı), telefon, e-posta, IBAN, kişi adı ve adres bilgilerini format-koruyan biçimde maskeleyerek evrakın birim/kurum arası paylaşıma uygun nüshasını üretir; kurum adları ve unvanlar (tüzel kişi) maskelenmez.
+3. **Kurum Kokpiti (Toplu İşlem Analitiği):** Evrak yığınını toplu işleyip tür/birim dağılımı, eksiklik oranları, düşük güvenli karar sayısı ve manuel işleme kıyasla tahmini zaman tasarrufunu raporlar (manuel süre varsayımı arayüzde şeffaf biçimde belirtilir). Ticarileşme anlatısının ölçülebilir temelidir.
+4. **e-Yazışma Üstveri Taslağı + Geri Bildirim Döngüsü:** Üretilen taslak için CBDDO e-Yazışma Paketi yapısından esinlenen üstveri taslağı (EBYS entegrasyon vizyonu; resmî şemanın birebir uygulanmadığı açıkça belirtilir) dışa aktarılır; arayüzdeki "sonucu düzelt" akışıyla kullanıcı düzeltmeleri `geri_bildirim.jsonl` dosyasına kaydedilerek kural kalibrasyonuna girdi sağlar.
 
 ### 4. Veri Setleri
 

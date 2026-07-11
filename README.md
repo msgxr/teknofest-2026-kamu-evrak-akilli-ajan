@@ -71,13 +71,18 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 | 💬 **Kullanıcı Bilgilendirme** | Süreç hakkında açık bilgilendirme mesajları |
 | 🔌 **Offline-First Çalışma** | LLM/İnternet olmadan tüm ajanlar kural tabanlı yollarla uçtan uca tam işlevli |
 | ⏱️ **Adım Süreleri** | Her ajan adımının süresi ölçülüp raporlanır (gerçek zamana yakın çalışma kanıtı) |
-| 🤖 **Çok Ajanlı Mimari** | 9 uzman ajanın framework bağımsız, saf Python orkestratör ile koordinasyonu |
+| 🤖 **Çok Ajanlı Mimari** | 11 uzman ajanın framework bağımsız, saf Python orkestratör ile koordinasyonu |
+| ⏰ **Akıllı Önceliklendirme** | İVEDİ/GÜNLÜDÜR damgaları + yasal sürelerden (4982, 3071, 2577, CİMER) son işlem tarihi hesabı |
+| 🔒 **KVKK Paylaşım Nüshası** | Kişisel verileri (TC, ad, telefon, IBAN, adres) maskeleyen anonimleştirilmiş kopya |
+| 📊 **Kurum Kokpiti** | Toplu evrak işleme; tür/birim dağılımları, eksiklik oranları ve zaman tasarrufu analizi |
+| 📦 **e-Yazışma Üstverisi** | Üretilen taslak için EBYS entegrasyon vizyonlu üstveri taslağı (CBDDO e-Yazışma esinli) |
+| ✍️ **Geri Bildirim Döngüsü** | Kullanıcı düzeltmeleri kayıt altına alınır; kural kalibrasyonunda kullanılır |
 
 ---
 
 ## 🏗️ Sistem Mimarisi
 
-Sistem, **framework bağımsız, stdlib tabanlı özgün bir orkestrasyon** üzerine kuruludur: LangGraph/LangChain gibi bir agent framework'ü **kullanılmaz**. Orkestratör (`src/agents/orchestrator.py`), 9 uzman ajanı paylaşılan bir durum nesnesi (`AgentState`) üzerinde sırayla çalıştırır, her adımın süresini ve güven skorunu izler. LLM **opsiyoneldir**: OpenAI-uyumlu bir API veya yerel Ollama bulunursa yalnızca düşük güvenli kararlarda devreye girer; bulunmazsa sistem tamamen kural tabanlı modda uçtan uca çalışır.
+Sistem, **framework bağımsız, stdlib tabanlı özgün bir orkestrasyon** üzerine kuruludur: LangGraph/LangChain gibi bir agent framework'ü **kullanılmaz**. Orkestratör (`src/agents/orchestrator.py`), 11 uzman ajanı paylaşılan bir durum nesnesi (`AgentState`) üzerinde sırayla çalıştırır, her adımın süresini ve güven skorunu izler. LLM **opsiyoneldir**: OpenAI-uyumlu bir API veya yerel Ollama bulunursa yalnızca düşük güvenli kararlarda devreye girer; bulunmazsa sistem tamamen kural tabanlı modda uçtan uca çalışır.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -239,7 +244,7 @@ teknofest-2026-kamu-evrak-akilli-ajan/
 ├── .env.example                    # Ortam değişkenleri örneği (LLM opsiyonel)
 ├── docs/                           # Dokümantasyon (teknik rapor, model bilgileri)
 ├── src/                            # Kaynak kodu
-│   ├── agents/                     # Agent modülleri (orkestratör + 9 uzman ajan)
+│   ├── agents/                     # Agent modülleri (orkestratör + 11 uzman ajan)
 │   ├── models/                     # LLM wrapper (stdlib, OpenAI-uyumlu/Ollama)
 │   ├── pipelines/                  # İş akışları
 │   ├── utils/                      # Yardımcı araçlar (BM25, Türkçe NLP)
