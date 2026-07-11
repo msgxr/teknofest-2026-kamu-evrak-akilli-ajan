@@ -27,6 +27,25 @@ Maskeleme kuralları:
       düzeyi istatistik/yetki tespiti için kalabilir (tek başına kişiyi
       belirlemez).
 
+Kişi adı yakalama katmanları (resmî yazışma yazım kuralına dayanır:
+Resmî Yazışmalarda Uygulanacak Usul ve Esaslar Hakkında Yönetmelik
+uyarınca kişi adı "Ad SOYAD" düzeninde, adın ilk harfi büyük ve soyadı
+tamamı büyük yazılır):
+    1) Alan satırları ("Ad Soyad :"), hitaplar ("Sayın ..."), numaralı
+       katılımcı listeleri ve görevli etiketli satırlar (Hazırlayan,
+       Düzenleyen, Raportör, Teslim Alan, Kontrol Eden, Onaylayan ...).
+    2) İmza blokları (altında unvan/imza işareti bulunan isim satırı) ve
+       belge son bölümündeki YALIN imza satırları (kapanış kalıbının —
+       "arz/rica ederim", "saygılarımla" — ardından tek başına duran
+       ad-soyad satırı; imza bloğu resmî yazıda belgenin sonundadır).
+    3) Serbest metindeki "Ad SOYAD" kalıbı (1-3 ad + tamamı büyük 1-2
+       soyadı). Kurum eki taşıyan (BAKANLIĞI, MÜDÜRLÜĞÜ, VALİLİĞİ,
+       BELEDİYESİ, MAHALLESİ, CADDESİ ...), il adıyla biten ya da resmî
+       kalıp sözcük içeren adaylar elenir; tüzel kişi ve yer adları
+       maskelenmez. Şüpheli durumda maskeleme tercih edilir (KVKK md. 4
+       ölçülülük: paylaşım nüshasında sızıntı, aşırı maskelemeden daha
+       ağır bir ihlaldir).
+
 Kaynaklar: state.extracted_info (öncelikli: tc_kimlik, telefon, eposta,
 iban, kisi_adlari) + agent'ın kendi regex geçişleri; extracted_info boş
 olsa da agent bağımsız çalışır. Kimlik checksum'u ve iletişim desenleri,
@@ -111,6 +130,93 @@ _IMZA_KISI = re.compile(
 _IMZA_BLOK_ISIM = re.compile(r"^\s*(" + _ISIM_GOVDE + r")\s*$")
 _IMZA_ISARETI_DESENI = re.compile(_IMZA_ISARETI)
 
+# Görevli etiketli satırlar: tutanak/form pratiğinde hazırlayan,
+# düzenleyen, teslim alan gibi görev etiketlerinin karşısına kişi adı
+# yazılır ("Hazırlayan : Mehmet Ali ÇAKIR"). Etiket görev bilgisidir ve
+# korunur; yalnızca ad maskelenir. Etiket ile ad AYNI satırda aranır
+# (satır aşan eşleşme "Ad Soyad" gibi form başlıklarını isim sanardı).
+_ETIKETLI_KISI = re.compile(
+    r"(?:Hazırlayan|Düzenleyen|Onaylayan|Kaydeden|İmzalayan|İnceleyen|"
+    r"Raportör|Başvuran|(?:Teslim|Kontrol|Talep|Beyan)[ \t]+(?:Alan|Eden))"
+    r"[ \t]*:?[ \t]*(" + _ISIM_GOVDE + r")"
+)
+
+# Serbest metinde resmî ad-soyad kalıbı: Resmî Yazışmalarda Uygulanacak
+# Usul ve Esaslar Hakkında Yönetmelik uyarınca kişi adı "Ad SOYAD"
+# düzeninde yazılır (adın ilk harfi büyük, soyadı tamamı büyük). Düz
+# metinde 1-3 ad + 1-2 tamamı büyük soyadı dizisi yakalanır; sözcükler
+# arasında yalnızca boşluk/sekme kabul edilir (satır sonu aşılmaz, hitap
+# altındaki kurum satırı isme karışmaz). Kurum/yer adı yanlış
+# pozitifleri aday elemede ayıklanır (_kisi_adi_mi + kırpma adımları).
+_AD_BUYUK_SOYAD = re.compile(
+    r"(?<!\w)" + _UNVAN_ON_EKI
+    + r"(?:[A-ZÇĞİÖŞÜ][a-zçğıöşü]+[ \t]+){1,3}"
+    + r"[A-ZÇĞİÖŞÜ]{2,}(?:[ \t]+[A-ZÇĞİÖŞÜ]{2,})?(?!\w)"
+)
+
+# Yalın imza satırı bağlamı: resmî yazıda imza bloğu belgenin SON
+# bölümünde yer alır ve metin "arz/rica ederim" kalıbıyla kapanır.
+# Kapanış kalıbının ya da imza işaretinin ardından tek başına duran
+# ad-soyad satırı, altında unvan yazılmamış olsa da imza kabul edilir.
+_IMZA_BOLGESI_SATIR_SAYISI = 12
+_KAPANIS_IFADELERI = (
+    "arz ederim", "rica ederim", "arz olunur", "rica olunur",
+    "arz ve rica", "saygılarımla", "saygılarımızla", "bilgilerinize sunulur",
+)
+
+# Serbest metin adayının BAŞINDAKİ hitap/etiket sözcükleri ada dahil
+# edilmez ("Sayın Ahmet YILMAZ" → yalnızca "Ahmet YILMAZ" maskelenir).
+# Cümle başında büyük harfle yazılmış çekimli belge sözcükleri
+# ("Toplantıya Fatma Nur DEMİR ...") gövde eşleşmesiyle kırpılır; kırpma
+# yalnızca adayın ÖN sözcüklerine uygulandığından soyadları etkilenmez.
+_ON_SOZCUK_ENGELLERI = {
+    "sayın", "değerli", "sevgili", "hazırlayan", "düzenleyen", "onaylayan",
+    "kaydeden", "imzalayan", "inceleyen", "raportör", "başvuran",
+    "teslim", "kontrol", "talep", "beyan", "alan", "eden", "yapan",
+}
+_ON_GOVDE_ENGELLERI = (
+    "toplantı", "gündem", "tutanak", "dilekçe", "başvuru", "duyuru",
+    "evrak", "rapor",
+)
+
+# Tamamı büyük yazılmış ama soyadı olamayacak sözcükler (turkish_lower
+# biçimleri): bağlaçlar, resmî kısaltmalar, gün adları (gündem/tarih
+# satırları), resmî yazışma kalıp sözcükleri ve romen rakamları.
+# Yalnızca SERBEST METİN adaylarına uygulanır; imza/etiket bağlamından
+# gelen adaylar kişi bağlamı taşıdığından elenmez (ör. "CUMA" ya da
+# "AYDIN" gerçek soyadı olabilir; kişi bağlamında maskelenmelidir).
+_BUYUK_SOZCUK_ENGELLERI = {
+    "ve", "veya", "ile", "vb", "vs", "vd", "hk", "no", "tel", "faks",
+    "tl", "kdv", "adet",
+    "pazartesi", "salı", "çarşamba", "perşembe", "cuma", "cumartesi",
+    "pazar",
+    "olur", "arz", "rica", "gereği", "gereğini", "onayı", "aslıdır",
+    "gibidir", "imzalıdır", "ektedir", "ekidir", "ivedi", "gizli",
+    "ıı", "ııı", "ıv", "vı", "vıı", "vııı", "ıx", "xı", "xıı",
+}
+
+# 81 il adı (turkish_lower biçimleri, resmî il listesi): adres
+# kuyruğundaki "İlçe İL" dizisi ("Çankaya ANKARA") resmî ad-soyad
+# kalıbıyla aynı biçimi taşır; serbest metin adayının SONUNDAKİ il adı
+# kırpılır (il adı tek başına kişiyi belirlemez, KVKK kapsamında
+# maskelenmesi gerekmez). Kişi bağlamlı adaylara uygulanmaz.
+_IL_ADLARI = frozenset({
+    "adana", "adıyaman", "afyonkarahisar", "ağrı", "aksaray", "amasya",
+    "ankara", "antalya", "ardahan", "artvin", "aydın", "balıkesir",
+    "bartın", "batman", "bayburt", "bilecik", "bingöl", "bitlis", "bolu",
+    "burdur", "bursa", "çanakkale", "çankırı", "çorum", "denizli",
+    "diyarbakır", "düzce", "edirne", "elazığ", "erzincan", "erzurum",
+    "eskişehir", "gaziantep", "giresun", "gümüşhane", "hakkari",
+    "hakkâri", "hatay", "ığdır", "ısparta", "istanbul", "izmir",
+    "kahramanmaraş", "karabük", "karaman", "kars", "kastamonu",
+    "kayseri", "kilis", "kırıkkale", "kırklareli", "kırşehir", "kocaeli",
+    "konya", "kütahya", "malatya", "manisa", "mardin", "mersin", "muğla",
+    "muş", "nevşehir", "niğde", "ordu", "osmaniye", "rize", "sakarya",
+    "samsun", "şanlıurfa", "siirt", "sinop", "şırnak", "sivas",
+    "tekirdağ", "tokat", "trabzon", "tunceli", "uşak", "van", "yalova",
+    "yozgat", "zonguldak",
+})
+
 # İmza bloğu doğrulaması için unvan ipuçları (isim satırının altındaki
 # görev satırında aranır; turkish_lower uygulanmış gövde araması)
 _UNVAN_IPUCLARI = (
@@ -130,19 +236,35 @@ _KURUM_IPUCLARI = (
     "müdürlü", "başkanlı", "bakanlı", "valili", "kaymakaml", "belediye",
     "üniversite", "rektörlü", "daire", "kurum", "kurul", "müşavirli",
     "enstitü", "ajans", "mahalle", "cadde", "sokak", "bulvar", "genel",
-    "şube", "birim", "komisyon",
+    "şube", "birim", "komisyon", "muhtarl", "cumhuriyet", "ilçe",
+    "hastane",
 )
 
 # İsim görünümlü ama tür adı (cins isim) olan sözcükler: "Halk Günü",
-# "Çevre Haftası", "Kalite Toplantısı" gibi etkinlik/kavram adları kişi
-# adı değildir. Sözcük BİREBİR karşılaştırılır (gövde araması "Akgün",
-# "Ergün" gibi gerçek soyadlarını yanlışlıkla elerdi).
+# "Çevre Haftası", "Kalite Toplantısı" gibi etkinlik/kavram adları ile
+# resmî evrak düzenine ait araç sözcükleri (belge, tutanak, karar, form
+# başlıkları: ad, soyad, unvan ...) kişi adı değildir. Sözcük BİREBİR
+# karşılaştırılır (gövde araması "Akgün", "Ergün" gibi gerçek soyadlarını
+# yanlışlıkla elerdi). "Onay"/"Bilgi"/"Özel" gibi gerçek soyadı olarak da
+# kullanılan sözcükler bilinçli olarak LİSTEYE ALINMAZ (sızıntı,
+# aşırı maskelemeden daha ağır bir ihlaldir); yalnızca iyelik ekli
+# biçimleri ("onayı") güvenle elenebilir.
 _GENEL_AD_SOZCUKLERI = {
     "günü", "gün", "haftası", "hafta", "ayı", "yılı", "dönemi",
     "toplantı", "toplantısı", "gündem", "gündemi", "salonu", "merkezi",
     "uygulama", "uygulaması", "program", "programı", "proje", "projesi",
     "rapor", "raporu", "plan", "planı", "liste", "listesi", "sistem",
     "sistemi", "hizmet", "hizmetleri", "kültür", "eğitim", "eğitimi",
+    "belge", "belgesi", "yazı", "yazısı", "karar", "kararı", "tutanak",
+    "tutanağı", "dilekçe", "dilekçesi", "başvuru", "başvurusu", "talep",
+    "talebi", "evrak", "evrakı", "imza", "imzası", "onayı", "gereği",
+    "dağıtım", "duyuru", "duyurusu", "ilan", "ilanı", "kanun", "kanunu",
+    "yönetmelik", "yönetmeliği", "genelge", "genelgesi", "tebliğ",
+    "tebliği", "madde", "maddesi", "sözleşme", "sözleşmesi", "protokol",
+    "protokolü", "şartname", "şartnamesi", "ihale", "ihalesi", "fatura",
+    "faturası", "bütçe", "bütçesi", "ödeme", "ödemesi", "kayıt", "kaydı",
+    "idari", "mali", "ad", "adı", "soyad", "soyadı", "unvan", "unvanı",
+    "ünvan", "ünvanı", "görev", "görevi", "tarihi", "saati",
 }
 
 # Tek başına makam/görev bildiren sözcükler ("Sayın Vali Yardımcısı"):
@@ -154,6 +276,7 @@ _MAKAM_SOZCUKLERI = {
     "koordinatör", "koordinatörü", "müsteşar", "müsteşarı",
     "mühendis", "mühendisi", "amiri", "sorumlusu", "yetkilisi",
     "müşavir", "müşaviri", "sayman", "saymanı", "vekili",
+    "makam", "makamı", "personel", "muhtar", "muhtarı",
 }
 
 
@@ -372,7 +495,9 @@ class AnonimlestirmeAgent:
         adet = 0
         for ad in self._kisi_adi_adaylari(metin, extracted):
             maske = _kisi_adi_maskesi(ad)
-            desen = re.compile(r"(?<!\w)" + re.escape(ad) + r"(?!\w)")
+            # Sözcükler arası boşluk/sekme farkına dayanıklı arama
+            govde = r"[ \t]+".join(re.escape(t) for t in ad.split())
+            desen = re.compile(r"(?<!\w)" + govde + r"(?!\w)")
             metin, n = desen.subn(lambda m: maske, metin)
             adet += n
         return metin, adet
@@ -383,49 +508,152 @@ class AnonimlestirmeAgent:
 
         Kaynaklar: extracted_info.kisi_adlari (öncelikli), "Ad Soyad :"
         alan satırları, "Sayın Ad Soyad" hitapları, numaralı katılımcı
-        listeleri ve imza satırları. Kurum/makam bildiren adaylar elenir
-        (tüzel kişi ve görev unvanı maskelenmez). Uzun adaylar önce
-        maskelenir ki "Dr. Mehmet Kaya" varken "Mehmet Kaya" parçası
-        ayrıca eşleşmesin.
+        listeleri, görevli etiketli satırlar (Hazırlayan/Düzenleyen/
+        Teslim Alan ...), imza satırları/blokları ve serbest metindeki
+        resmî "Ad SOYAD" kalıbı. Kurum/makam bildiren adaylar elenir
+        (tüzel kişi ve görev unvanı maskelenmez). Serbest metin kaynaklı
+        adaylara ek yanlış-pozitif elemesi uygulanır (il adları, kalıp
+        sözcükler); aynı ad kişi bağlamlı bir kaynaktan da geldiyse kişi
+        bağlamı esas alınır. Uzun adaylar önce maskelenir ki "Dr. Mehmet
+        Kaya" varken "Mehmet Kaya" parçası ayrıca eşleşmesin.
         """
-        adaylar = []
+        kaynaklar = []  # (aday, serbest_metin_mi)
         for ad in extracted.get("kisi_adlari") or []:
             if isinstance(ad, str):
-                adaylar.append(ad.strip())
+                kaynaklar.append((ad.strip(), False))
 
         for m in _AD_SOYAD_ALANI.finditer(metin):
             # Parantez/virgül sonrası açıklamalar ada dahil edilmez
             deger = re.split(r"[(,;]", m.group(1))[0].strip()
-            adaylar.append(deger)
+            kaynaklar.append((deger, False))
 
-        for desen in (_SAYIN_KISI, _LISTE_KISI, _IMZA_KISI):
+        for desen in (_SAYIN_KISI, _LISTE_KISI, _IMZA_KISI, _ETIKETLI_KISI):
             for m in desen.finditer(metin):
-                adaylar.append(m.group(1).strip())
+                kaynaklar.append((m.group(1).strip(), False))
 
-        # İmza bloğu: tek başına isim satırı + altında unvan/imza satırı
+        for ad in self._imza_blogu_adaylari(metin):
+            kaynaklar.append((ad, False))
+
+        for ad in self._serbest_metin_adaylari(metin):
+            kaynaklar.append((ad, True))
+
+        sira = []
+        serbestlik = {}
+        for ad, serbest in kaynaklar:
+            if not ad:
+                continue
+            if ad not in serbestlik:
+                sira.append(ad)
+                serbestlik[ad] = serbest
+            else:
+                # Kişi bağlamlı kaynak (False) her zaman baskındır
+                serbestlik[ad] = serbestlik[ad] and serbest
+
+        secilen = [ad for ad in sira if self._kisi_adi_mi(ad, serbest=serbestlik[ad])]
+        secilen.sort(key=len, reverse=True)
+        return secilen
+
+    def _imza_blogu_adaylari(self, metin: str) -> "list[str]":
+        """
+        İmza bloğu ve yalın imza satırlarındaki adayları toplar.
+
+        İki kural uygulanır:
+            1) Klasik imza bloğu (belgenin her yerinde): tek başına isim
+               satırının altındaki satır unvan ya da imza işareti taşır
+               ("Ad SOYAD" / "İnsan Kaynakları Müdürü").
+            2) Yalın imza satırı (yalnızca belgenin son bölümünde, resmî
+               yazıda imza bloğu belge sonundadır): tek başına duran
+               isim satırının çevresi boşsa ya da öncesinde kapanış
+               kalıbı ("arz/rica ederim", "saygılarımla"), "OLUR" ibaresi,
+               imza işareti veya unvan satırı (vekâlet: "Vali a.")
+               bulunuyorsa aday sayılır.
+        """
         satirlar = metin.split("\n")
+        son_bolum = max(0, len(satirlar) - _IMZA_BOLGESI_SATIR_SAYISI)
+        adaylar = []
         for i, satir in enumerate(satirlar):
             m = _IMZA_BLOK_ISIM.match(satir)
             if not m:
                 continue
-            sonraki = satirlar[i + 1].strip() if i + 1 < len(satirlar) else ""
+            aday = m.group(1).strip()
+            onceki = self._yakin_dolu_satir(satirlar, i, -1)
+            sonraki = self._yakin_dolu_satir(satirlar, i, 1)
+            onceki_tl = turkish_lower(onceki)
             sonraki_tl = turkish_lower(sonraki)
-            if any(u in sonraki_tl for u in _UNVAN_IPUCLARI) or _IMZA_ISARETI_DESENI.search(sonraki_tl):
-                adaylar.append(m.group(1).strip())
 
-        secilen = []
-        gorulen = set()
-        for ad in adaylar:
-            if not ad or ad in gorulen:
+            # 1) Klasik imza bloğu: altta unvan ya da imza işareti
+            if any(u in sonraki_tl for u in _UNVAN_IPUCLARI) or _IMZA_ISARETI_DESENI.search(sonraki_tl):
+                adaylar.append(aday)
                 continue
-            gorulen.add(ad)
-            if self._kisi_adi_mi(ad):
-                secilen.append(ad)
-        secilen.sort(key=len, reverse=True)
-        return secilen
+
+            # 2) Yalın imza satırı: yalnızca belgenin son bölümünde
+            if i < son_bolum:
+                continue
+            if (
+                _IMZA_ISARETI_DESENI.search(onceki_tl)
+                or any(k in onceki_tl for k in _KAPANIS_IFADELERI)
+                or onceki_tl.rstrip(" .:") == "olur"
+                or any(u in onceki_tl for u in _UNVAN_IPUCLARI)
+                or (not onceki and not sonraki)
+            ):
+                adaylar.append(aday)
+        return adaylar
 
     @staticmethod
-    def _kisi_adi_mi(aday: str) -> bool:
+    def _yakin_dolu_satir(satirlar: "list[str]", i: int, adim: int) -> str:
+        """
+        Verilen satırın komşuluğundaki ilk dolu satırı döndürür.
+
+        İmza bloklarında isim ile unvan/kapanış arasına tek boş satır
+        girebilir; en fazla bir boş satır atlanır (daha uzağa bakmak
+        ilgisiz gövde metnini bağlam sanmaya yol açar). Dolu satır
+        yoksa boş dize döner.
+        """
+        for adet in (1, 2):
+            j = i + adim * adet
+            if not 0 <= j < len(satirlar):
+                return ""
+            satir = satirlar[j].strip()
+            if satir:
+                return satir
+        return ""
+
+    @staticmethod
+    def _serbest_metin_adaylari(metin: str) -> "list[str]":
+        """
+        Serbest metindeki resmî "Ad SOYAD" kalıbı adaylarını toplar.
+
+        Resmî yazışmada soyadı tamamı büyük yazıldığından bu kalıp güçlü
+        bir kişi adı göstergesidir. Yanlış pozitifleri azaltmak için:
+            - adayın başındaki hitap/etiket/belge sözcükleri kırpılır
+              ("Sayın Ahmet YILMAZ" → "Ahmet YILMAZ"),
+            - adayın sonundaki bağlaç/kalıp sözcükler ile il adları
+              kırpılır ("Ali KAYA VE", "Çankaya ANKARA"),
+            - kırpma sonrası en az ad + tamamı büyük soyadı kalmalıdır.
+        Kurum eki denetimi _kisi_adi_mi'de ayrıca yapılır.
+        """
+        adaylar = []
+        for m in _AD_BUYUK_SOYAD.finditer(metin):
+            tokenlar = m.group(0).split()
+            while len(tokenlar) > 2:
+                bas_tl = turkish_lower(tokenlar[0]).rstrip(".:")
+                if bas_tl in _ON_SOZCUK_ENGELLERI or bas_tl.startswith(_ON_GOVDE_ENGELLERI):
+                    tokenlar.pop(0)
+                else:
+                    break
+            while tokenlar:
+                son = tokenlar[-1]
+                son_tl = turkish_lower(son)
+                if son.isupper() and (son_tl in _BUYUK_SOZCUK_ENGELLERI or son_tl in _IL_ADLARI):
+                    tokenlar.pop()
+                else:
+                    break
+            if len(tokenlar) >= 2 and tokenlar[-1].isupper():
+                adaylar.append(" ".join(tokenlar))
+        return adaylar
+
+    @staticmethod
+    def _kisi_adi_mi(aday: str, serbest: bool = False) -> bool:
         """
         Adayın gerçek kişi adı olup olmadığını denetler.
 
@@ -433,7 +661,11 @@ class AnonimlestirmeAgent:
         (etkinlik/kavram: "Halk Günü") barındıran adaylar kişi adı
         sayılmaz; unvan önekleri düşüldükten sonra en az iki sözcük
         (ad + soyad) kalmalıdır (tek sözcük yaygın kelimelerle çakışıp
-        aşırı maskelemeye yol açar).
+        aşırı maskelemeye yol açar). serbest=True (serbest metin kalıbı)
+        adaylarında tamamı büyük sözcükler ek olarak kalıp sözcük ve il
+        adı listeleriyle denetlenir; imza/etiket gibi kişi bağlamlı
+        kaynaklarda bu eleme uygulanmaz ("AYDIN", "CUMA" gerçek soyadı
+        olabilir).
         """
         tl = turkish_lower(aday)
         if any(ipucu in tl for ipucu in _KURUM_IPUCLARI):
@@ -444,6 +676,10 @@ class AnonimlestirmeAgent:
         for token in tokenlar:
             token_tl = turkish_lower(token)
             if token_tl in _MAKAM_SOZCUKLERI or token_tl in _GENEL_AD_SOZCUKLERI:
+                return False
+            if serbest and token.isupper() and (
+                token_tl in _BUYUK_SOZCUK_ENGELLERI or token_tl in _IL_ADLARI
+            ):
                 return False
         return True
 

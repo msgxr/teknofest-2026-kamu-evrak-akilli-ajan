@@ -173,6 +173,99 @@ class TestAnonimlestirmeAgent:
         assert result.anonymization_report["maskelenen"]["kisi_adi"] == 0
 
     # ------------------------------------------------------------------
+    # Kişi adı sızıntısı kapatma: serbest metin / etiketli satır /
+    # yalın imza satırı (resmî "Ad SOYAD" yazım kuralına dayalı)
+    # ------------------------------------------------------------------
+
+    def test_duz_metin_icindeki_ad_soyad_maskelenir(self):
+        """Gövde metnindeki resmî 'Ad SOYAD' kalıbı maskelenmeli."""
+        state = SahteState(
+            raw_text="Başvuru, Fatma Nur DEMİR tarafından teslim edilmiştir."
+        )
+        result = self.agent.run(state)
+        assert "DEMİR" not in result.anonymized_text
+        assert "F*** N*** D***" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 1
+
+    def test_hazirlayan_etiketli_satirdaki_ad_maskelenir(self):
+        """'Hazırlayan:'/'Teslim Alan:' satırındaki ad maskelenmeli, etiket kalmalı."""
+        state = SahteState(
+            raw_text="Hazırlayan : Mehmet Ali ÇAKIR\nTeslim Alan : Zeynep KARA\n"
+        )
+        result = self.agent.run(state)
+        assert "ÇAKIR" not in result.anonymized_text
+        assert "KARA" not in result.anonymized_text
+        assert "Hazırlayan : M*** A*** Ç***" in result.anonymized_text
+        assert "Teslim Alan : Z*** K***" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 2
+
+    def test_yalin_imza_satiri_maskelenir(self):
+        """Altında unvan olmayan yalın 'Ad SOYAD' imza satırı maskelenmeli."""
+        state = SahteState(
+            raw_text="Gereğini bilgilerinize arz ederim.\n\nAhmet YILMAZ\n"
+        )
+        result = self.agent.run(state)
+        assert "YILMAZ" not in result.anonymized_text
+        assert "A*** Y***" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 1
+
+    def test_yalin_imza_satiri_kucuk_soyadla_maskelenir(self):
+        """Kapanış kalıbından sonra 'Ad Soyad' (küçük soyadlı) imza da maskelenmeli."""
+        state = SahteState(
+            raw_text="Saygılarımla arz ederim.\n\nAhmet Yılmaz\n"
+        )
+        result = self.agent.run(state)
+        assert "Yılmaz" not in result.anonymized_text
+        assert "A*** Y***" in result.anonymized_text
+
+    def test_tam_buyuk_kurum_adi_maskelenmez(self):
+        """'MİLLİ TEKNOLOJİ BAKANLIĞI' gibi kurum adları maskelenmemeli."""
+        metin = (
+            "MİLLİ TEKNOLOJİ BAKANLIĞI tarafından yürütülmektedir.\n"
+            "Ar-Ge Destekleri Genel MÜDÜRLÜĞÜ konuyu değerlendirmiştir.\n"
+        )
+        state = SahteState(raw_text=metin)
+        result = self.agent.run(state)
+        assert result.anonymized_text == metin
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 0
+
+    def test_sayin_tek_kelime_unvan_maskelenmez(self):
+        """'Sayın Vali' gibi tek kelimelik makam hitabı maskelenmemeli."""
+        metin = "Sayın Vali, programı teşrifleriniz arz olunur.\n"
+        state = SahteState(raw_text=metin)
+        result = self.agent.run(state)
+        assert result.anonymized_text == metin
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 0
+
+    def test_mahalle_cadde_adi_maskelenmez(self):
+        """Büyük harfli MAHALLESİ/CADDESİ ekli yer adları maskelenmemeli."""
+        metin = (
+            "Etkinlik Cumhuriyet CADDESİ ile Yeşiltepe MAHALLESİ "
+            "sınırları içinde yapılacaktır.\n"
+        )
+        state = SahteState(raw_text=metin)
+        result = self.agent.run(state)
+        assert result.anonymized_text == metin
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 0
+
+    def test_il_adiyla_biten_yer_ifadesi_maskelenmez(self):
+        """Adres kuyruğundaki 'İlçe İL' dizisi ('Çankaya ANKARA') maskelenmemeli."""
+        metin = "Toplantı, Çankaya ANKARA adresindeki hizmet binasında yapılacaktır.\n"
+        state = SahteState(raw_text=metin)
+        result = self.agent.run(state)
+        assert result.anonymized_text == metin
+        assert result.anonymization_report["maskelenen"]["kisi_adi"] == 0
+
+    def test_hitap_sozcugu_maske_disinda_kalir(self):
+        """Serbest metinde 'Sayın Ahmet YILMAZ' hitabında 'Sayın' açık kalmalı."""
+        state = SahteState(
+            raw_text="Program, Sayın Ahmet YILMAZ himayelerinde düzenlenecektir."
+        )
+        result = self.agent.run(state)
+        assert "YILMAZ" not in result.anonymized_text
+        assert "Sayın A*** Y***" in result.anonymized_text
+
+    # ------------------------------------------------------------------
     # Adres
     # ------------------------------------------------------------------
 
