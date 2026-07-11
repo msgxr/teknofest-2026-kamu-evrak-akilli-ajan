@@ -24,7 +24,7 @@ from __future__ import annotations
 import logging
 import re
 from collections import Counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from src.utils.turkish_nlp import (
     extract_sentences,
@@ -44,14 +44,22 @@ _META_ONEKLERI = (
     "t.c.", "sayı:", "sayi:", "konu:", "tarih:", "ilgi:", "ek:", "ekler:",
     "dağıtım:", "gereği:", "bilgi:", "imza", "ad soyad:", "unvan:", "tel:",
     "telefon:", "e-posta:", "eposta:", "adres:", "toplantı tarihi:",
-    "toplantı saati:", "toplantı yeri:", "katılımcılar:", "imzalar:", "sayın ",
+    "toplantı saati:", "toplantı yeri:", "katılımcılar:", "imzalar:",
 )
 
-# Antet satırlarını (kurum adı) gövdeden ayıklamak için kurum ekleri
+# Antet satırlarını (kurum adı) gövdeden ayıklamak için kurum ekleri:
+# Türk kamu yönetiminde kurum/birim adları iyelik ekli unvan adlarıyla
+# ("... Müdürlüğü", "... Koordinatörlüğü", "... Birimi") veya yalın
+# kurumsal biçimle ("Genel Sekreterlik", "Genel Müdürlük") biter; antette
+# ve imza bloğunda geçen bu satırlar cümle değildir.
 _KURUM_EKLERI = (
     "bakanlığı", "müdürlüğü", "başkanlığı", "müşavirliği", "dairesi",
     "kurumu", "kurulu", "ajansı", "enstitüsü", "valiliği", "kaymakamlığı",
     "belediyesi", "üniversitesi", "rektörlüğü", "başkanı", "müdürü",
+    "koordinatörlüğü", "sekreterliği", "dekanlığı", "komutanlığı",
+    "idaresi", "komisyonu", "amirliği", "şefliği", "birimi",
+    "müdürlük", "başkanlık", "sekreterlik", "koordinatörlük", "rektörlük",
+    "müşavirlik",
 )
 
 # Ana talep/karar bildiren ipucu kalıpları (cümle skoruna bonus)
@@ -59,6 +67,40 @@ _IPUCU_KALIPLARI = (
     "arz ederim", "rica ederim", "arz olunur", "kararlaştırıl", "talep",
     "gerekmektedir", "önem taşı", "tespit edil", "uygun bulun",
     "karar veril", "bilgilerinize", "sonuçlanmıştır",
+)
+
+# Adres/iletişim satırı tespiti (turkish_lower uygulanmış satırda aranır):
+# adres birimi kısaltmaları (mahalle/sokak/cadde/bulvar/apartman), kapı
+# numarası kalıbı ("No: 14/3") ve iletişim etiketleri. Dilekçe altındaki
+# gönderici adres blokları cümle değildir; özet gövdesine alınmaz.
+_ADRES_BIRIM_DESENI = re.compile(
+    r"\b(?:mah|mahalle|mahallesi|sok|sk|sokak|sokağı|cad|cadde|caddesi|"
+    r"bulv|bulvar|bulvarı|apt|apartman|apartmanı)\b\.?"
+)
+_KAPI_NO_DESENI = re.compile(r"\bno\s*[:.]?\s*\d")
+_ILETISIM_DESENI = re.compile(
+    r"\b(?:tel|telefon|gsm|faks|fax)\b\s*[:.]|e-?posta|@"
+)
+
+# İmza bloğu tespiti (Resmî Yazışma Yönetmeliği md. 14: imza bloğu
+# ad-soyad, unvan ve imza/e-imza ibaresinden oluşur; soyadı BÜYÜK harfle
+# yazılır). Bu satırlar cümle değildir; özet gövdesine alınmaz.
+_EIMZA_DESENI = re.compile(r"\(\s*(?:e-?\s*)?imza(?:l[ıi]d[ıi]r)?\s*\)", re.IGNORECASE)
+# İmza bloğu / katılımcı satırı: "Ad SOYAD" (yönetmelik biçimi: soyadı
+# BÜYÜK harfle) ile başlayan ve cümle sonu noktalaması taşımayan satır
+# ("Şebnem ALAZLI", "İlker SAZAKLI - Tesisler Birimi Sorumlusu");
+# tutanaklarda katılımcı/imza satırları bu biçimdedir, cümle değildir.
+_IMZA_AD_DESENI = re.compile(
+    r"^(?:[A-ZÇĞİÖŞÜ][\wçğıöşü.]*\s+){1,3}[A-ZÇĞİÖŞÜ]{2,}(?:$|\s*[-–—,:])"
+)
+# İmza bloğu unvan/rol satırı sonekleri: birim-unvan kısaltmaları
+# ("Şb.", "Md.", "Yrd.", "Uzm."), iyelik ekli unvan adları ve
+# tutanak/onay rol adları ("Onaylayan", "Düzenleyen") — kısa satır
+# sonunda cümle kurmaz.
+_IMZA_UNVAN_SONU = re.compile(
+    r"(?:\bşb\.?|\bmd\.?|\byrd\.?|\buzm\.?|şefi|memuru|uzmanı|sorumlusu|"
+    r"görevlisi|mühendisi|teknisyeni|teknikeri|koordinatörü|"
+    r"amiri|onaylayan|düzenleyen|hazırlayan|kontrol eden)$"
 )
 
 
@@ -199,6 +241,12 @@ Kurallar:
         """
         body = self._extract_body(text)
         sentences = extract_sentences(body) or extract_sentences(text)
+        # Tam cümle filtresi: ':'/';' ile biten öncü (eksiltili) yapılar ve
+        # küçük harfle başlayan devam parçaları tek başına özet cümlesi
+        # olamaz (Türkçede cümle büyük harfle ya da rakamla başlar).
+        adaylar = [s for s in sentences if self._tam_cumle_mi(s)]
+        if adaylar:
+            sentences = adaylar
         if not sentences:
             kisa = re.sub(r"\s+", " ", text).strip()
             return kisa[:250] if kisa else "Metin çok kısa olduğu için özet oluşturulamadı."
@@ -260,61 +308,232 @@ Kurallar:
         parcalar = []
         for _, _, sentence in secilenler:
             temiz = re.sub(r"\s+", " ", sentence).strip()
+            # Bağlanma bildiren son noktalama (';', ':', ',') özet
+            # cümlesinde bırakılmaz; cümle nokta ile kapatılır.
+            temiz = temiz.rstrip(" ;:,-")
             if temiz and temiz[-1] not in ".!?":
                 temiz += "."
-            parcalar.append(temiz)
+            if temiz:
+                parcalar.append(temiz)
         return " ".join(parcalar)
 
     @staticmethod
-    def _extract_body(text: str) -> str:
+    def _tam_cumle_mi(sentence: str) -> bool:
+        """
+        Cümlenin tek başına kullanılabilir TAM bir cümle olup olmadığını
+        dilbilgisi temelli denetler:
+        - ':' veya ';' ile biten yapı kendinden sonraki bloğa bağlanan
+          öncü/eksiltili yapıdır; tek başına cümle sayılmaz.
+        - Türkçede cümle büyük harfle veya rakamla başlar; küçük harfle
+          başlayan parça bir önceki yapının devamıdır (yarım cümle).
+        """
+        s = sentence.strip()
+        if not s:
+            return False
+        if s[-1] in ";:,":
+            return False
+        ilk = s.lstrip("(\"'“”‘’ ")[:1]
+        if ilk.isalpha() and turkish_upper(ilk) != ilk:
+            return False
+        return True
+
+    @classmethod
+    def _tam_cumle_yapili(cls, govde: str) -> bool:
+        """
+        Madde işareti soyulmuş liste gövdesinin tek başına TAM bir cümle
+        olup olmadığını denetler.
+
+        TDK yazım kurallarına göre madde işaretinden sonra gelen ifade
+        tam cümle ise büyük harfle başlar ve nokta ile biter ("1. Tüm
+        birimler ... uygulayacaktır."). Bir giriş cümlesine bağlanan
+        eksiltili maddeler ise küçük harfle başlar ve virgülle ya da
+        noktalamasız biter ("Görevlendirilen personelin; 1) kimlik
+        taşıması,"). Bu nedenle hem cümle sonu noktalaması (./!/?) hem
+        de _tam_cumle_mi'nin büyük harf/rakam başlangıç şartı aranır.
+        """
+        g = govde.strip()
+        return bool(g) and g[-1] in ".!?" and cls._tam_cumle_mi(g)
+
+    @classmethod
+    def _extract_body(cls, text: str) -> str:
         """
         Özet için gövde metnini ayıklar: antet, alan satırları (Sayı/Konu/İlgi…),
-        büyük harfli başlık/hitap satırları ve imza çizgileri atılır.
+        büyük harfli başlık/hitap satırları, adres/iletişim satırları ve
+        imza çizgileri atılır.
+
+        İki geçişli çalışır: önce her satır tek başına sınıflandırılır,
+        sonra bağlam kuralları uygulanır. Türkçe dilbilgisinde ':' veya ';'
+        ile biten satır kendinden sonraki bloğa bağlanan öncü (eksiltili)
+        yapıdır; bağlandığı blok (madde listesi vb.) atılmışsa öncü de tek
+        başına cümle sayılmaz. Küçük harfle başlayan satır bir önceki
+        yapının devamıdır; önceki satır atılmışsa devam parçası da yarım
+        kaldığı için atılır. Böylece madde listesi ayıklanan metinlerde
+        giriş ve kapanış parçaları birleşerek sahte cümle üretmez.
         """
-        kept = []
+        satirlar = []
+        durumlar = []
         for line in text.split("\n"):
-            stripped = line.strip()
-            if not stripped:
+            islenmis = cls._satir_govde(line.strip())
+            if islenmis == "":
+                satirlar.append("")
+                durumlar.append("bos")
+            elif islenmis is None:
+                satirlar.append(line.strip())
+                durumlar.append("at")
+            else:
+                satirlar.append(islenmis)
+                durumlar.append("tut")
+
+        # 2. geçiş: bağlam kuralları (öncü satır / devam parçası)
+        kept = []
+        onceki_durum = ""  # son boş olmayan satırın (güncellenmiş) durumu
+        for i, stripped in enumerate(satirlar):
+            durum = durumlar[i]
+            if durum == "bos":
                 kept.append("")
                 continue
-            # Hiç harf içermeyen satırlar (yalın sayı/referans: "2026/11")
-            if not any(c.isalpha() for c in stripped):
-                continue
-            # ":" etrafını sıkıştırarak önek karşılaştırması yap
-            compact = re.sub(r"\s*:\s*", ":", turkish_lower(stripped))
-            if any(compact.startswith(onek) for onek in _META_ONEKLERI):
-                continue
-            # Genel üstveri deseni: kısa 'Etiket :' satırları ("Saat :",
-            # "Yer :", "Rapor No :", "Hazırlayan :", "İşin adı :" …)
-            # cümle değil alan satırıdır; özet gövdesine alınmaz. Değeri
-            # tam cümle olan satırlar ("Gündem 1: … kararlaştırılmıştır.")
-            # içerik taşıdığından korunur.
-            etiket = re.match(r"^([^:]{1,35}?)\s*:\s*(.*)$", stripped)
-            if etiket and len(etiket.group(1).split()) <= 4:
-                deger = etiket.group(2).strip()
-                if len(deger.split()) <= 5 or deger[-1:] not in ".!?":
-                    continue
-            # İlgi devam maddeleri: "b) 05/01/2026 tarihli …"
-            if re.match(r"^[a-zçğıöşü]\)\s", stripped):
-                continue
-            # Numaralı liste maddeleri (cümle bütünlüğünü bozan fragmanlar)
-            if re.match(r"^\d{1,2}[.)\-]\s", stripped):
-                continue
-            # Kısa bölüm başlıkları: "Gündem:", "Görüşmeler ve Kararlar:" vb.
-            if stripped.endswith(":") and len(stripped.split()) <= 4:
-                continue
-            # Tamamı büyük harf satırlar (başlık/hitap/antet)
-            if stripped == turkish_upper(stripped) and any(c.isalpha() for c in stripped):
-                continue
-            # Kurum/unvan antet satırları (kısa, kurum ekiyle biten)
-            tl_line = turkish_lower(stripped).rstrip(",;.")
-            if len(stripped.split()) <= 7 and any(tl_line.endswith(ek) for ek in _KURUM_EKLERI):
-                continue
-            # İmza çizgisi içeren satırlar
-            if re.search(r"_{3,}", stripped):
-                continue
-            kept.append(stripped)
+            if durum == "tut":
+                # Öncü satır: ':'/';' ile bitiyor ve bağlandığı sonraki
+                # blok atılmışsa eksiltili parça satırdan çıkarılır;
+                # satırda öncüden ÖNCE gelen tam cümleler korunur
+                # ("… belirtilmiştir. Görevlendirilen personelin;" →
+                # yalnızca son parça atılır). Cümlesiz kalan satır
+                # bütünüyle atılır.
+                if stripped[-1] in ":;":
+                    sonraki = next(
+                        (durumlar[j] for j in range(i + 1, len(satirlar))
+                         if durumlar[j] != "bos"),
+                        "",
+                    )
+                    if sonraki != "tut":
+                        tamlar = [
+                            p for p in extract_sentences(stripped)
+                            if p.strip()[-1:] in (".", "!", "?")
+                        ]
+                        if tamlar:
+                            stripped = " ".join(tamlar)
+                        else:
+                            durum = "at"
+                # Devam parçası: küçük harfle başlıyor ve önceki yapı
+                # atılmışsa yarım parça satır başından atılır; satırın
+                # devamındaki tam cümleler korunur ("gerekmektedir.
+                # Sürecin takibi …" → "Sürecin takibi …"). Tam cümle
+                # kalmıyorsa satır bütünüyle atılır.
+                if durum == "tut" and onceki_durum == "at":
+                    ilk = next((c for c in stripped if c.isalpha()), "")
+                    if ilk and turkish_upper(ilk) != ilk:
+                        parcalar = extract_sentences(stripped)
+                        while parcalar and not cls._tam_cumle_mi(parcalar[0]):
+                            parcalar.pop(0)
+                        if parcalar:
+                            stripped = " ".join(parcalar)
+                        else:
+                            durum = "at"
+            if durum == "tut":
+                kept.append(stripped)
+            onceki_durum = durum
         return "\n".join(kept)
+
+    @classmethod
+    def _satir_govde(cls, stripped: str) -> Optional[str]:
+        """
+        Satırın özet gövdesine girecek işlenmiş halini döndürür
+        (1. geçiş sınıflandırması):
+        - "" → boş satır (paragraf sınırı korunur),
+        - None → gövdeye alınmaz,
+        - str → gövdeye alınacak metin (madde işareti soyulmuş olabilir).
+        """
+        if not stripped:
+            return ""
+        # Hiç harf içermeyen satırlar (yalın sayı/referans: "2026/11")
+        if not any(c.isalpha() for c in stripped):
+            return None
+        # ":" etrafını sıkıştırarak önek karşılaştırması yap
+        compact = re.sub(r"\s*:\s*", ":", turkish_lower(stripped))
+        if any(compact.startswith(onek) for onek in _META_ONEKLERI):
+            return None
+        # Hitap satırı: TDK'ya göre hitap sözleri ("Sayın Ali VELİ,")
+        # ayrı satıra yazılır ve virgülle biter; cümle değildir → atılır.
+        # Hitapla başlayıp TAM cümle içeren satırlar ("Sayın yetkili,
+        # mahallemizde … yaşanmaktadır.") içerik taşıdığından korunur.
+        if turkish_lower(stripped).startswith("sayın ") and (
+            stripped[-1] not in ".!?" or len(stripped.split()) <= 4
+        ):
+            return None
+        # Genel üstveri deseni: kısa 'Etiket :' satırları ("Saat :",
+        # "Yer :", "Rapor No :", "Hazırlayan :", "İşin adı :" …)
+        # cümle değil alan satırıdır; özet gövdesine alınmaz. Değeri
+        # tam cümle olan satırlar ("Gündem 1: … kararlaştırılmıştır.")
+        # içerik taşıdığından korunur.
+        etiket = re.match(r"^([^:]{1,35}?)\s*:\s*(.*)$", stripped)
+        if etiket and len(etiket.group(1).split()) <= 4:
+            deger = etiket.group(2).strip()
+            if len(deger.split()) <= 5 or deger[-1:] not in ".!?":
+                return None
+        # Liste maddeleri ("1) …", "a) …", "3. …"): işaret soyulduğunda
+        # TAM CÜMLE olan maddeler (genelge talimatı, tutanak kararı gibi
+        # "… edilecektir." / "… kararlaştırıldı." biçiminde çekimli
+        # yüklemle biten) içerik cümlesidir ve işaretsiz olarak gövdeye
+        # alınır; virgülle/eksiltili biten madde parçaları atılır.
+        madde = re.match(r"^(?:\d{1,2}[.)\-]|[a-zçğıöşü]\))\s+(.*)$", stripped)
+        if madde:
+            govde = madde.group(1).strip()
+            return govde if cls._tam_cumle_yapili(govde) else None
+        # Kısa bölüm başlıkları: "Gündem:", "Görüşmeler ve Kararlar:" vb.
+        if stripped.endswith(":") and len(stripped.split()) <= 4:
+            return None
+        # Tamamı büyük harf satırlar (başlık/hitap/antet)
+        if stripped == turkish_upper(stripped):
+            return None
+        # Kurum/unvan antet satırları (kısa, kurum ekiyle biten) ve
+        # yönelme hâlindeki hitap satırları ("… Müdürlüğüne",
+        # "… Başkanlığına"): hitap, yazının yöneldiği makamı gösterir,
+        # cümle değildir; gövde cümlelerine yapışmaması için atılır.
+        tl_line = turkish_lower(stripped)
+        tl_kisa = tl_line.rstrip(",;.")
+        if len(stripped.split()) <= 7 and any(
+            tl_kisa.endswith(ek) or tl_kisa.endswith(ek + "ne")
+            or tl_kisa.endswith(ek + "na")
+            for ek in _KURUM_EKLERI
+        ):
+            return None
+        # Adres/iletişim satırları: iletişim etiketi, kapı numarası veya
+        # birden çok adres birimi içeren ve cümle gibi bitmeyen satırlar
+        # gönderici adres bloğudur; gövde cümlesi sayılmaz. Satır sonundaki
+        # kısaltma noktası ("… Papatya Sk.") cümle sonu sayılmaz; buna
+        # karşılık gerçek cümleler ("… No: 5 adresinde su kesintisi
+        # yaşanmaktadır.") korunur.
+        cumle_gibi = stripped[-1] in ".!?" and not re.search(
+            r"\b(?:mah|sok|sk|cad|cd|bulv|blv|apt|no)\.$", tl_line
+        )
+        if not cumle_gibi and (
+            _ILETISIM_DESENI.search(tl_line)
+            or _KAPI_NO_DESENI.search(tl_line)
+            or len(_ADRES_BIRIM_DESENI.findall(tl_line)) >= 2
+        ):
+            return None
+        # İmza çizgisi içeren satırlar
+        if re.search(r"_{3,}", stripped):
+            return None
+        # Tamamı parantez içindeki satır ("(İl Makamına sunulmak üzere)",
+        # "(e-imzalıdır)"): TDK'ya göre parantez içi ibare cümlenin
+        # kurucu ögesi değildir; tek başına satır oluşturan parantezli
+        # not/ibare gövde cümlesi sayılmaz.
+        if stripped.startswith("(") and stripped.endswith(")"):
+            return None
+        # İmza bloğu satırları (Resmî Yazışma Yönetmeliği: imza bloğu
+        # ad-soyad, unvan ve imza/e-imza ibaresinden oluşur; cümle
+        # değildir): e-imza ibaresi taşıyan ve cümle gibi bitmeyen satır,
+        # BÜYÜK soyadılı ad-soyad satırı, kısa unvan/rol satırı atılır.
+        if _EIMZA_DESENI.search(stripped) and stripped[-1] not in ".!?":
+            return None
+        if _IMZA_AD_DESENI.match(stripped) and stripped[-1] not in ".!?":
+            return None
+        if len(stripped.split()) <= 5 and stripped[-1] not in "!?" and (
+            _IMZA_UNVAN_SONU.search(turkish_lower(stripped).rstrip("."))
+        ):
+            return None
+        return stripped
 
     @staticmethod
     def _tokenize(text: str) -> list:

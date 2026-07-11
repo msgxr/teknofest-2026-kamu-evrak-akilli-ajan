@@ -95,6 +95,57 @@ _EVRAK_KAYNAK_ADI = {
 # yerine genel "ilgili mevzuat hükümleri" ifadesi kullanılır.
 MEVZUAT_ATIF_ESIGI = 0.6
 
+# Birinci şahıs (başvuru sahibi ağzından) cümle tespiti: resmî yazı üçüncü
+# şahıs anlatımla yazılır (Resmî Yazışma Yönetmeliği'nin öngördüğü resmî
+# üslup); vatandaşın "abonesi olduğum … anlamış bulunmaktayım" gibi
+# birinci-şahıs cümleleri kurum yazısına aynen aktarılmaz. Tespit,
+# Türkçe morfolojisine dayanır: birinci şahıs zamirleri ile fiil/iyelik
+# ekleri (-DIğIm, -mAktAyIm, -Iyorum, -mIşIm, -mAlIyIm, "ederim" vb.).
+_BIRINCI_SAHIS_KELIMELER = frozenset({
+    "ben", "benim", "bana", "beni", "bende", "benden",
+    "biz", "bizim", "bize", "bizi", "bizler",
+    "şahsım", "şahsıma", "şahsımın", "adıma",
+    "tarafıma", "tarafımdan", "tarafımca",
+})
+_BIRINCI_SAHIS_EK = re.compile(
+    r"(?:"
+    r"[dt][ıiuü]ğ[ıiuü]m(?:[ıi]z)?"        # olduğum, ikamet ettiğimiz
+    r"|makta(?:yım|yız)|mekte(?:yim|yiz)"  # bulunmaktayım, etmekteyiz
+    r"|[ıiuü]yor(?:um|uz)"                 # istiyorum, ediyoruz
+    r"|m[ıiuü]ş[ıiuü](?:m|z)"              # kalmışım, olmuşuz
+    r"|mal[ıi]y[ıi](?:m|z)|meli(?:yim|yiz)"  # yapmalıyım, etmeliyiz
+    r"|eder[ıi]m|eder[ıi]z|[ıi]ster[ıi]m|[ıi]ster[ıi]z"  # arz ederim …
+    r"|sunar[ıi]m|sunar[ıi]z|d[ıi]ler[ıi]m|d[ıi]ler[ıi]z"
+    r"|l[ae]r[ıi]m(?:[ıiae]|d[ae]n?)?"     # belgelerim, hareketlerime (tekil iyelik)
+    r")$"
+)
+
+# Ad + 1. tekil koşacı ("hissedarıyım", "abonesiyim"): iyelikli ada
+# y kaynaştırmasıyla eklenen koşaç dar ünlü taşır ([ıiuü]y[ıiuü]m).
+# En az 7 harf şartı, aynı diziyle biten yalın adları ("uyum", "giyim",
+# "duyum") dışarıda bırakır — koşaçlı yüklem kök+iyelik+koşaç içerdiği
+# için zorunlu olarak daha uzundur.
+_BIRINCI_SAHIS_KOSAC = re.compile(r"[ıiuü]y[ıiuü]m$")
+
+# Cümle sonundaki çekimli yüklemler ("tespit edilmiştir",
+# "yaşanmaktadır", "geçilecektir"): Konu satırı, yönetmelik gereği
+# yazının konusunu özetleyen bir AD ÖBEĞİdir; cümleden konu türetilirken
+# çekimli yüklem atılır.
+_CEKIMLI_YUKLEM = re.compile(
+    r"(?:m[ıiuü]şt[ıiuü]r|m[ae]kt[ae]d[ıi]r|[ae]c[ae]kt[ıi]r"
+    r"|m[ae]l[ıi]d[ıi]r|mekted[ıi]r)$"
+)
+# Yardımcı fiille birleşik yüklem kuran ad ögeleri ("tespit edilmiştir")
+_YUKLEM_AD_OGELERI = frozenset({
+    "tespit", "talep", "teslim", "tebliğ", "ifade", "beyan", "karar",
+    "kabul", "tesis", "arz", "rica", "teşekkür", "devam", "elde",
+})
+# Cümle başındaki bağlayıcılar (konuya taşınmaz)
+_BAS_BAGLAYICILAR = frozenset({
+    "ayrıca", "ancak", "nitekim", "dolayısıyla", "bununla", "birlikte",
+    "öte", "yandan", "oysa", "üstelik",
+})
+
 # Gelen evrak türü → üretilecek yazı türü eşlemesi
 DRAFT_TYPE_MAP = {
     "dilekce": "cevap_yazisi",
@@ -538,18 +589,22 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
 
         if yazi_turu == "eksik_bilgi_talep":
             if konu:
-                kisa = self._baglanti_icin_temizle(self._kisalt(konu, 60))
+                kisa = self._konu_bas_harfi(
+                    self._baglanti_icin_temizle(self._kisalt(konu, 60))
+                )
                 return f"{kisa} başvurusundaki eksik bilgi ve belgelerin tamamlanması hk."
             return "Başvurudaki eksik bilgi ve belgelerin tamamlanması hk."
 
         if yazi_turu == "iade_ikmal_notu":
             if konu:
-                kisa = self._baglanti_icin_temizle(self._kisalt(konu, 60))
+                kisa = self._konu_bas_harfi(
+                    self._baglanti_icin_temizle(self._kisalt(konu, 60))
+                )
                 return f"{kisa} konulu evraktaki eksik unsurların ikmali hk."
             return "Evraktaki eksik unsurların ikmali hk."
 
         if konu:
-            kisa = self._kisalt(konu, 100)
+            kisa = self._konu_bas_harfi(self._kisalt(konu, 100))
             kucuk = turkish_lower(kisa)
             if kucuk.endswith("hakkında") or kucuk.endswith("hk.") or kucuk.endswith("hk"):
                 return kisa
@@ -561,7 +616,9 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
     def _konu_metni(self, extracted: dict, state: "AgentState") -> str:
         """
         Konu için ham metni belirler: "Konu :" alanı > belge başlığı >
-        summary_body ilk cümlesi. Alan etiketi kalıntıları temizlenir.
+        summary_body ilk NESNEL cümlesi. Alan etiketi kalıntıları
+        temizlenir; başvuru sahibinin birinci-şahıs cümleleri Konu
+        satırına taşınmaz (resmî yazı üçüncü şahıs anlatım gerektirir).
         """
         konu = self._etiket_temizle((extracted.get("konu") or "").strip().rstrip("."))
         if konu:
@@ -574,10 +631,36 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         for cumle in extract_sentences(
             re.sub(r"\s+", " ", state.summary_body or "").strip()
         ):
-            temiz = self._etiket_temizle(cumle).strip().rstrip(".")
+            if self._birinci_sahis_mi(cumle):
+                continue
+            temiz = self._cumleden_konu(
+                self._etiket_temizle(cumle).strip().rstrip(".")
+            )
             if len(temiz.split()) >= 3:
                 return temiz
         return ""
+
+    @staticmethod
+    def _cumleden_konu(text: str) -> str:
+        """
+        Cümleden Konu satırına uygun ad öbeği türetir.
+
+        Konu satırı, Resmî Yazışma Yönetmeliği'ne göre yazının konusunu
+        özetleyen bir ad öbeğidir; çekimli cümle değildir. Bu nedenle
+        cümle başındaki bağlayıcılar ("Ayrıca", "Ancak" …) ile sondaki
+        çekimli yüklem ("tespit edilmiştir", "yaşanmaktadır" …) atılır;
+        Türkçe özne/tümleçler yüklemden önce geldiği için kalan parça
+        dilbilgisel bütünlüğünü korur.
+        """
+        kelimeler = (text or "").split()
+        while kelimeler and turkish_lower(kelimeler[0]).strip(",;") in _BAS_BAGLAYICILAR:
+            kelimeler.pop(0)
+        if kelimeler and _CEKIMLI_YUKLEM.search(turkish_lower(kelimeler[-1])):
+            kelimeler.pop()
+            # Birleşik yüklemin ad ögesi de atılır ("tespit edilmiştir")
+            if kelimeler and turkish_lower(kelimeler[-1]) in _YUKLEM_AD_OGELERI:
+                kelimeler.pop()
+        return " ".join(kelimeler).strip(" ,;:-")
 
     @staticmethod
     def _etiket_temizle(text: str) -> str:
@@ -619,19 +702,63 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
 
     @staticmethod
     def _kisalt(text: str, maks: int) -> str:
-        """Metni kelime sınırında kısaltır (kelime ortasında kesmez)."""
+        """
+        Metni öbek bütünlüğünü koruyarak kısaltır.
+
+        Sırasıyla:
+        1. Sığıyorsa olduğu gibi döner.
+        2. Sınır içindeki SON öbek sınırında keser: virgül/noktalı virgül
+           veya 've / ile / veya' bağlacı — bağlaçla/virgülle bağlanan
+           öbeklerin ilki kendi başına dilbilgisel bütünlük taşır.
+        3. Öbek sınırı yoksa öndeki kelimeler atılır: Türkçe baş-sona
+           (head-final) bir dildir, ad öbeğinin başı (asıl ad) sondadır;
+           öndeki niteleyiciler atılınca öbek başı korunur ("depolardaki
+           dayanıklı taşınır malların yıl sonu sayımı" → "malların yıl
+           sonu sayımı"). Böylece kesme kelime veya öbek ortasına düşmez.
+        """
         temiz = re.sub(r"\s+", " ", text or "").strip()
         if len(temiz) <= maks:
             return temiz
-        kesik = temiz[: maks + 1]
-        if " " in kesik:
-            kesik = kesik[: kesik.rfind(" ")]
-        kelimeler = kesik.split()
-        while kelimeler and turkish_lower(kelimeler[-1]) in (
-            "ve", "ile", "veya", "için", "olan", "ya", "da", "de",
+
+        # 2) Öbek sınırında kesme (yeterince uzun bir ön parça kalıyorsa)
+        bolge = temiz[: maks + 1]
+        sinir = -1
+        for m in re.finditer(r"[,;]\s|\s(?:ve|ile|veya)\s", bolge):
+            sinir = m.start()
+        if sinir >= maks // 2:
+            return bolge[:sinir].rstrip(" ,;:-")
+
+        # 3) Baş-sona ilkesi: öbek başı (son kelimeler) korunur,
+        #    öndeki niteleyiciler atılır.
+        kelimeler = temiz.split()
+        while len(kelimeler) > 1 and len(" ".join(kelimeler)) > maks:
+            kelimeler.pop(0)
+        # Başta sarkan bağlaç/edat artıkları atılır
+        while len(kelimeler) > 1 and turkish_lower(kelimeler[0]) in (
+            "ve", "ile", "veya", "için", "olan", "ya", "da", "de", "ki",
         ):
-            kelimeler.pop()
-        return " ".join(kelimeler).rstrip(" ,;:-")
+            kelimeler.pop(0)
+        sonuc = " ".join(kelimeler).strip(" ,;:-")
+        if len(sonuc) <= maks:
+            return sonuc
+        # Tek kelime bile sığmıyorsa son çare: sınırda kes
+        return sonuc[:maks].rstrip()
+
+    @staticmethod
+    def _konu_bas_harfi(konu: str) -> str:
+        """
+        Konu satırının ilk harfini Türkçe kurala göre büyütür.
+
+        Yönetmelik örneklerinde Konu satırı büyük harfle başlar; baş-sona
+        (head-final) kısaltmada öndeki niteleyiciler atıldığında kalan ad
+        öbeği küçük harfle başlayabilir ("ambarındaki taşınır malların…");
+        satır başı bu durumda büyütülür. Rakamla başlayan konu
+        ("2026/62 numaralı…") olduğu gibi bırakılır.
+        """
+        t = (konu or "").strip()
+        if t and t[0].isalpha() and turkish_lower(t[0]) == t[0]:
+            return _tr_upper(t[0]) + t[1:]
+        return t
 
     @staticmethod
     def _baglanti_icin_temizle(konu: str) -> str:
@@ -855,6 +982,22 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         return "\n\n".join(paragraflar)
 
     @staticmethod
+    def _birinci_sahis_mi(cumle: str) -> bool:
+        """
+        Cümlenin birinci şahıs (başvuru sahibi ağzından) yazılıp
+        yazılmadığını Türkçe morfolojisiyle sezer: birinci şahıs zamirleri
+        veya birinci şahıs fiil/iyelik ekleri (-DIğIm, -mAktAyIm, -Iyorum,
+        "arz ederim" vb.) taşıyan kelime varsa True döner.
+        """
+        for token in re.findall(r"[^\W\d_]+", turkish_lower(cumle)):
+            if token in _BIRINCI_SAHIS_KELIMELER or _BIRINCI_SAHIS_EK.search(token):
+                return True
+            if len(token) >= 7 and _BIRINCI_SAHIS_KOSAC.search(token):
+                # hissedarıyım, abonesiyim (ad + 1. tekil koşacı)
+                return True
+        return False
+
+    @staticmethod
     def _ozet_cumleleri(state: "AgentState", sinir: int = 350) -> list:
         """
         Özet atfı için künyesiz özet gövdesinden tam cümleler seçer.
@@ -862,6 +1005,12 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         Kesme cümle sınırında yapılır (turkish_nlp.extract_sentences);
         toplam uzunluk sınırı aşılınca sonraki cümleler alınmaz. Özet
         gövdesi yoksa ham metnin cümlelerine düşülür.
+
+        Resmî yazı üçüncü şahıs anlatım gerektirdiğinden, başvuru
+        sahibinin birinci-şahıs cümleleri ("abonesi olduğum …",
+        "… anlamış bulunmaktayım") atıf paragrafına aynen alınmaz; bu
+        cümleler atlanır, kalan nesnel cümleler kullanılır. ':' veya ';'
+        ile biten eksiltili parçalar da tam cümle sayılmaz.
         """
         kaynak = re.sub(r"\s+", " ", state.summary_body or "").strip()
         if not kaynak:
@@ -871,8 +1020,10 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         secilen = []
         toplam = 0
         for cumle in extract_sentences(kaynak):
-            cumle = cumle.strip()
+            cumle = cumle.strip().rstrip(";:,-").strip()
             if not cumle:
+                continue
+            if DraftWriterAgent._birinci_sahis_mi(cumle):
                 continue
             if secilen and toplam + len(cumle) > sinir:
                 break
@@ -1027,6 +1178,8 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
                 # Morfolojik yönelme deseni: …MÜDÜRLÜĞÜNE, …MÜŞAVİRLİĞİNE,
                 # …BAŞKANLIĞINA, …VALİLİĞİNE vb.
                 re.search(r"[A-ZÇĞİÖŞÜ]L[IİUÜ][GĞ][IİUÜ]N[AE]\b", draft)
+                # Çoğul yönelme hitabı: …MÜDÜRLÜKLERİNE, …KURUMLARINA
+                or re.search(r"[A-ZÇĞİÖŞÜ]L[AE]R[Iİ]?N[AE]\b", draft)
                 or re.search(
                     r"\b(?:MAKAMINA|DAİRESİNE|KURULUNA|KURUMUNA|"
                     r"KOMİSYONUNA|BİRİMLERE|BİRİME|İLGİLİLERE)\b",
