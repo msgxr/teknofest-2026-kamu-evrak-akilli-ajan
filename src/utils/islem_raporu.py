@@ -322,12 +322,20 @@ def _bolum_format(sonuc: dict) -> str:
                     kontrol.get("kural") or kontrol.get("kontrol") or kontrol.get("ad")
                     or kontrol.get("baslik") or kontrol.get("aciklama") or str(kontrol)
                 )
-                gecti = kontrol.get("gecti", kontrol.get("uygun", kontrol.get("sonuc")))
+                gecti = kontrol.get(
+                    "gecti",
+                    kontrol.get("uygun", kontrol.get("sonuc", kontrol.get("durum"))),
+                )
                 isaret = '<span class="basarili">✓</span>' if gecti else '<span class="basarisiz">✗</span>'
                 detay = kontrol.get("detay") or kontrol.get("mesaj") or ""
-                maddeler.append(
-                    f"<li>{isaret} {_e(ad)}" + (f" — <em>{_e(detay)}</em>" if detay else "") + "</li>"
-                )
+                dayanak = kontrol.get("dayanak") or ""
+                madde = f"<li>{isaret} {_e(ad)}"
+                if detay:
+                    madde += f" — <em>{_e(detay)}</em>"
+                if dayanak:
+                    # Denetim kuralının yönetmelik dayanağı (madde/fıkra)
+                    madde += f' <span class="not">[{_e(dayanak)}]</span>'
+                maddeler.append(madde + "</li>")
             else:
                 maddeler.append(f"<li>{_e(kontrol)}</li>")
         parcalar.append("<ul>" + "".join(maddeler) + "</ul>")

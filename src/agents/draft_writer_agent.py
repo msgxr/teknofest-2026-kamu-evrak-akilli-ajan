@@ -202,6 +202,58 @@ _DAGITIM_SATIRI = re.compile(r"^\s*(?:Gereği|Bilgi)\s*:\s*(.+)$", re.IGNORECASE
 # Gelen evrakta ek beyanı ("Ek :", "Ekler :", "Ek-1", "EKLER:") tespiti
 _EK_BEYANI = re.compile(r"(?mi)^\s*ek(?:ler)?\s*(?:-?\s*\d+\s*)?:")
 
+# ----------------------------------------------------------------------
+# Madde-referanslı format denetimi sabitleri (P0-2)
+#
+# Her denetim kuralı {kural_id, kural, durum, detay, dayanak, agirlik}
+# şemasıyla raporlanır. Dayanaklar, 2646 sayılı Cumhurbaşkanı Kararı'nın
+# (Resmî Yazışmalarda Uygulanacak Usul ve Esaslar Hakkında Yönetmelik,
+# RG 10.06.2020/31151) RESMÎ metninden fıkra düzeyinde doğrulanmıştır
+# (mevzuat.gov.tr + tccb.gov.tr çapraz kontrol, 11.07.2026). Uydurma
+# madde atfı yapılmaz; yönetmelikte karşılığı olmayan iç kalite kuralları
+# "iç kalite kuralı" dayanağıyla işaretlenir.
+# ----------------------------------------------------------------------
+
+# m.11/1-2: sayı = "E"/"Z"/"O" ibaresi + DETSİS'teki Devlet Teşkilatı
+# Numarası + standart dosya planı kodu + kayıt numarası, kısa çizgiyle
+# (örnek biçim m.11/2: E-67915368-903.07.02-4752)
+_SAYI_BICIM_DESENI = re.compile(r"\b[EZO]-\d{8}-[\d.]+-\d+\b")
+
+# Sayı ve Konu satırlarının değerlerini yakalar (biçim/özlük denetimi)
+_SAYI_SATIRI = re.compile(r"(?mi)^\s*Say[ıi]\s*:\s*(.+)$")
+_KONU_SATIRI = re.compile(r"(?mi)^\s*Konu\s*:\s*(.+)$")
+
+# m.13/2 "kısa ve öz" konunun makul mühendislik karşılığı: bu uzunluğu
+# aşan konu uyarılır (yönetmelikte katı karakter sınırı yoktur; m.13/1
+# konunun birden çok satıra taşmasına da izin verir)
+_KONU_AZAMI_UZUNLUK = 160
+
+# m.16/8: zorunlu olmadıkça yabancı dillerden kelime kullanılmaz.
+# Kamu yazışmalarında sık görülen, yerleşik Türkçe karşılığı olan örnekler:
+_YABANCI_KELIMELER = (
+    "attachment", "deadline", "download", "e-mail", "email", "feedback",
+    "mail", "meeting", "online", "server", "update", "upload",
+)
+_YABANCI_KELIME_DESENI = re.compile(
+    r"\b(" + "|".join(_YABANCI_KELIMELER) + r")\b", re.IGNORECASE
+)
+
+# m.16/10: maddelemede Türk alfabesindeki KÜÇÜK harfler KAPAMA PARANTEZİ
+# ile kullanılır: "a)" — "a." veya "A)" biçimleri yönetmeliğe aykırıdır
+_MADDELEME_SATIRI = re.compile(r"(?m)^\s*([a-zçğıöşüA-ZÇĞİÖŞÜ])([.)])\s+")
+
+# m.17/9: yetki devrinde imza bloğunda "... a." ibaresi (ör. "Vali a.");
+# ibarenin ALTINDA imzalayanın unvanı yer alır. Aynı fıkra: iç
+# yazışmalarda yetki devredenin unvanı kullanılmaz.
+_YETKI_DEVRI_SATIRI = re.compile(r"(?m)^[^\S\n]*\S[^\n]*\sa\.[^\S\n]*$")
+
+# m.25 (gizlilik dereceli belgeler) + m.26/4 (KİŞİYE ÖZEL): damga,
+# tek başına satır hâlinde büyük harflerle aranır (tesadüfi kelime
+# eşleşmesini önlemek için)
+_GIZLILIK_DAMGASI = re.compile(
+    r"(?m)^\s*(ÇOK GİZLİ|GİZLİ|HİZMETE ÖZEL|KİŞİYE ÖZEL)\s*$"
+)
+
 # BÜYÜK harf hitap/yönelme biçimleri (…MÜDÜRLÜĞÜNE, …BAŞKANLIĞINA,
 # …MAKAMINA, …BİRİMLERE benzeri) — morfolojik desen
 _HITAP_SONU = re.compile(
@@ -268,9 +320,24 @@ class DraftWriterAgent:
         draft, yontem = self._generate_draft(yazi_turu, state)
         state.draft_text = draft
 
-        validation = self._validate_format(draft, yazi_turu)
+        gizlilik = self._gizlilik_damgasi(state.raw_text)
+        validation = self._validate_format(
+            draft, yazi_turu, gizlilik_damgasi=gizlilik
+        )
         validation["uretim_yontemi"] = yontem
         state.format_validation = validation
+
+        # m.25: gizlilik dereceli evrak kısıtlı modda işlenir — üretilen
+        # taslak ancak insan onayıyla kullanılabilir (Kapı 3 mekanizması)
+        if gizlilik:
+            state.human_review_required = True
+            neden = (
+                f"Kaynak evrak '{gizlilik}' damgası taşıyor; gizlilik "
+                "dereceli evrakta taslak yalnızca insan onayıyla "
+                "kullanılmalıdır (Yön. m.25)."
+            )
+            if neden not in state.human_review_reasons:
+                state.human_review_reasons.append(neden)
 
         logger.info(
             f"Yazı taslağı oluşturuldu: {yazi_turu} "
@@ -426,7 +493,7 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         muhatap = self._resolve_muhatap(yazi_turu, evrak_turu, extracted, state.raw_text)
         ilgi = self._resolve_ilgi(evrak_turu, extracted, state.raw_text)
         metin = self._build_body(yazi_turu, evrak_turu, konu, state)
-        kapanis = self._resolve_kapanis(yazi_turu, evrak_turu)
+        kapanis = self._resolve_kapanis(yazi_turu, evrak_turu, muhatap, kurum_adi)
         unvan = self._unvan_from_birim(birim_adi)
 
         fields = {
@@ -1072,11 +1139,51 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
             f"{mevzuat} hükümlerine göre işlem tesis edilecektir."
         )
 
-    def _resolve_kapanis(self, yazi_turu: str, evrak_turu: str) -> str:
+    def _muhatap_kademesi(self, muhatap: str) -> Optional[int]:
         """
-        Kapanış ifadesini yönetmelik kuralına göre seçer:
-        üst makama 'arz ederim', alt/eş makama 'rica ederim',
-        gerçek kişiye 'Saygılarımla'.
+        Muhatap hitabından kurum kademesini (0 = üst kuruluş) çıkarır.
+
+        Gerçek kişi ('Sayın ...') veya kademe hiyerarşisine oturmayan
+        hitaplarda None döner — bu durumda hiyerarşi denetimi yapılmaz
+        (belirsizlikte yanlış alarm üretilmez).
+        """
+        if not muhatap or muhatap.strip().startswith("Sayın"):
+            return None
+        # Yönelme ekini yalın hâle çevir: …LIĞINA → …LIĞI, …SİNE → …Sİ
+        # (_hitaptan_kurum yalnız üst kuruluş eklerini kabul ettiğinden
+        # burada kademe tablosunun tamamına karşı kendi soyması yapılır)
+        hitap = _tr_upper(muhatap.strip())
+        hitap = re.sub(r"\s+MAKAMINA$", "", hitap)
+        hitap = re.sub(r"([GĞ])([IİUÜ])N[AE]$", r"\1\2", hitap)
+        hitap = re.sub(r"(S[IİUÜ])N[AE]$", r"\1", hitap)
+        kademe = self._kurum_kademesi(hitap)
+        if kademe >= len(_KURUM_ONCELIK_KADEMELERI):
+            return None
+        return kademe
+
+    @staticmethod
+    def _gizlilik_damgasi(metin: str) -> str:
+        """
+        Metindeki gizlilik/kişiye özel damgasını döndürür (yoksa "").
+
+        Damga tek başına satır hâlinde büyük harflerle aranır (Yön. m.25
+        gizlilik dereceleri + m.26/4 KİŞİYE ÖZEL); gövde içindeki
+        "gizlilik" benzeri sıradan kelimeler damga sayılmaz.
+        """
+        eslesme = _GIZLILIK_DAMGASI.search(metin or "")
+        return eslesme.group(1) if eslesme else ""
+
+    def _resolve_kapanis(
+        self, yazi_turu: str, evrak_turu: str,
+        muhatap: str = "", kurum_adi: str = "",
+    ) -> str:
+        """
+        Kapanış ifadesini Yönetmelik m.16/12'ye göre seçer: alt makama
+        'rica ederim', üst ve AYNI DÜZEYDEKİ makama 'arz ederim'
+        (m.16/12-a), gerçek kişiye 'Saygılarımla.' / 'Bilgilerinize
+        sunulur.' (m.16/12-e). Muhatap ve gönderen kademeleri tespit
+        edilebiliyorsa hiyerarşi esas alınır; edilemiyorsa yazı türüne
+        dayalı varsayılan davranış korunur.
         """
         if yazi_turu == "eksik_bilgi_talep":
             return "Bilgilerinize sunulur.\n\nSaygılarımla."
@@ -1084,6 +1191,24 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
             return "Bilgilerinizi ve gereğini rica ederim."
         if yazi_turu == "cevap_yazisi" and evrak_turu == "dilekce":
             return "Bilgilerinize sunulur.\n\nSaygılarımla."
+        if (muhatap or "").strip().startswith("Sayın"):
+            return "Bilgilerinize sunulur.\n\nSaygılarımla."
+
+        muhatap_kademe = self._muhatap_kademesi(muhatap)
+        gonderen_kademe = (
+            self._kurum_kademesi(kurum_adi) if kurum_adi
+            else len(_KURUM_ONCELIK_KADEMELERI)
+        )
+        if (
+            muhatap_kademe is not None
+            and gonderen_kademe < len(_KURUM_ONCELIK_KADEMELERI)
+        ):
+            # Küçük kademe değeri = hiyerarşide üst kuruluş; üst VE denk
+            # makama arz edilir (m.16/12-a)
+            if muhatap_kademe <= gonderen_kademe:
+                return "Bilgilerinize arz ederim."
+            return "Bilgilerinize rica ederim."
+
         if yazi_turu == "ust_yazi":
             return "Bilgilerinize arz ederim."
         return "Bilgilerinize rica ederim."
@@ -1139,40 +1264,109 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
     # Format denetimi
     # ------------------------------------------------------------------
 
-    def _validate_format(self, draft: str, yazi_turu: str) -> dict:
+    def _validate_format(
+        self, draft: str, yazi_turu: str, gizlilik_damgasi: str = ""
+    ) -> dict:
         """
-        Taslağı Resmî Yazışma Yönetmeliği kontrol listesinden geçirir.
+        Taslağı MADDE-REFERANSLI yönetmelik kontrol listesinden geçirir.
+
+        Her kural {kural_id, kural, durum, detay, dayanak, agirlik}
+        şemasıyla raporlanır; dayanaklar 2646 sayılı Yönetmeliğin resmî
+        metninden fıkra düzeyinde doğrulanmıştır (jüri önünde madde
+        gösterilebilir). Skor ağırlıklı ortalamadır: bilgi niteliğindeki
+        kurallar (yabancı kelime vb.) düşük ağırlık taşır; bazı kurallar
+        koşulludur ve bağlam yoksa listeye hiç eklenmez (yanlış alarm ve
+        haksız skor cezası üretilmez).
 
         Returns:
-            {"uygun": bool, "skor": float, "kontroller": [{kural, durum, detay}]}
+            {"uygun": bool, "skor": float, "kontroller": [
+                {kural_id, kural, durum, detay, dayanak, agirlik}]}
         """
         kontroller = []
         low = draft.lower()
 
-        def ekle(kural: str, durum: bool, detay: str) -> None:
-            kontroller.append({"kural": kural, "durum": bool(durum), "detay": detay})
+        def ekle(
+            kural_id: str, kural: str, durum: bool, detay: str,
+            dayanak: str, agirlik: float = 1.0,
+        ) -> None:
+            kontroller.append({
+                "kural_id": kural_id,
+                "kural": kural,
+                "durum": bool(durum),
+                "detay": detay,
+                "dayanak": dayanak,
+                "agirlik": agirlik,
+            })
 
         ekle(
+            "tc_basligi",
             "T.C. başlığı",
             draft.lstrip().startswith("T.C."),
-            "Yazı 'T.C.' başlığı ile başlamalıdır.",
+            "Başlığın ilk satırına 'T.C.' kısaltması yazılır.",
+            "Yön. (2646) m.10/2",
         )
         ekle(
+            "sayi_alani",
             "Sayı alanı",
             bool(re.search(r"Say[ıi]\s*:", draft)),
-            "'Sayı :' alanı bulunmalıdır.",
+            "Belgelerde sayı bulunması zorunludur; 'Sayı :' alanı bulunmalıdır.",
+            "Yön. (2646) m.11/1",
         )
+
+        # Sayı biçimi: değer YA dürüst taslak ibaresi (gerçek sayıyı EBYS
+        # verir — taslak sayı uydurmaz) YA m.11 desenine uygun olmalıdır
+        sayi_eslesme = _SAYI_SATIRI.search(draft)
+        if sayi_eslesme:
+            sayi_degeri = sayi_eslesme.group(1).strip()
+            sayi_uygun = (
+                TASLAK_SAYI_IBARESI in sayi_degeri
+                or bool(_SAYI_BICIM_DESENI.search(sayi_degeri))
+            )
+            ekle(
+                "sayi_bicimi",
+                "Sayı biçimi (E-DETSİS-SDP-kayıt)",
+                sayi_uygun,
+                "Sayı; E/Z/O ibaresi + Devlet Teşkilatı Numarası + standart "
+                "dosya planı kodu + kayıt numarasından oluşur (örn. "
+                "E-67915368-903.07.02-4752); taslakta sayı uydurulmaz, "
+                "EBYS ibaresi kabul edilir.",
+                "Yön. (2646) m.11/1-2",
+                agirlik=0.5,
+            )
+
         ekle(
+            "tarih",
             "Tarih bilgisi",
             bool(re.search(r"\b\d{1,2}[./]\d{1,2}[./]\d{4}\b", draft)),
-            "Yazıda GG.AA.YYYY biçiminde tarih bulunmalıdır.",
+            "Tarih; gün, ay, yıl olarak rakamla ve aralarına nokta konularak "
+            "yazılır (GG.AA.YYYY).",
+            "Yön. (2646) m.12/1",
         )
         ekle(
+            "konu_alani",
             "Konu alanı",
             bool(re.search(r"Konu\s*:", draft)),
             "'Konu :' alanı bulunmalıdır.",
+            "Yön. (2646) m.13/1",
         )
+
+        # Konu özlüğü: m.13/2 "kısa ve öz" — katı satır sınırı yönetmelikte
+        # yoktur (m.13/1 taşan konuyu da düzenler); eşik mühendislik değeridir
+        konu_eslesme = _KONU_SATIRI.search(draft)
+        if konu_eslesme:
+            konu_degeri = konu_eslesme.group(1).strip()
+            ekle(
+                "konu_kisa_oz",
+                "Konu kısa ve öz",
+                0 < len(konu_degeri) <= _KONU_AZAMI_UZUNLUK,
+                "Konu, belgenin içeriği hakkında kısa ve öz bilgi barındırır "
+                f"(uygulama eşiği {_KONU_AZAMI_UZUNLUK} karakter).",
+                "Yön. (2646) m.13/2",
+                agirlik=0.5,
+            )
+
         ekle(
+            "muhatap",
             "Muhatap satırı",
             bool(
                 # Morfolojik yönelme deseni: …MÜDÜRLÜĞÜNE, …MÜŞAVİRLİĞİNE,
@@ -1182,30 +1376,113 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
                 or re.search(r"[A-ZÇĞİÖŞÜ]L[AE]R[Iİ]?N[AE]\b", draft)
                 or re.search(
                     r"\b(?:MAKAMINA|DAİRESİNE|KURULUNA|KURUMUNA|"
-                    r"KOMİSYONUNA|BİRİMLERE|BİRİME|İLGİLİLERE)\b",
+                    r"KOMİSYONUNA|BİRİMLERE|BİRİME|İLGİLİLERE|"
+                    r"DAĞITIM YERLERİNE)\b",
                     draft,
                 )
                 or re.search(r"^Sayın\s+\S+", draft, re.MULTILINE)
             ),
-            "Muhatap satırı (kuruma BÜYÜK HARF veya kişiye 'Sayın ...') bulunmalıdır.",
+            "Muhatap; belgenin gönderildiği idareyi (BÜYÜK HARF hitap) veya "
+            "kişiyi ('Sayın ...') belirtir.",
+            "Yön. (2646) m.14/1,3,6",
         )
         if yazi_turu in ("cevap_yazisi", "eksik_bilgi_talep", "ust_yazi", "iade_ikmal_notu"):
             ekle(
+                "ilgi",
                 "İlgi bölümü",
                 bool(re.search(r"İlgi\s*:", draft)),
-                "Cevap niteliğindeki yazıda 'İlgi :' bölümü bulunmalıdır.",
+                "Bağlantılı belge bulunan yazıda 'İlgi :' bölümü bulunmalıdır.",
+                "Yön. (2646) m.15/1",
             )
         ekle(
+            "kapanis",
             "Uygun kapanış ifadesi (arz/rica/saygı)",
             any(
                 k in low
                 for k in ("arz ederim", "rica ederim", "saygılarımla",
                           "bilgilerinize sunulur", "arz olunur")
             ),
-            "Yazı uygun ifadeyle bitmelidir: üst makama 'arz ederim', "
-            "alt/eş makama 'rica ederim', kişiye 'Saygılarımla'.",
+            "Yazı uygun ifadeyle bitmelidir: alt makama 'rica ederim', üst "
+            "ve aynı düzeydeki makama 'arz ederim', kişiye 'Saygılarımla.' "
+            "veya 'Bilgilerinize sunulur.'.",
+            "Yön. (2646) m.16/12",
         )
+
+        # Bitiş ifadesi ↔ muhatap hiyerarşisi tutarlılığı: yalnızca hem
+        # muhatap hem gönderen kademesi tespit edilebiliyorsa denetlenir
+        muhatap_satiri = self._draft_muhatap_satiri(draft)
+        gonderen = self._draft_gonderen_kurum(draft)
+        muhatap_kademe = (
+            self._muhatap_kademesi(muhatap_satiri) if muhatap_satiri else None
+        )
+        gonderen_kademe = (
+            self._kurum_kademesi(gonderen) if gonderen
+            else len(_KURUM_ONCELIK_KADEMELERI)
+        )
+        if (
+            muhatap_kademe is not None
+            and gonderen_kademe < len(_KURUM_ONCELIK_KADEMELERI)
+        ):
+            arz_var = "arz ederim" in low or "arz olunur" in low
+            rica_var = "rica ederim" in low
+            karma = "arz ve rica ederim" in low or "arz/rica ederim" in low
+            beklenen_arz = muhatap_kademe <= gonderen_kademe
+            tutarli = karma or (arz_var if beklenen_arz else rica_var)
+            ekle(
+                "bitis_hiyerarsi",
+                "Bitiş ifadesi muhatap hiyerarşisiyle tutarlı",
+                tutarli,
+                (
+                    "Üst ve aynı düzeydeki makama 'arz ederim' kullanılmalıdır."
+                    if beklenen_arz
+                    else "Alt makama 'rica ederim' kullanılmalıdır."
+                ),
+                "Yön. (2646) m.16/12-a,b",
+            )
+
+        # Yabancı kelime uyarısı (bilgi niteliğinde, düşük ağırlık)
+        yabanci = sorted({
+            m.group(1).lower()
+            for m in _YABANCI_KELIME_DESENI.finditer(draft)
+        })
         ekle(
+            "yabanci_kelime",
+            "Yabancı kelime kullanılmaması",
+            not yabanci,
+            (
+                "Zorunlu olmadıkça yabancı dillerden kelime kullanılmaz"
+                + (f" (bulunan: {', '.join(yabanci)})" if yabanci else "")
+                + "."
+            ),
+            "Yön. (2646) m.16/8",
+            agirlik=0.25,
+        )
+
+        # Maddeleme biçimi: yalnızca harfli maddeleme kullanılmışsa denetlenir
+        maddeleme_satirlari = _MADDELEME_SATIRI.findall(draft)
+        if maddeleme_satirlari:
+            hatalilar = [
+                f"{harf}{isaret}"
+                for harf, isaret in maddeleme_satirlari
+                if isaret == "." or harf.isupper()
+            ]
+            ekle(
+                "maddeleme",
+                "Maddeleme biçimi (küçük harf + kapama parantezi)",
+                not hatalilar,
+                (
+                    "Harfli maddelemede Türk alfabesindeki küçük harfler "
+                    "kapama parantezi ile kullanılır: 'a)'"
+                    + (f" (aykırı: {', '.join(sorted(set(hatalilar)))})"
+                       if hatalilar else "")
+                    + "."
+                ),
+                "Yön. (2646) m.16/10",
+                agirlik=0.5,
+            )
+
+        ekle(
+            "imza",
             "İmza bloğu",
             any(
                 k in low
@@ -1213,17 +1490,98 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
                           "e-imza", "genel sekreter", "vali", "rektör")
             ),
             "İmza bloğunda ad-soyad/e-imza ibaresi ve unvan bulunmalıdır.",
+            "Yön. (2646) m.17",
         )
+
+        # Yetki devri düzeni: yalnızca taslakta "... a." ibaresi varsa
+        # denetlenir (ör. "Vali a." satırının altında imzalayanın unvanı)
+        yetki_satiri = _YETKI_DEVRI_SATIRI.search(draft)
+        if yetki_satiri:
+            kalan = draft[yetki_satiri.end():].lstrip("\n")
+            sonraki_satir = kalan.split("\n", 1)[0].strip() if kalan else ""
+            ekle(
+                "yetki_devri_unvan",
+                "Yetki devri imza düzeni ('... a.' + unvan)",
+                bool(sonraki_satir),
+                "Yetki devrinde '... a.' ibaresinin altında imzalayanın "
+                "unvanı yer alır; iç yazışmalarda yetki devredenin unvanı "
+                "kullanılmaz.",
+                "Yön. (2646) m.17/9",
+                agirlik=0.5,
+            )
+
+        # Gizlilik dereceli kaynak evrak: taslak damgayı taşımalı ve
+        # yalnızca insan onayıyla kullanılmalıdır (kısıtlı mod)
+        if gizlilik_damgasi:
+            ekle(
+                "gizlilik_kisitli",
+                f"Gizlilik damgası taşınması ({gizlilik_damgasi})",
+                gizlilik_damgasi in draft,
+                "Kaynak evrak gizlilik dereceli; taslak aynı damgayı "
+                "taşımalı ve insan onayı olmadan kullanılmamalıdır.",
+                "Yön. (2646) m.25; m.26/4",
+            )
+
         ekle(
+            "yer_tutucu",
             "Boş yer tutucu kalmaması",
             not re.search(r"\[[^\]]+\]", draft) and "{" not in draft and "}" not in draft,
             "Taslakta doldurulmamış yer tutucu ([...] veya {...}) kalmamalıdır.",
+            "iç kalite kuralı (halüsinasyon yasağı)",
         )
 
-        basarili = sum(1 for k in kontroller if k["durum"])
-        skor = round(basarili / len(kontroller), 2) if kontroller else 0.0
+        toplam_agirlik = sum(k["agirlik"] for k in kontroller)
+        skor = (
+            round(
+                sum(k["agirlik"] for k in kontroller if k["durum"]) / toplam_agirlik, 2
+            )
+            if toplam_agirlik
+            else 0.0
+        )
+        yer_tutucu_temiz = next(
+            (k["durum"] for k in kontroller if k["kural_id"] == "yer_tutucu"),
+            False,
+        )
         return {
-            "uygun": skor >= 0.8 and kontroller[-1]["durum"],
+            "uygun": skor >= 0.8 and yer_tutucu_temiz,
             "skor": skor,
             "kontroller": kontroller,
         }
+
+    @staticmethod
+    def _draft_muhatap_satiri(draft: str) -> str:
+        """
+        Taslak metninden muhatap (hitap) satırını çıkarır.
+
+        Hitap; alan satırlarından (Sayı/Konu/İlgi) sonra gelen, BÜYÜK
+        HARFLERLE yazılmış yönelme ekli satırdır ('... MÜDÜRLÜĞÜNE') veya
+        'Sayın ...' satırıdır. Bulunamazsa "" döner.
+        """
+        for satir in (draft or "").split("\n"):
+            s = satir.strip()
+            if not s or ":" in s:
+                continue
+            if s.startswith("Sayın "):
+                return s
+            buyuk = s == _tr_upper(s)
+            yonelme = bool(
+                re.search(r"L[IİUÜ][GĞ][IİUÜ]N[AE]$", s)
+                or re.search(r"L[AE]R[Iİ]?N[AE]$", s)
+                or s.endswith(("MAKAMINA", "DAĞITIM YERLERİNE"))
+            )
+            if buyuk and yonelme:
+                return s
+        return ""
+
+    @staticmethod
+    def _draft_gonderen_kurum(draft: str) -> str:
+        """
+        Taslağın antetinden gönderen kurum adını çıkarır.
+
+        Başlık düzeni m.10/2: ilk satır 'T.C.', ikinci satır idarenin adı.
+        'T.C.' ile başlamayan taslakta "" döner (hiyerarşi denetimi yapılmaz).
+        """
+        satirlar = [s.strip() for s in (draft or "").split("\n") if s.strip()]
+        if len(satirlar) >= 2 and satirlar[0].startswith("T.C."):
+            return satirlar[1]
+        return ""

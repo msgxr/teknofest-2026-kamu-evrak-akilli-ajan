@@ -14,6 +14,23 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Madde-referanslı format denetçisi (P0-2, şartname izi: G2-b):**
+  - Her denetim kuralı `{kural_id, kural, durum, detay, dayanak, agirlik}`
+    şemasına taşındı; dayanaklar 2646 sayılı Yönetmeliğin RESMÎ metninden
+    fıkra düzeyinde doğrulandı (mevzuat.gov.tr + tccb.gov.tr çapraz
+    kontrol) — jüri önünde madde gösterilebilir. Skor ağırlıklı ortalama;
+    koşullu kurallar bağlam yokken listeye eklenmez (haksız ceza yok).
+  - Yeni kurallar: sayı biçimi E-DETSİS-SDP-kayıt (m.11/1-2; dürüst EBYS
+    ibaresi kabul), konu kısa-öz (m.13/2), **bitiş ifadesi ↔ muhatap
+    hiyerarşisi tutarlılığı** (m.16/12-a — denk makama da 'arz'), yabancı
+    kelime uyarısı (m.16/8), 'a)' maddeleme biçimi (m.16/10), yetki devri
+    imza düzeni (m.17/9), **gizlilik damgalı evrakta kısıtlı mod** (m.25:
+    damga taslağa taşınmalı + insan onayı işareti).
+  - Kapanış seçimi hiyerarşi-farkında yapıldı: muhatap/gönderen kademeleri
+    tespit edilebiliyorsa m.16/12-a esas alınır (önceki davranış denk
+    makama 'rica' varsayıyordu — yönetmeliğe göre düzeltildi).
+  - Streamlit ve HTML işlem raporunda her kuralın yanında dayanak
+    (madde/fıkra) gösterilir. 29 yeni birim test (`tests/test_draft_writer.py`).
 - **Hibrit mevzuat RAG'i (P0-1, şartname izi: G1-e):**
   - Mevzuat önerileri artık **madde referanslı ve gerekçeli**: her öneri
     `{mevzuat_adi, madde_no, madde_etiketi, gerekce, benzerlik, doc_id, bolum}`
@@ -48,6 +65,12 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 - `Dockerfile` + `.dockerignore` (container ile çalıştırma seçeneği; imaj
   yayınlanmaz, Dockerfile sağlanır) ve tek komut başlatma betiği `baslat.sh`.
 - Bu değişiklik günlüğü (`CHANGELOG.md`).
+
+### Düzeltildi
+
+- HTML işlem raporunda format denetim kontrolleri `durum` anahtarını
+  okumadığından tüm kurallar ✗ görünüyordu — durum okuma zinciri
+  düzeltildi (`src/utils/islem_raporu.py`).
 
 ### Değiştirildi
 

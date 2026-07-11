@@ -787,7 +787,14 @@ def _bolum_format_denetimi(sonuc: dict) -> None:
                 durum = durum.strip().lower() in ("true", "evet", "gecti", "geçti", "uygun", "ok", "basarili", "başarılı")
             isaret = "✅" if durum else "❌"
             detay = kontrol.get("detay") or kontrol.get("mesaj") or ""
-            st.markdown(f"{isaret} {ad}" + (f" — _{detay}_" if detay else ""))
+            dayanak = kontrol.get("dayanak") or ""
+            satir = f"{isaret} {ad}"
+            if detay:
+                satir += f" — _{detay}_"
+            if dayanak:
+                # Jüri önünde madde gösterilebilirlik: kuralın yönetmelik dayanağı
+                satir += f" `{dayanak}`"
+            st.markdown(satir)
         else:
             st.markdown(f"• {kontrol}")
 

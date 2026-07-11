@@ -66,7 +66,7 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 | ⚠️ **Eksik Bilgi Tespiti** | Evrakta olması gereken ancak eksik alanları tespit etme |
 | 📚 **Hibrit Mevzuat RAG** | Saf Python BM25-Okapi çekirdeği ile **madde referanslı + gerekçeli** mevzuat önerisi; düşük skorda tür söz dağarcığıyla düzeltici (corrective) sorgu genişletme döngüsü; opsiyonel turkish-e5-large semantik katman + bge-reranker yeniden sıralama |
 | 📝 **Özet Oluşturma** | Evrakın kısa ve öz özetini üretme |
-| ✍️ **Yazı Taslaklama + Format Öz-Denetimi** | Resmi üsluba uygun taslak üretme ve taslağı resmî yazışma kurallarına göre kendi kendine denetleme (kontrol listesi + skor) |
+| ✍️ **Yazı Taslaklama + Madde-Referanslı Format Öz-Denetimi** | Resmi üsluba uygun taslak üretme ve **her kuralı yönetmelik madde/fıkra dayanağıyla** denetleme (Yön. 2646: sayı biçimi m.11, bitiş↔hiyerarşi m.16/12, maddeleme m.16/10, gizlilik kısıtlı modu m.25...); ağırlıklı skor + jüri önünde madde gösterilebilirlik |
 | ❓ **Eksik Bilgi Talep Yazısı** | Taslak tamamlanamıyorsa eksik bilgileri gerekçeli sorularla talep eden yazı üretme |
 | 🏢 **Birim Yönlendirme** | Ağırlıklı sinyal skorlaması ile doğru birime yönlendirme; gerekçe + alternatifler; yakın skorda opsiyonel LLM ayrıştırması |
 | 💬 **Kullanıcı Bilgilendirme** | Süreç hakkında açık bilgilendirme mesajları |
