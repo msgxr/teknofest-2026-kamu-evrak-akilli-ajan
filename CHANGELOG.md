@@ -14,6 +14,13 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Yerli LLM karşılaştırma protokolü (P2-10, şartname izi: Yöntem-35):**
+  `scripts/llm_karsilastirma.py` — aynı tutulmuş set üzerinde Ollama
+  modellerinin eskalasyon kalitesi vekilleri (LLM-only tür doğruluğu,
+  JSON uyum oranı, gecikme) için TEKRARLANABİLİR ölçüm protokolü;
+  kurulum+koşum komutları docstring'de. Ölçüm bu makinede KOŞULMADI
+  (donanım kısıtı) — koşulmadan hiçbir karşılaştırma sayısı yazılamaz;
+  Ollama erişilemediğinde betik dürüst ERISILEMEDI raporu üretir.
 - **TAKP aktarım provası + rozet (P2-12, şartname izi: m.7 açık kaynak):**
   `docs/takp_aktarim_plani.md` — doğrulanmış durum tespiti (resmî org
   github.com/tracikkaynak 2019'dan beri hareketsiz; resmî ekleme süreci

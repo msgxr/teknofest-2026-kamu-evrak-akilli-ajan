@@ -108,3 +108,13 @@ trafiği oluşturmazlar (offline-first ilkesi).
 - **Kullanım:** Görüntülerden Türkçe metin çıkarımı (`pytesseract` üzerinden)
 - **Kurulum:** `apt install tesseract-ocr tesseract-ocr-tur` (Linux) veya `brew install tesseract tesseract-lang` (macOS)
 - **Not:** Metin dosyaları ve metin katmanlı PDF'ler için OCR gerekmez (`pypdf` ile okunur)
+
+## Yerli LLM Karşılaştırma Protokolü (P2-10)
+
+Opsiyonel eskalasyon katmanı için model seçimi, `scripts/llm_karsilastirma.py`
+protokolüyle yapılır (LLM-only tür doğruluğu + JSON uyumu + gecikme; aynı
+tutulmuş set). **Henüz koşulmamıştır; koşulmadan hiçbir karşılaştırma sayısı
+rapora/sunuma yazılamaz.** GPU'lu ekip makinesinde kurulum ve koşum komutları
+betiğin docstring'indedir; adaylar: `qwen2.5:7b` (mevcut varsayılan,
+Apache-2.0), `ytu-ce-cosmos/Turkish-Llama-8b-Instruct-v0.1-GGUF` (Llama-3
+topluluk lisansı), isteğe bağlı `Turkish-Gemma-9b-T1-GGUF` (Gemma lisansı).
