@@ -29,6 +29,7 @@ import os
 import sys
 import tempfile
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -40,6 +41,9 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 import streamlit as st
 
+from src.utils.eyazisma import uret_ustveri
+from src.utils.kokpit import kokpit_ozeti
+
 logger = logging.getLogger("kamu_evrak_ajan.app")
 
 # ---------------------------------------------------------------------------
@@ -47,6 +51,21 @@ logger = logging.getLogger("kamu_evrak_ajan.app")
 # ---------------------------------------------------------------------------
 
 DEMO_EVRAK_DIZINI = _PROJECT_ROOT / "data" / "raw" / "kurgu_evraklar"
+
+# Kurum Kokpiti'nde toplu işlenebilecek kurgusal evrak kümelerinin kök dizini
+VERI_KUMESI_KOKU = _PROJECT_ROOT / "data" / "raw"
+
+# Geri bildirim döngüsü kayıt dosyası (JSONL; her satır bir düzeltme kaydı)
+GERI_BILDIRIM_DOSYASI = _PROJECT_ROOT / "data" / "processed" / "geri_bildirim.jsonl"
+
+ONCELIK_ROZETLERI = {
+    "cok_ivedi": "🔴 ÇOK İVEDİ",
+    "çok ivedi": "🔴 ÇOK İVEDİ",
+    "ivedi": "🔴 İVEDİ",
+    "gunlu": "🟠 GÜNLÜ",
+    "günlü": "🟠 GÜNLÜ",
+    "normal": "🟢 Normal",
+}
 
 EVRAK_TUR_ADLARI = {
     "dilekce": "Dilekçe",
@@ -560,9 +579,201 @@ def _bolum_islem_adimlari(sonuc: dict) -> None:
                 st.markdown(f"- {hata}")
 
 
+def _bolum_oncelik(sonuc: dict) -> None:
+    """
+    Önceliklendirme sonucu varsa öncelik rozetini ve son tarihi gösterir.
+
+    Alan sonuçta yoksa bölüm sessizce gizlenir (guard'lı); entegrasyon
+    ana oturumda yapılır.
+    """
+    oncelik_bilgisi = sonuc.get("onceliklendirme")
+    if not isinstance(oncelik_bilgisi, dict) or not oncelik_bilgisi:
+        return
+
+    oncelik = str(oncelik_bilgisi.get("oncelik", "normal")).strip().lower()
+    rozet = ONCELIK_ROZETLERI.get(oncelik, f"🏷️ {oncelik or 'normal'}")
+    son_tarih = (
+        oncelik_bilgisi.get("son_tarih")
+        or oncelik_bilgisi.get("son_islem_tarihi")
+        or oncelik_bilgisi.get("termin_tarihi")
+    )
+
+    k1, k2 = st.columns(2)
+    k1.metric("Öncelik", rozet)
+    k2.metric("Son Tarih", str(son_tarih) if son_tarih else "—")
+    gerekce = oncelik_bilgisi.get("gerekce") or oncelik_bilgisi.get("aciklama")
+    if gerekce:
+        st.caption(f"Önceliklendirme gerekçesi: {gerekce}")
+
+
+def _bolum_kvkk_nushasi(sonuc: dict, key_prefix: str) -> None:
+    """
+    Anonimleştirme sonucu varsa KVKK paylaşım nüshasını gösterir.
+
+    Maskeli metin + maskeleme raporu + indirme düğmesi. Alan sonuçta
+    yoksa bölüm sessizce gizlenir (guard'lı).
+    """
+    anonim = sonuc.get("anonimlestirme")
+    if not isinstance(anonim, dict) or not anonim:
+        return
+
+    # Entegrasyon esnekliği: ana oturumun seçeceği anahtar adına toleranslı
+    maskeli_metin = str(
+        anonim.get("maskeli_metin")
+        or anonim.get("anonim_metin")
+        or anonim.get("anonymized_text")
+        or anonim.get("metin")
+        or ""
+    ).strip()
+    rapor = (
+        anonim.get("maskeleme_raporu")
+        or anonim.get("rapor")
+        or anonim.get("anonymization_report")
+        or anonim.get("maskelenen_alanlar")
+        or anonim.get("maskelenen")
+    )
+    if not maskeli_metin and not rapor:
+        return
+
+    with st.expander("🔒 KVKK Paylaşım Nüshası"):
+        st.caption(
+            "Kişisel veriler maskelenmiş paylaşım nüshası — evrakın kurum "
+            "dışıyla veya yetkisiz birimlerle paylaşımında bu nüsha kullanılır."
+        )
+        if maskeli_metin:
+            st.code(maskeli_metin, language=None)
+        if rapor:
+            st.markdown("**Maskeleme raporu:**")
+            if isinstance(rapor, list) and all(isinstance(r, dict) for r in rapor):
+                st.dataframe(rapor, width="stretch", hide_index=True)
+            else:
+                st.json(rapor)
+        if maskeli_metin:
+            st.download_button(
+                label="⬇️ Paylaşım nüshasını indir (.txt)",
+                data=maskeli_metin.encode("utf-8"),
+                file_name="kvkk_paylasim_nushasi.txt",
+                mime="text/plain",
+                key=f"{key_prefix}_kvkk_indir",
+            )
+
+
+def _bolum_eyazisma_ustveri(sonuc: dict, key_prefix: str) -> None:
+    """
+    e-Yazışma'dan esinlenen üstveri taslağını gösterir ve indirtir.
+
+    Dürüstlük: resmî e-Yazışma şeması birebir uygulanmaz; EBYS
+    entegrasyon vizyonunu gösteren bir TASLAKTIR (bkz. src/utils/eyazisma).
+    """
+    try:
+        ustveri = uret_ustveri(sonuc)
+    except Exception as exc:  # üstveri hiçbir koşulda sonuç ekranını düşürmemeli
+        logger.warning(f"e-Yazışma üstverisi üretilemedi: {exc}")
+        return
+
+    with st.expander("📦 e-Yazışma Üstverisi (taslak)"):
+        st.caption(
+            "e-Yazışma Paketi (CBDDO) yapısından **esinlenen** üstveri taslağı — "
+            "EBYS entegrasyon vizyonunu gösterir; resmî şema birebir uygulanmamıştır."
+        )
+        st.json(ustveri)
+        st.download_button(
+            label="⬇️ Üstveriyi indir (.json)",
+            data=json.dumps(ustveri, ensure_ascii=False, indent=2).encode("utf-8"),
+            file_name="eyazisma_ustveri_taslak.json",
+            mime="application/json",
+            key=f"{key_prefix}_ustveri_indir",
+        )
+
+
+def _birim_secenekleri() -> dict:
+    """Yönlendirme birim seçeneklerini {kod: ad} olarak döndürür."""
+    try:
+        from src.agents.routing_agent import BIRIMLER
+
+        return {kod: bilgi.get("ad", kod) for kod, bilgi in BIRIMLER.items()}
+    except Exception as exc:
+        logger.warning(f"Birim listesi yüklenemedi: {exc}")
+        return {}
+
+
+def _geri_bildirim_kaydet(kayit: dict) -> None:
+    """Geri bildirim kaydını JSONL dosyasına ekler (dizini gerekirse açar)."""
+    GERI_BILDIRIM_DOSYASI.parent.mkdir(parents=True, exist_ok=True)
+    with GERI_BILDIRIM_DOSYASI.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(kayit, ensure_ascii=False) + "\n")
+
+
+def _bolum_geri_bildirim(sonuc: dict, key_prefix: str) -> None:
+    """
+    Geri bildirim döngüsü: kullanıcı tür/birim tahminini düzeltebilir.
+
+    Düzeltmeler data/processed/geri_bildirim.jsonl dosyasına eklenir ve
+    kural kalibrasyonunda kullanılmak üzere biriktirilir.
+    """
+    sinif = sonuc.get("siniflandirma") or {}
+    yonlendirme = sonuc.get("yonlendirme") or {}
+
+    with st.expander("✍️ Sonucu Düzelt (geri bildirim)"):
+        st.caption(
+            "Tahmin hatalıysa doğru tür ve birimi seçip kaydedin; "
+            "düzeltmeler kural kalibrasyonunda kullanılacaktır."
+        )
+
+        tur_kodlari = list(EVRAK_TUR_ADLARI.keys())
+        tahmin_tur = str(sinif.get("tur", "")).strip()
+        tur_index = tur_kodlari.index(tahmin_tur) if tahmin_tur in tur_kodlari else 0
+        dogru_tur = st.selectbox(
+            "Doğru evrak türü",
+            tur_kodlari,
+            index=tur_index,
+            format_func=lambda k: EVRAK_TUR_ADLARI.get(k, k),
+            key=f"{key_prefix}_gb_tur",
+        )
+
+        birimler = _birim_secenekleri()
+        birim_kodlari = list(birimler.keys())
+        dogru_birim = ""
+        if birim_kodlari:
+            tahmin_birim_kodu = str(yonlendirme.get("birim_kodu", "")).strip()
+            birim_index = (
+                birim_kodlari.index(tahmin_birim_kodu)
+                if tahmin_birim_kodu in birim_kodlari
+                else 0
+            )
+            dogru_birim = st.selectbox(
+                "Doğru birim",
+                birim_kodlari,
+                index=birim_index,
+                format_func=lambda k: birimler.get(k, k),
+                key=f"{key_prefix}_gb_birim",
+            )
+        else:
+            st.info("Birim listesi yüklenemediği için birim düzeltmesi kapalı.")
+
+        if st.button("💾 Geri bildirimi kaydet", key=f"{key_prefix}_gb_kaydet"):
+            kayit = {
+                "zaman": datetime.now().isoformat(timespec="seconds"),
+                "dosya": str(sonuc.get("input_file", "")),
+                "tahmin_tur": tahmin_tur,
+                "dogru_tur": dogru_tur,
+                "tahmin_birim": str(yonlendirme.get("birim_kodu", "")).strip(),
+                "dogru_birim": dogru_birim,
+            }
+            try:
+                _geri_bildirim_kaydet(kayit)
+                st.success(
+                    "Geri bildirim kaydedildi — kural kalibrasyonunda kullanılacak."
+                )
+            except Exception as exc:
+                logger.error(f"Geri bildirim kaydedilemedi: {exc}")
+                st.error(f"Geri bildirim kaydedilemedi: {exc}")
+
+
 def _sonuclari_goster(sonuc: dict, key_prefix: str) -> None:
     """Tüm sonuç bölümlerini düzenli bir yerleşimle çizer."""
     _metrik_satiri(sonuc)
+    _bolum_oncelik(sonuc)  # önceliklendirme sonucu varsa gösterilir (guard'lı)
     st.divider()
 
     sol, sag = st.columns(2, gap="large")
@@ -577,6 +788,11 @@ def _sonuclari_goster(sonuc: dict, key_prefix: str) -> None:
         _bolum_format_denetimi(sonuc)
         _bolum_yonlendirme(sonuc)
         _bolum_bilgilendirmeler(sonuc)
+
+    # Ek bölümler: KVKK nüshası (varsa), e-Yazışma üstverisi, geri bildirim
+    _bolum_kvkk_nushasi(sonuc, key_prefix)
+    _bolum_eyazisma_ustveri(sonuc, key_prefix)
+    _bolum_geri_bildirim(sonuc, key_prefix)
 
     st.divider()
     _bolum_islem_adimlari(sonuc)
@@ -724,6 +940,115 @@ def _sekme_demo(pipeline: Any, mode: str) -> None:
         _sonuclari_goster(sonuc, key_prefix="demo")
 
 
+def _sekme_kokpit(pipeline: Any) -> None:
+    """
+    Sekme: Kurum Kokpiti — kurgusal evrak kümesini toplu işleyip kurum
+    yönetimine yönelik özet göstergeleri (tür/birim dağılımı, eksiklik,
+    süre, tahmini tasarruf) çizer.
+    """
+    st.markdown(
+        "Seçilen **kurgusal evrak kümesi** toplu işlenir ve kurum yönetimi için "
+        "özet göstergeler üretilir. Örnekler gerçek kamu verisi içermez."
+    )
+
+    # Kurgusal evrak kümeleri (kurgu_evraklar, kurgu_evraklar_heldout, ...)
+    kumeler = sorted(
+        d.name for d in VERI_KUMESI_KOKU.glob("kurgu_evraklar*") if d.is_dir()
+    )
+    if not kumeler:
+        st.warning(f"Kurgusal evrak kümesi bulunamadı: `{VERI_KUMESI_KOKU}`")
+        return
+
+    secilen_kume = st.selectbox("Evrak kümesi", kumeler, key="kokpit_kume")
+    dosyalar = sorted((VERI_KUMESI_KOKU / secilen_kume).glob("*.txt"))
+    st.caption(f"Kümede **{len(dosyalar)}** adet .txt evrak bulundu.")
+
+    if dosyalar and st.button("🚀 Toplu İşle", type="primary", key="kokpit_isle_btn"):
+        try:
+            with st.spinner(f"'{secilen_kume}' kümesindeki {len(dosyalar)} evrak işleniyor..."):
+                sonuclar = pipeline.process_batch([str(p) for p in dosyalar], mode="full")
+            st.session_state["kokpit_sonuclar"] = sonuclar
+            st.session_state["kokpit_kume_adi"] = secilen_kume
+        except Exception as exc:
+            logger.error(f"Toplu işlem hatası: {exc}")
+            st.error(f"Toplu işlem sırasında bir sorun oluştu: {exc}")
+
+    sonuclar = st.session_state.get("kokpit_sonuclar")
+    if not sonuclar:
+        return
+
+    islenen_kume = st.session_state.get("kokpit_kume_adi", "")
+    st.divider()
+    st.success(f"Toplu işlem tamamlandı: **{islenen_kume}** ({len(sonuclar)} evrak)")
+
+    ozet = kokpit_ozeti(sonuclar)
+
+    # Üst satır metrik kartları
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Evrak Sayısı", str(ozet["evrak_sayisi"]))
+    k2.metric("Ort. İşlem Süresi", f"{ozet['ort_islem_suresi_sn']:.2f} sn")
+    k3.metric("Eksikli Evrak Oranı", _fmt_yuzde(ozet["eksikli_evrak_orani"]))
+    k4.metric("Kritik Eksikli Evrak", str(ozet["kritik_eksikli_sayisi"]))
+    if ozet.get("dusuk_guvenli_sayisi"):
+        st.caption(
+            f"⚠️ {ozet['dusuk_guvenli_sayisi']} evrak düşük güvenli karar içeriyor "
+            "(insan onayı önerilir)."
+        )
+
+    # Dağılım grafikleri (pandas, streamlit'in zorunlu bağımlılığıdır)
+    import pandas as pd
+
+    g1, g2 = st.columns(2, gap="large")
+    with g1:
+        st.subheader("🏷️ Tür Dağılımı")
+        if ozet["tur_dagilimi"]:
+            st.bar_chart(pd.Series(ozet["tur_dagilimi"], name="Evrak sayısı"))
+        else:
+            st.info("Tür dağılımı üretilemedi.")
+    with g2:
+        st.subheader("🏢 Birim Dağılımı")
+        if ozet["birim_dagilimi"]:
+            st.bar_chart(pd.Series(ozet["birim_dagilimi"], name="Evrak sayısı"))
+        else:
+            st.info("Birim dağılımı üretilemedi.")
+
+    # Tahmini tasarruf kutusu — varsayım şeffaf biçimde yazılır
+    tasarruf = ozet["tahmini_tasarruf"]
+    with st.container(border=True):
+        st.subheader("⏳ Tahmini Zaman Tasarrufu")
+        t1, t2, t3 = st.columns(3)
+        t1.metric("Manuel (tahmini)", f"{tasarruf['manuel_toplam_saat']:.1f} saat")
+        t2.metric("Sistem (ölçülen)", f"{tasarruf['sistem_toplam_saniye']:.1f} sn")
+        t3.metric("Tasarruf Oranı", _fmt_yuzde(tasarruf["tasarruf_orani"]))
+        st.caption(
+            f"ℹ️ Manuel süre, evrak başına **{tasarruf['manuel_dakika_varsayimi']} dakika** "
+            "kabulüne dayanan bir **varsayımdır** (resmî bir kaynağa dayanmaz); "
+            "sistem süresi ise gerçek ölçümdür."
+        )
+
+    # Sonuç tablosu
+    st.subheader("📋 İşlem Sonuçları")
+    satirlar = []
+    for kayit in sonuclar:
+        if not isinstance(kayit, dict):
+            continue
+        sinif = kayit.get("siniflandirma") or {}
+        yonlendirme = kayit.get("yonlendirme") or {}
+        satir = {
+            "Dosya": Path(str(kayit.get("input_file", ""))).name or "—",
+            "Tür": sinif.get("tur_adi") or sinif.get("tur") or "—",
+            "Birim": yonlendirme.get("birim") or "—",
+        }
+        oncelik_bilgisi = kayit.get("onceliklendirme")
+        if isinstance(oncelik_bilgisi, dict) and oncelik_bilgisi.get("oncelik"):
+            satir["Öncelik"] = str(oncelik_bilgisi["oncelik"])
+        sure = kayit.get("islem_suresi_saniye")
+        satir["Süre (sn)"] = f"{float(sure):.2f}" if isinstance(sure, (int, float)) else "—"
+        satirlar.append(satir)
+    if satirlar:
+        st.dataframe(satirlar, width="stretch", hide_index=True)
+
+
 def _sekme_hakkinda() -> None:
     """Sekme 3: mimari özeti, görev eşleşmesi ve veri kullanımı notu."""
     st.subheader("Mimari Özeti")
@@ -847,7 +1172,9 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Sekmeler
     # ------------------------------------------------------------------
-    sekme1, sekme2, sekme3 = st.tabs(["📄 Evrak İşle", "🎬 Demo Evrakları", "ℹ️ Hakkında"])
+    sekme1, sekme2, sekme3, sekme4 = st.tabs(
+        ["📄 Evrak İşle", "🎬 Demo Evrakları", "📊 Kurum Kokpiti", "ℹ️ Hakkında"]
+    )
 
     with sekme1:
         _sekme_evrak_isle(pipeline, mode)
@@ -856,6 +1183,9 @@ def main() -> None:
         _sekme_demo(pipeline, mode)
 
     with sekme3:
+        _sekme_kokpit(pipeline)
+
+    with sekme4:
         _sekme_hakkinda()
 
 
