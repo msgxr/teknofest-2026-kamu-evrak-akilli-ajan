@@ -21,3 +21,6 @@ torch>=2.2.0
 # --- Veri işleme / analiz ---
 pandas>=2.0.0
 numpy>=1.24.0
+
+# --- Sunum üretimi (presentations/*.pptx) ---
+python-pptx>=1.0.0
