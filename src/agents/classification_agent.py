@@ -4,7 +4,7 @@ Sınıflandırma Agent — Evrak türü belirleme.
 Evrak metnini analiz ederek türünü (dilekçe, üst yazı, cevap yazısı,
 tutanak, rapor vb.) belirleyen agent.
 
-Yöntem:
+Yöntem (üçlü hibrit: kural + istatistiksel öğrenme + opsiyonel LLM):
     1. Ağırlıklı kural tabanlı skorlama:
        - Ağırlıklı anahtar kelimeler (tür başına kalibre edilmiş katkılar)
        - Yapısal sinyaller (regex çapaları): "TUTANAK" başlığı, "GENELGE"
@@ -12,10 +12,15 @@ Yöntem:
          dilekçe hitap kalıpları, tutanak imza blokları vb.
        - Skorlar softmax benzeri normalize edilir; en yüksek olasılık
          güven skoru (0-1) olarak raporlanır.
-    2. LLM eskalasyonu: kural tabanlı güven < 0.6 ve bir LLM backend'i
+    2. Hibrit ensemble: eğitilmiş istatistiksel model (saf Python
+       Multinomial Naive Bayes, src/models/istatistiksel_siniflandirici)
+       varsa kural ve ML olasılık dağılımları ağırlıklı ortalama ile
+       birleştirilir (kural %60 / ML %40). Model dosyası yoksa saf kural
+       tabanlı sonuç korunur (zarif bozulma).
+    3. LLM eskalasyonu: nihai güven < 0.6 ve bir LLM backend'i
        kullanılabilir ise `generate_json` ile sınıflandırma doğrulanır.
-       LLM hatasında kural tabanlı sonuç korunur (offline modda sistem
-       tamamen kural tabanlı çalışır).
+       LLM hatasında ensemble/kural sonucu korunur (offline modda sistem
+       LLM'siz tam çalışır).
 
 Şartname Referansı (Görev 1):
     "Metni anlamlandırarak evrakın türünü belirleme"
@@ -413,14 +418,36 @@ _KIMLIK_ALANLARI = [
 _ESKALASYON_ESIGI = 0.6
 _SOFTMAX_SICAKLIK = 2.0
 
+# ----------------------------------------------------------------------
+# Hibrit ensemble ağırlıkları (kural + istatistiksel model birleşimi)
+#
+# Nihai olasılık, iki yöntemin olasılık dağılımlarının ağırlıklı
+# aritmetik ortalamasıdır (mixture). Gerekçe:
+# - Kural katmanı Resmî Yazışma Usulleri Yönetmeliği'ne dayalı alan
+#   bilgisi kodlar (yapısal çapalar: başlık, İlgi/Sayı blokları, hitap
+#   kalıpları) ve görülmemiş belgelerde de geçerli genel kurallardır;
+#   bu yüzden çoğunluk ağırlığı (0.6) taşır.
+# - İstatistiksel model küçük bir korpusta eğitilmiştir (yüksek
+#   varyans); kelime/karakter-n-gram dağılımlarından kuralların
+#   kodlamadığı sözcüksel örüntüleri öğrenir ve azınlık ağırlığı (0.4)
+#   ile kuralların kararsız kaldığı durumlarda dengeyi değiştirir.
+# - Aritmetik ortalama, aşırı güvenli tek bir bileşenin (ör. 1.0
+#   olasılık veren model) kararı tek başına belirlemesini sınırlar:
+#   hiçbir bileşen nihai skora kendi ağırlığından fazla katkı veremez.
+# ----------------------------------------------------------------------
+_ENSEMBLE_KURAL_AGIRLIGI = 0.6
+_ENSEMBLE_ML_AGIRLIGI = 0.4
+
 
 class ClassificationAgent:
     """
     Evrak sınıflandırma agent'ı.
 
-    Gelen evrakın türünü belirler. İki yöntem kullanılabilir:
+    Gelen evrakın türünü belirler. Üçlü hibrit mimari:
     1. Kural tabanlı (ağırlıklı anahtar kelime + yapısal sinyal skorlaması)
-    2. LLM eskalasyonlu (kural tabanlı güven < 0.6 ise LLM ile doğrulama)
+    2. İstatistiksel model (Multinomial NB) ile ensemble birleşimi
+       (model dosyası varsa; yoksa saf kural tabanlı sonuç korunur)
+    3. LLM eskalasyonu (nihai güven < 0.6 ise LLM ile doğrulama)
     """
 
     def __init__(self, method: str = "llm") -> None:
@@ -429,8 +456,11 @@ class ClassificationAgent:
 
         Args:
             method: Sınıflandırma yöntemi ('rule_based' veya 'llm').
-                'llm' modunda da önce kural tabanlı skorlama yapılır;
-                LLM yalnızca düşük güvende eskalasyon olarak devreye girer.
+                'llm' (varsayılan) modunda kural tabanlı skorlama yapılır,
+                eğitilmiş istatistiksel model varsa hibrit ensemble kurulur
+                ve LLM yalnızca düşük güvende eskalasyon olarak devreye
+                girer. 'rule_based' modu karşılaştırma/test amaçlı SAF
+                kural tabanlı çalışır (ML ve LLM devre dışı).
         """
         self.method = method
         logger.info(f"Sınıflandırma Agent başlatıldı (yöntem: {method})")
@@ -460,7 +490,14 @@ class ClassificationAgent:
         result = self._classify_rule_based(text)
         result["yontem"] = "kural_tabanli"
 
-        # ESKALASYON: kural tabanlı güven düşükse ve LLM erişilebilirse
+        # HİBRİT ENSEMBLE: eğitilmiş istatistiksel model varsa kural ve
+        # ML olasılıkları birleştirilir ('rule_based' modu saf kural kalır)
+        if self.method != "rule_based":
+            result = self._ensemble_ile_birlestir(text, result)
+
+        # ESKALASYON: nihai güven düşükse ve LLM erişilebilirse
+        # (eşik ve davranış korunur; modelsiz kurulumda nihai güven ==
+        # kural tabanlı güven olduğundan mevcut davranışla birebir aynıdır)
         if self.method != "rule_based" and result["guven"] < _ESKALASYON_ESIGI:
             try:
                 from src.models.llm_wrapper import get_default_llm
@@ -468,13 +505,17 @@ class ClassificationAgent:
                 llm = get_default_llm()
                 if llm.is_available():
                     logger.info(
-                        f"Kural tabanlı güven düşük ({result['guven']:.2f} < "
+                        f"Nihai güven düşük ({result['guven']:.2f} < "
                         f"{_ESKALASYON_ESIGI}); LLM eskalasyonu deneniyor."
                     )
                     llm_result = self._classify_with_llm(text, result)
                     llm_result["yontem"] = "llm_eskalasyon"
                     llm_result["tum_skorlar"] = result.get("tum_skorlar", {})
                     llm_result["ham_skorlar"] = result.get("ham_skorlar", {})
+                    # Ensemble ara sonuç alanları raporda korunur
+                    for alan in ("kural_guven", "kural_tur", "ml_guven", "ml_tur"):
+                        if alan in result:
+                            llm_result[alan] = result[alan]
                     result = llm_result
             except Exception as exc:  # LLM hatasında kural sonucu korunur
                 logger.warning(f"LLM eskalasyonu başarısız, kural tabanlı sonuç korunuyor: {exc}")
@@ -573,6 +614,80 @@ class ClassificationAgent:
         exps = {t: math.exp(s / _SOFTMAX_SICAKLIK) for t, s in scores.items()}
         total = sum(exps.values()) or 1.0
         return {t: v / total for t, v in exps.items()}
+
+    # ------------------------------------------------------------------
+    # Hibrit ensemble (kural + istatistiksel model)
+    # ------------------------------------------------------------------
+
+    def _ensemble_ile_birlestir(self, text: str, kural_sonuc: dict) -> dict:
+        """
+        Kural tabanlı olasılıkları istatistiksel model ile birleştirir.
+
+        Nihai dağılım: 0.6 x kural + 0.4 x ML (ağırlık gerekçesi modül
+        başındaki _ENSEMBLE_* sabitlerinde). Model dosyası yoksa veya
+        tahmin başarısız olursa kural tabanlı sonuç değişmeden döner
+        (yontem 'kural_tabanli' kalır — zarif bozulma).
+
+        Args:
+            text: Evrak metni.
+            kural_sonuc: _classify_rule_based çıktısı.
+
+        Returns:
+            'yontem': 'hibrit_ensemble' + kural_guven/ml_guven ara sonuç
+            alanlarını içeren sınıflandırma sözlüğü (veya kural sonucu).
+        """
+        from src.models.istatistiksel_siniflandirici import (
+            IstatistikselSiniflandirici,
+            tahmin,
+        )
+
+        model = IstatistikselSiniflandirici.yukle()
+        if model is None:
+            logger.debug("İstatistiksel model bulunamadı; saf kural tabanlı mod.")
+            return kural_sonuc
+
+        try:
+            ml_tur, ml_olasiliklar = tahmin(model, text)
+        except Exception as exc:  # bozuk model dosyası vb.
+            logger.warning(f"ML tahmini başarısız, kural tabanlı sonuç korunuyor: {exc}")
+            return kural_sonuc
+
+        kural_olasiliklar = kural_sonuc.get("tum_skorlar", {})
+        birlesik = {
+            tur: (
+                _ENSEMBLE_KURAL_AGIRLIGI * kural_olasiliklar.get(tur, 0.0)
+                + _ENSEMBLE_ML_AGIRLIGI * ml_olasiliklar.get(tur, 0.0)
+            )
+            for tur in EVRAK_TURLERI
+        }
+
+        best_type = max(birlesik, key=lambda t: birlesik[t])
+        confidence = birlesik[best_type]
+        ml_guven = max(ml_olasiliklar.values()) if ml_olasiliklar else 0.0
+
+        gerekce_parcalari = []
+        if kural_sonuc.get("gerekce"):
+            gerekce_parcalari.append(f"kural: {kural_sonuc['gerekce']}")
+        gerekce_parcalari.append(
+            f"istatistiksel model (NB): {ml_tur} (güven {ml_guven:.2f})"
+        )
+
+        tur_info = EVRAK_TURLERI[best_type]
+        return {
+            "tur": best_type,
+            "tur_adi": tur_info["ad"],
+            "guven": round(min(max(confidence, 0.0), 1.0), 3),
+            "aciklama": tur_info["aciklama"],
+            "gerekce": "; ".join(gerekce_parcalari),
+            "yontem": "hibrit_ensemble",
+            "kural_guven": kural_sonuc.get("guven", 0.0),
+            "kural_tur": kural_sonuc.get("tur", ""),
+            "ml_guven": round(ml_guven, 3),
+            "ml_tur": ml_tur,
+            "tum_skorlar": {t: round(p, 3) for t, p in birlesik.items()},
+            "ham_skorlar": kural_sonuc.get("ham_skorlar", {}),
+            "ml_skorlar": {t: round(p, 3) for t, p in ml_olasiliklar.items()},
+        }
 
     # ------------------------------------------------------------------
     # LLM eskalasyonu
