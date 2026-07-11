@@ -14,6 +14,15 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Kokpit tasarruf hesabı kaynaklı + parametrik (P2-11, şartname izi: Ticarileşme-15):**
+  Evrak başına manuel işlem süresi artık `kokpit_ozeti(manuel_dakika=...)`
+  parametresi ve arayüzdeki kaydırıcıyla (3-60 dk) kurumun KENDİ iş
+  analizi ölçümüne göre ayarlanabilir; sonuçta `varsayim_mi` bayrağı
+  taşınır. Literatür bağlamı doğrulanmış hakemli kaynakla verildi:
+  Arslan & Kaya (2017, DergiPark) EBYS-öncesi ortalama ~4,7 saat/evrak
+  (1-8 saat; beyana dayalı ölçüm) — varsayılan 12 dk bunun çok altında,
+  bilinçli MUHAFAZAKÂR alt sınır olarak konumlandı (abartılı tasarruf
+  iddiası riski önlendi). 3 yeni test; toplam 321/321 yeşil.
 - **Demo Senaryosu 2.0 (P1-9, şartname izi: Demo-15):**
   4 sahneli jüri gösterimi (`demo/demo_scenario.py`): (1) dilekçe →
   cevap taslağı; (2) İVEDİ üst yazı → triyaj + yönlendirme (evrak

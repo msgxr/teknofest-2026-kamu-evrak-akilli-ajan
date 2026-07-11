@@ -181,3 +181,29 @@ class TestUretUstveri:
         assert ustveri["muhatap"]["belirlendi"] is False
         assert ustveri["yonlendirme"] == {"birim": "", "birim_kodu": "", "guven": None}
         assert ustveri["belge"]["ivedilik"] == "normal"
+
+
+class TestParametrikTasarruf:
+    """Kokpit tasarruf hesabının parametrik manuel süre testleri (P2-11)."""
+
+    def test_varsayilan_varsayim_isaretli(self):
+        """Parametre verilmezse varsayılan kullanılmalı ve varsayım işaretlenmeli."""
+        ozet = kokpit_ozeti([_ornek_sonuc()])
+        t = ozet["tahmini_tasarruf"]
+        assert t["manuel_dakika_varsayimi"] == MANUEL_ISLEM_DAKIKA_VARSAYIMI
+        assert t["varsayim_mi"] is True
+
+    def test_kurum_olcumu_kullanilir(self):
+        """Verilen kurum ölçümü hesaba girmeli ve varsayım işareti kalkmalı."""
+        ozet = kokpit_ozeti([_ornek_sonuc()], manuel_dakika=20)
+        t = ozet["tahmini_tasarruf"]
+        assert t["manuel_dakika_varsayimi"] == 20
+        assert t["varsayim_mi"] is False
+        assert abs(t["manuel_toplam_saat"] - 20 / 60.0) < 0.01
+
+    def test_gecersiz_deger_varsayilana_duser(self):
+        """Sıfır/negatif/bozuk değerde varsayılana dönülmeli (çökme yok)."""
+        for bozuk in (0, -5, "abc", None):
+            t = kokpit_ozeti([_ornek_sonuc()], manuel_dakika=bozuk)["tahmini_tasarruf"]
+            assert t["manuel_dakika_varsayimi"] == MANUEL_ISLEM_DAKIKA_VARSAYIMI
+            assert t["varsayim_mi"] is True

@@ -21,9 +21,17 @@ Tasarım:
 
 Dürüstlük notu (tahmini tasarruf):
     Evrak başına manuel işlem süresi (MANUEL_ISLEM_DAKIKA_VARSAYIMI)
-    resmî bir kaynağa dayanmayan, makul bir ÇALIŞMA VARSAYIMIDIR;
-    yalnızca tasarruf potansiyelini görselleştirmek için kullanılır ve
-    arayüzde de varsayım olduğu açıkça belirtilir.
+    bilinçli olarak MUHAFAZAKÂR bir çalışma varsayımıdır ve arayüzde
+    kaydırıcıyla kurumun kendi iş analizi ölçümüyle değiştirilebilir.
+    Literatür bağlamı: hakemli bir üniversite vaka çalışması, EBYS
+    öncesi bir resmî yazışma evrakının toplam işlem süresini (hazırlama
+    + onay döngüsü, beyana dayalı ölçüm) ortalama ~4,7 saat/evrak
+    (1-8 saat aralığı) olarak raporlamıştır (Arslan & Kaya, 2017, SDÜ
+    İİBF Dergisi C.22 Kayfor15 özel sayısı,
+    https://dergipark.org.tr/tr/pub/sduiibfd/article/710656). Buradaki
+    varsayılan (12 dk) bu ölçümün ÇOK ALTINDA tutulmuştur: yalnızca ilk
+    inceleme-kayıt-havale-taslak adımlarını temsil eder ve tasarruf
+    iddiasını alt sınırdan kurar (abartılı iddia riski bilinçle önlenir).
 """
 
 from __future__ import annotations
@@ -38,8 +46,13 @@ logger = logging.getLogger("kamu_evrak_ajan.kokpit")
 # belirleme, bilgileri çıkarma, havale ve cevap taslağı hazırlama
 # adımlarının tamamı için kabul edilen kaba bir ortalamadır. Gerçek süre
 # kuruma ve evrak karmaşıklığına göre değişir; gösterge yalnızca
-# karşılaştırma amaçlıdır.
+# karşılaştırma amaçlıdır. Değer PARAMETRİKTİR: kurum kendi iş analizi
+# ölçümünü kokpit_ozeti(manuel_dakika=...) ile (arayüzde kaydırıcıyla)
+# verebilir; aşağıdaki aralık kaydırıcının tek doğruluk kaynağıdır.
 MANUEL_ISLEM_DAKIKA_VARSAYIMI = 12
+# Kaydırıcı aralığı: üst sınır, literatürdeki 1-8 saat/evrak ölçümünün
+# (Arslan & Kaya 2017 — modül dürüstlük notu) alt bandını da kapsar
+MANUEL_DAKIKA_ARALIGI = (3, 60)
 
 
 def _guvenli_sozluk(kayit: Any) -> dict:
@@ -58,13 +71,19 @@ def _kritik_eksik_var_mi(eksikler: Any) -> bool:
     return False
 
 
-def kokpit_ozeti(sonuclar: "list[dict]") -> dict:
+def kokpit_ozeti(
+    sonuclar: "list[dict]", manuel_dakika: "float | None" = None
+) -> dict:
     """
     Pipeline sonuç listesinden kurum kokpiti özet istatistikleri üretir.
 
     Args:
         sonuclar: EndToEndPipeline.process/process_batch çıktısı sözlükler.
             Eksik anahtarlı veya sözlük olmayan kayıtlar tolere edilir.
+        manuel_dakika: Evrak başına manuel işlem süresi (dakika) — kurumun
+            KENDİ iş analizi ölçümü. Verilmez veya geçersizse
+            MANUEL_ISLEM_DAKIKA_VARSAYIMI kullanılır ve sonuç varsayım
+            olarak işaretlenir (modül dürüstlük notu).
 
     Returns:
         Özet sözlüğü:
@@ -132,8 +151,19 @@ def kokpit_ozeti(sonuclar: "list[dict]") -> dict:
     eksikli_oran = (eksikli_sayisi / evrak_sayisi) if evrak_sayisi else 0.0
     ort_sure = (toplam_sure / evrak_sayisi) if evrak_sayisi else 0.0
 
-    # Tahmini tasarruf — manuel süre bir VARSAYIMDIR (modül docstring'i)
-    manuel_toplam_dakika = evrak_sayisi * MANUEL_ISLEM_DAKIKA_VARSAYIMI
+    # Tahmini tasarruf — manuel süre parametreyle (kurum ölçümü) gelir;
+    # verilmemişse VARSAYIM kullanılır (modül dürüstlük notu)
+    try:
+        etkin_dakika = float(manuel_dakika) if manuel_dakika is not None else None
+        if etkin_dakika is not None and etkin_dakika <= 0:
+            etkin_dakika = None
+    except (TypeError, ValueError):
+        etkin_dakika = None
+    varsayim_mi = etkin_dakika is None
+    if varsayim_mi:
+        etkin_dakika = float(MANUEL_ISLEM_DAKIKA_VARSAYIMI)
+
+    manuel_toplam_dakika = evrak_sayisi * etkin_dakika
     manuel_toplam_saniye = manuel_toplam_dakika * 60.0
     if manuel_toplam_saniye > 0:
         tasarruf_orani = 1.0 - (toplam_sure / manuel_toplam_saniye)
@@ -151,7 +181,10 @@ def kokpit_ozeti(sonuclar: "list[dict]") -> dict:
         "toplam_islem_suresi_sn": round(toplam_sure, 3),
         "dusuk_guvenli_sayisi": dusuk_guvenli_sayisi,
         "tahmini_tasarruf": {
-            "manuel_dakika_varsayimi": MANUEL_ISLEM_DAKIKA_VARSAYIMI,
+            # Geriye uyumlu anahtar adı: değer artık etkin (parametrik) süredir
+            "manuel_dakika_varsayimi": round(etkin_dakika, 2),
+            # True → varsayılan çalışma varsayımı; False → kurumun verdiği ölçüm
+            "varsayim_mi": varsayim_mi,
             "manuel_toplam_saat": round(manuel_toplam_dakika / 60.0, 2),
             "sistem_toplam_saniye": round(toplam_sure, 2),
             "tasarruf_orani": round(tasarruf_orani, 4),

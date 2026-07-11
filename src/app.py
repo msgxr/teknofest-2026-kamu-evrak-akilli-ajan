@@ -44,7 +44,11 @@ import streamlit as st
 
 from src.utils.eyazisma import uret_ustveri, ustveri_belge_tutarliligi
 from src.utils.islem_raporu import uret_html_rapor
-from src.utils.kokpit import kokpit_ozeti
+from src.utils.kokpit import (
+    MANUEL_DAKIKA_ARALIGI,
+    MANUEL_ISLEM_DAKIKA_VARSAYIMI,
+    kokpit_ozeti,
+)
 
 logger = logging.getLogger("kamu_evrak_ajan.app")
 
@@ -1497,15 +1501,27 @@ def _sekme_kokpit(pipeline: Any) -> None:
         else:
             st.info("Birim dağılımı üretilemedi.")
 
-    # Tahmini tasarruf kutusu — varsayım şeffaf biçimde yazılır
-    tasarruf = ozet["tahmini_tasarruf"]
+    # Tahmini tasarruf kutusu — varsayım PARAMETRİKTİR ve şeffaf yazılır
     with st.container(border=True):
         st.subheader("⏳ Tahmini Zaman Tasarrufu")
+        alt_sinir, ust_sinir = MANUEL_DAKIKA_ARALIGI
+        manuel_dk = st.slider(
+            "Evrak başına manuel işlem süresi (dakika) — kurumunuzun kendi "
+            "iş analizi ölçümünü girin",
+            min_value=alt_sinir, max_value=ust_sinir,
+            value=MANUEL_ISLEM_DAKIKA_VARSAYIMI,
+            key="kokpit_manuel_dk",
+            help="Okuma, tür belirleme, bilgi çıkarma, havale ve cevap "
+                 "taslağı adımlarının tamamı için evrak başına ortalama "
+                 "süre. Varsayılan değer resmî bir kaynağa dayanmayan bir "
+                 "ÇALIŞMA VARSAYIMIDIR; en sağlıklı sonuç için kurumunuzun "
+                 "kendi ölçümünü giriniz.",
+        )
+        tasarruf = kokpit_ozeti(sonuclar, manuel_dakika=manuel_dk)["tahmini_tasarruf"]
         t1, t2, t3 = st.columns(3)
         t1.metric(
             "Manuel (tahmini)", f"{tasarruf['manuel_toplam_saat']:.1f} saat",
-            help="Varsayıma dayalı tahmindir — evrak başına manuel işlem süresi "
-                 "kabulünden hesaplanır (resmî kaynak yoktur).",
+            help="Yukarıdaki kaydırıcıdaki evrak başına süreden hesaplanır.",
         )
         t2.metric(
             "Sistem (ölçülen)", f"{tasarruf['sistem_toplam_saniye']:.1f} sn",
@@ -1513,12 +1529,18 @@ def _sekme_kokpit(pipeline: Any) -> None:
         )
         t3.metric(
             "Tasarruf Oranı", _fmt_yuzde(tasarruf["tasarruf_orani"]),
-            help="Manuel varsayıma göre tasarruf — varsayım şeffaf biçimde alttaki notta yazılıdır.",
+            help="Kaydırıcıdaki manuel süre kabulüne göre tasarruf; kabul "
+                 "alttaki notta şeffaf biçimde yazılıdır.",
         )
         st.caption(
-            f"ℹ️ Manuel süre, evrak başına **{tasarruf['manuel_dakika_varsayimi']} dakika** "
-            "kabulüne dayanan bir **varsayımdır** (resmî bir kaynağa dayanmaz); "
-            "sistem süresi ise gerçek ölçümdür."
+            f"ℹ️ Manuel süre, evrak başına **{tasarruf['manuel_dakika_varsayimi']:g} "
+            "dakika** kabulüne dayanır ve kaydırıcıyla kurumunuza göre "
+            "ayarlanabilir. Literatür bağlamı: hakemli bir üniversite vaka "
+            "çalışması EBYS-öncesi evrak işlem süresini ortalama **~4,7 "
+            "saat/evrak** (1-8 saat; beyana dayalı ölçüm) raporlamıştır "
+            "([Arslan & Kaya 2017](https://dergipark.org.tr/tr/pub/sduiibfd/"
+            "article/710656)) — buradaki varsayılan bilinçli olarak bunun çok "
+            "altında, **muhafazakâr** tutulmuştur. Sistem süresi gerçek ölçümdür."
         )
 
     # Sonuç tablosu
