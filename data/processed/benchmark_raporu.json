@@ -1,0 +1,139 @@
+{
+  "zaman_damgasi": "2026-07-11T12:57:40",
+  "makine": {
+    "isletim_sistemi": "Darwin",
+    "surum": "23.6.0",
+    "mimari": "arm64",
+    "islemci": "arm",
+    "cekirdek_sayisi": 8,
+    "python_surumu": "3.9.6"
+  },
+  "llm_backend": "offline",
+  "yapilandirma": {
+    "tekrar": 3,
+    "evrak_sayisi": 67,
+    "setler": [
+      "data/raw/kurgu_evraklar",
+      "data/raw/kurgu_evraklar_heldout",
+      "data/raw/kurgu_evraklar_heldout_v2"
+    ],
+    "olcek_carpanlari": [
+      1,
+      5,
+      10
+    ]
+  },
+  "soguk_baslangic": {
+    "pipeline_kurulum_saniye": 0.02,
+    "ilk_evrak_isinma_saniye": 0.042
+  },
+  "gecikme_ms": {
+    "ortalama": 10.89,
+    "medyan": 10.67,
+    "p95": 14.08,
+    "p99": 15.27,
+    "min": 6.62,
+    "max": 16.46,
+    "olcum_sayisi": 201
+  },
+  "throughput": {
+    "evrak_bolu_saniye": 91.8,
+    "toplam_evrak": 201,
+    "toplam_sure_saniye": 2.188
+  },
+  "adim_dagilimi": [
+    {
+      "agent": "ocr",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.0,
+      "pay_yuzde": 0.0
+    },
+    {
+      "agent": "classification",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 1.81,
+      "pay_yuzde": 19.0
+    },
+    {
+      "agent": "info_extraction",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 1.75,
+      "pay_yuzde": 18.3
+    },
+    {
+      "agent": "missing_info",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.13,
+      "pay_yuzde": 1.4
+    },
+    {
+      "agent": "legislation",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 1.03,
+      "pay_yuzde": 10.8
+    },
+    {
+      "agent": "triage",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.03,
+      "pay_yuzde": 0.3
+    },
+    {
+      "agent": "summarization",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.97,
+      "pay_yuzde": 10.2
+    },
+    {
+      "agent": "anonimlestirme",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.67,
+      "pay_yuzde": 7.0
+    },
+    {
+      "agent": "draft_writer",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.01,
+      "pay_yuzde": 0.2
+    },
+    {
+      "agent": "routing",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 3.15,
+      "pay_yuzde": 33.0
+    },
+    {
+      "agent": "user_info",
+      "calisma_sayisi": 201,
+      "ortalama_ms": 0.0,
+      "pay_yuzde": 0.0
+    }
+  ],
+  "bellek": {
+    "tepe_mb": 0.2,
+    "yontem": "tracemalloc (Python tahsisleri, ayrı turda ölçüldü)"
+  },
+  "olcekleme": [
+    {
+      "olcek": 1,
+      "evrak_sayisi": 67,
+      "toplam_sure_saniye": 0.72,
+      "evrak_basina_ms": 10.75,
+      "dogrusallik_orani": 1.0
+    },
+    {
+      "olcek": 5,
+      "evrak_sayisi": 335,
+      "toplam_sure_saniye": 3.616,
+      "evrak_basina_ms": 10.79,
+      "dogrusallik_orani": 1.0
+    },
+    {
+      "olcek": 10,
+      "evrak_sayisi": 670,
+      "toplam_sure_saniye": 7.216,
+      "evrak_basina_ms": 10.77,
+      "dogrusallik_orani": 1.0
+    }
+  ]
+}
