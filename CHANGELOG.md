@@ -14,6 +14,18 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Bağımsız taslak kalite hakemi (P1-6, şartname izi: G2/Uygulama-35 kanıtı):**
+  - `src/utils/taslak_hakemi.py`: taslaklar üretici ajandan bağımsız 0-100
+    ölçeğinde puanlanır — LLM varsa dört boyutlu rubrik (LLM-as-judge),
+    yoksa kural tabanlı eşdeğer (biçim %40 + üslup %30 + temellilik %30);
+    iki yol aynı ölçeğe normalize.
+  - **Mevzuat temellilik** her iki yolda deterministik (RAGAS-vari
+    groundedness): öneri listesinde olmayan atıf halüsinasyon işareti
+    sayılıp ağır cezalandırılır; zayıf-eşleşmeli atıf düşük puan alır.
+  - Sonuç `taslak_kalitesi` anahtarıyla pipeline çıktısında;
+    `evaluate.py` ortalama/asgari puan + hakem yöntemi dağılımı raporlar.
+    Ölçüm (12.07.2026, kural hakem): ortalama 92,9 / 95,8 / 94,6.
+  - 11 yeni test (`tests/test_taslak_hakemi.py`); toplam 314/314 yeşil.
 - **İnsan Onayı Kuyruğu + KVKK varsayılan anonim görünüm (P0-5, şartname izi: yenilik/HITL):**
   - Streamlit'e "✋ İnsan Onayı Kuyruğu" sekmesi: düşük güvenli /
     gizlilik-kısıtlı kararlar kayıt defterinden gerekçeleriyle listelenir;

@@ -89,6 +89,8 @@ class AgentState:
     draft_text: str = ""
     draft_type: str = ""
     format_validation: dict = field(default_factory=dict)
+    # Bağımsız taslak kalite hakemi sonucu (0-100 puan + bileşenler)
+    draft_quality: dict = field(default_factory=dict)
     routing_suggestion: dict = field(default_factory=dict)
     user_notifications: list = field(default_factory=list)
     clarification_requests: list = field(default_factory=list)
@@ -537,6 +539,7 @@ class OrchestratorAgent:
             "yazi_taslagi": self.state.draft_text,
             "yazi_turu": self.state.draft_type,
             "format_denetimi": self.state.format_validation,
+            "taslak_kalitesi": self.state.draft_quality,
             "yonlendirme": self.state.routing_suggestion,
             "bilgilendirmeler": self.state.user_notifications,
             "eksik_bilgi_talepleri": self.state.clarification_requests,

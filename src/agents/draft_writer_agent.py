@@ -37,6 +37,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
+from src.utils.taslak_hakemi import taslak_puanla
 from src.utils.turkish_nlp import extract_sentences, turkish_lower
 
 if TYPE_CHECKING:
@@ -320,6 +321,14 @@ class DraftWriterAgent:
         )
         validation["uretim_yontemi"] = yontem
         state.format_validation = validation
+
+        # Bağımsız kalite hakemi (P1-6): üretici ajanın çıktısı ayrı bir
+        # değerlendiriciyle 0-100 ölçeğinde puanlanır (LLM varsa rubrik,
+        # yoksa kural tabanlı eşdeğer; mevzuat temellilik her iki yolda
+        # deterministik)
+        state.draft_quality = taslak_puanla(
+            draft, validation, state.legislation_matches
+        )
 
         # m.25: gizlilik dereceli evrak kısıtlı modda işlenir — üretilen
         # taslak ancak insan onayıyla kullanılabilir (Kapı 3 mekanizması)

@@ -258,6 +258,35 @@ def hesapla_isabet_kacaklari(
     ]
 
 
+def hesapla_taslak_kalitesi(sonuclar: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Taslak kalite hakemi puanlarının (0-100) özet istatistiğini üretir.
+
+    Args:
+        sonuclar: evraklari_isle() çıktısı ("taslak_puan"/"taslak_yontem"
+            alanları kullanılır; puanı olmayan sonuçlar dışlanır)
+
+    Returns:
+        {"ortalama_puan", "asgari_puan", "degerlendirilen", "yontemler"}
+        — hiç puan yoksa ortalama/asgari None
+    """
+    puanlar = [
+        float(s["taslak_puan"]) for s in sonuclar
+        if s.get("taslak_puan") is not None
+    ]
+    yontemler: Dict[str, int] = {}
+    for s in sonuclar:
+        yontem = str(s.get("taslak_yontem") or "").strip()
+        if yontem:
+            yontemler[yontem] = yontemler.get(yontem, 0) + 1
+    return {
+        "ortalama_puan": round(sum(puanlar) / len(puanlar), 1) if puanlar else None,
+        "asgari_puan": round(min(puanlar), 1) if puanlar else None,
+        "degerlendirilen": len(puanlar),
+        "yontemler": yontemler,
+    }
+
+
 def hesapla_medyan(degerler: Sequence[float]) -> float:
     """
     Medyan hesaplar (saf Python, statistics modülüne bile gerek yok).
@@ -456,6 +485,8 @@ def evraklari_isle(
                 for m in (result.get("mevzuat_eslestirme") or [])
                 if m.get("doc_id")
             ],
+            "taslak_puan": (result.get("taslak_kalitesi") or {}).get("puan"),
+            "taslak_yontem": (result.get("taslak_kalitesi") or {}).get("yontem", ""),
             "adimlar": adimlar,
             "toplam_sure": round(toplam_sure, 4),
         })
@@ -539,6 +570,7 @@ def metrikleri_hesapla(
                 dosyalar, beklenen_mevzuat, tahmin_mevzuat, k=3
             ),
         },
+        "taslak_kalitesi": hesapla_taslak_kalitesi(sonuclar),
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,
             "evrak_basina_medyan_sure_saniye": round(hesapla_medyan(sureler), 4),
@@ -661,9 +693,24 @@ def konsol_raporu_yazdir(rapor: Dict[str, Any]) -> None:
                 )
             console.print(yanlis_m)
 
-    # 5. Performans tablosu
+    # 5. Taslak kalitesi tablosu (bağımsız hakem, 0-100)
+    kalite = rapor.get("taslak_kalitesi") or {}
+    if kalite.get("degerlendirilen"):
+        tablo_k = Table(title="5. Taslak Kalitesi (bağımsız hakem, 0-100)")
+        tablo_k.add_column("Metrik", style="cyan")
+        tablo_k.add_column("Değer", justify="right")
+        tablo_k.add_row("Ortalama puan", f"{kalite['ortalama_puan']:.1f}")
+        tablo_k.add_row("Asgari puan", f"{kalite['asgari_puan']:.1f}")
+        tablo_k.add_row("Değerlendirilen taslak", str(kalite["degerlendirilen"]))
+        tablo_k.add_row(
+            "Hakem yöntemi",
+            ", ".join(f"{y}: {n}" for y, n in kalite.get("yontemler", {}).items()),
+        )
+        console.print(tablo_k)
+
+    # 6. Performans tablosu
     perf = rapor["performans"]
-    tablo4 = Table(title="5. Performans (gerçek zamana yakınlık)")
+    tablo4 = Table(title="6. Performans (gerçek zamana yakınlık)")
     tablo4.add_column("Adım / Metrik", style="cyan")
     tablo4.add_column("Süre (sn)", justify="right")
     tablo4.add_row(

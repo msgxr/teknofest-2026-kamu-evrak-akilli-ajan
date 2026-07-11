@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-11T20:32:34",
+  "zaman_damgasi": "2026-07-12T00:22:06",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout",
   "set_adi": "kurgu_evraklar_heldout",
   "llm": {
@@ -117,20 +117,28 @@
       }
     ]
   },
+  "taslak_kalitesi": {
+    "ortalama_puan": 95.8,
+    "asgari_puan": 86.0,
+    "degerlendirilen": 16,
+    "yontemler": {
+      "kural_hakem": 16
+    }
+  },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.3033,
+    "evrak_basina_ortalama_sure_saniye": 0.3036,
     "evrak_basina_medyan_sure_saniye": 0.0285,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0035,
-      "classification": 0.0044,
-      "info_extraction": 0.2729,
+      "ocr": 0.0014,
+      "classification": 0.0045,
+      "info_extraction": 0.2747,
       "missing_info": 0.0023,
-      "legislation": 0.0051,
+      "legislation": 0.0044,
       "triage": 0.0011,
-      "summarization": 0.0029,
+      "summarization": 0.0027,
       "anonimlestirme": 0.0014,
-      "draft_writer": 0.0012,
-      "routing": 0.0087,
+      "draft_writer": 0.0022,
+      "routing": 0.009,
       "user_info": 0.0
     }
   },
