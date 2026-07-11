@@ -7,6 +7,7 @@
 ![License](https://img.shields.io/badge/License-Apache_2.0-green?style=for-the-badge)
 ![TEKNOFEST](https://img.shields.io/badge/TEKNOFEST-2026-red?style=for-the-badge)
 [![CI](https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan/actions/workflows/ci.yml/badge.svg)](https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan/actions/workflows/ci.yml)
+[![TAKP](https://img.shields.io/badge/T%C3%BCrkiye_A%C3%A7%C4%B1k_Kaynak_Platformu-topic-E30A17?style=for-the-badge)](https://github.com/topics/turkiye-acik-kaynak-platformu)
 
 **Yapay Zeka Dil Ajanları Yarışması — 1. Senaryo**
 

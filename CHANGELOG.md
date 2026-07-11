@@ -14,6 +14,13 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **TAKP aktarım provası + rozet (P2-12, şartname izi: m.7 açık kaynak):**
+  `docs/takp_aktarim_plani.md` — doğrulanmış durum tespiti (resmî org
+  github.com/tracikkaynak 2019'dan beri hareketsiz; resmî ekleme süreci
+  dokümante değil; fiilî gelenek `turkiye-acik-kaynak-platformu`
+  topic'i — bu repoda zaten ekli), üç senaryolu aktarım akışı (transfer/
+  fork-mirror/topic) gh komutlarıyla, ön-aktarım kontrol listesi ve
+  sorumlu+zamanlama. README'ye TAKP topic rozeti eklendi.
 - **Kokpit tasarruf hesabı kaynaklı + parametrik (P2-11, şartname izi: Ticarileşme-15):**
   Evrak başına manuel işlem süresi artık `kokpit_ozeti(manuel_dakika=...)`
   parametresi ve arayüzdeki kaydırıcıyla (3-60 dk) kurumun KENDİ iş
