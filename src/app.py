@@ -23,6 +23,7 @@ Tasarım notu:
 
 from __future__ import annotations
 
+import html
 import json
 import logging
 import os
@@ -105,6 +106,28 @@ YONTEM_ETIKETLERI = {
     "llm": "🤖 LLM",
     "llm_eskalasyon": "🤖 LLM eskalasyon",
     "hibrit": "🧩🤖 Hibrit (kural + LLM)",
+}
+
+# Ajan hattı görselleştirmesi: orkestratördeki ajan kodları → okunur ad
+AJAN_ADLARI = {
+    "ocr": "OCR",
+    "classification": "Sınıflandırma",
+    "info_extraction": "Bilgi Çıkarım",
+    "missing_info": "Eksik Bilgi",
+    "legislation": "Mevzuat",
+    "triage": "Önceliklendirme",
+    "summarization": "Özet",
+    "anonimlestirme": "KVKK Anonim.",
+    "draft_writer": "Taslak Yazımı",
+    "routing": "Yönlendirme",
+    "user_info": "Bilgilendirme",
+}
+
+# islem_adimlari[].status → (ikon, kenarlık rengi, zemin rengi)
+ADIM_DURUM_STILLERI = {
+    "success": ("✅", "#2e7d32", "rgba(46, 125, 50, 0.10)"),
+    "atlandi": ("⏭️", "#9e9e9e", "rgba(158, 158, 158, 0.12)"),
+    "error": ("❌", "#c62828", "rgba(198, 40, 40, 0.10)"),
 }
 
 
@@ -208,6 +231,184 @@ def _oncelik_sirasi(oncelik: str) -> int:
     return 2
 
 
+def _ajan_adi(kod: str) -> str:
+    """Ajan kodunu okunur ada çevirir (bilinmeyen kod olduğu gibi döner)."""
+    return AJAN_ADLARI.get(str(kod).strip().lower(), str(kod))
+
+
+# ---------------------------------------------------------------------------
+# Saf HTML üretim fonksiyonları (test edilebilir; Streamlit çağrısı içermez)
+# ---------------------------------------------------------------------------
+
+def _ajan_hatti_html(adimlar: list) -> str:
+    """
+    islem_adimlari verisinden soldan sağa bağlantılı ajan hattı HTML'i üretir.
+
+    Her ajan için durum ikonu (✅/⏭️/❌), okunur ad ve süre gösterilir;
+    en uzun süren başarılı adım rozetlenir. Çok-ajanlı mimariyi tek bakışta
+    somutlaştıran demo bileşenidir.
+
+    GÜVENLİK: tüm dinamik metinler html.escape ile kaçırılır (XSS önlemi);
+    veri kendi pipeline'ımızdan gelse de ilke gereği kaçırma uygulanır.
+    """
+    gecerli = [a for a in (adimlar or []) if isinstance(a, dict)]
+    if not gecerli:
+        return ""
+
+    # En uzun süren başarılı adımı bul (rozet için); tüm süreler 0 ise rozet yok
+    en_uzun_indeks = -1
+    en_uzun_sure = 0.0
+    for i, adim in enumerate(gecerli):
+        if adim.get("status") != "success":
+            continue
+        try:
+            sure = float(adim.get("sure_saniye") or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if sure > en_uzun_sure:
+            en_uzun_sure = sure
+            en_uzun_indeks = i
+
+    parcalar: list[str] = []
+    for i, adim in enumerate(gecerli):
+        durum = str(adim.get("status", "")).strip().lower()
+        ikon, kenar, zemin = ADIM_DURUM_STILLERI.get(durum, ("🔹", "#607d8b", "rgba(96, 125, 139, 0.10)"))
+        ad = html.escape(_ajan_adi(str(adim.get("agent", "—"))))
+
+        # Süre etiketi: atlanmış adımda 'atlandı', hatada 'hata', diğerinde sn
+        if durum == "atlandi":
+            sure_metni = "atlandı"
+        elif durum == "error":
+            sure_metni = "hata"
+        else:
+            try:
+                sure_metni = f"{float(adim.get('sure_saniye') or 0.0):.3f} sn"
+            except (TypeError, ValueError):
+                sure_metni = "—"
+
+        # Fareyle üzerine gelince ayrıntı (açıklama + atlanma nedeni / hata)
+        ipucu_parcalari = [str(adim.get("description", "")).strip()]
+        if adim.get("neden"):
+            ipucu_parcalari.append(f"Atlanma nedeni: {adim['neden']}")
+        if adim.get("error"):
+            ipucu_parcalari.append(f"Hata: {adim['error']}")
+        ipucu = html.escape(" | ".join(p for p in ipucu_parcalari if p), quote=True)
+
+        kesik = "dashed" if durum == "atlandi" else "solid"
+        rozet = ""
+        if i == en_uzun_indeks:
+            rozet = (
+                '<div style="margin-top:3px;"><span style="background:#1f3a5f;color:#ffffff;'
+                'border-radius:999px;padding:1px 8px;font-size:0.62rem;white-space:nowrap;">'
+                "⏱ en uzun adım</span></div>"
+            )
+        parcalar.append(
+            f'<div title="{ipucu}" style="flex:0 0 auto;min-width:96px;text-align:center;'
+            f"border:1.5px {kesik} {kenar};border-radius:10px;padding:6px 9px;"
+            f'background:{zemin};">'
+            f'<div style="font-size:1rem;line-height:1.2;">{ikon}</div>'
+            f'<div style="font-size:0.76rem;font-weight:600;white-space:nowrap;">{ad}</div>'
+            f'<div style="font-size:0.68rem;opacity:0.75;white-space:nowrap;">{html.escape(sure_metni)}</div>'
+            f"{rozet}</div>"
+        )
+
+    ok = '<div style="flex:0 0 auto;font-weight:700;opacity:0.55;">→</div>'
+    return (
+        '<div style="display:flex;align-items:center;gap:6px;overflow-x:auto;'
+        'padding:10px 4px;">' + ok.join(parcalar) + "</div>"
+    )
+
+
+def _a4_gorunum_html(taslak: str) -> str:
+    """
+    Yazı taslağını A4 kâğıt görünümünde HTML'e çevirir.
+
+    Beyaz zemin, kenar boşlukları, hafif gölge; 'T.C.' ile başlayan antet
+    bloğu (boş satıra veya 'Sayı' satırına kadar) ortalanır. Yazdırmaya
+    uygundur (kâğıt oranı ~A4, 794px ≈ 21 cm @ 96dpi).
+
+    GÜVENLİK: taslak metni html.escape ile kaçırılır (XSS önlemi) —
+    taslak, kullanıcı girdisinden türetildiği için güvenilmez kabul edilir.
+    """
+    satirlar = (taslak or "").strip("\n").split("\n")
+    baslik_satirlari: list[str] = []
+    govde_baslangici = 0
+    if satirlar and satirlar[0].strip().upper().startswith("T.C"):
+        for satir in satirlar[:5]:  # antet en fazla 5 satır (T.C. + kurum + birim)
+            temiz = satir.strip()
+            if not temiz or temiz.lower().startswith(("sayı", "sayi")):
+                break
+            baslik_satirlari.append(temiz)
+            govde_baslangici += 1
+    govde = "\n".join(satirlar[govde_baslangici:]).strip("\n")
+
+    baslik_html = ""
+    if baslik_satirlari:
+        baslik_ic = "<br>".join(html.escape(s) for s in baslik_satirlari)
+        baslik_html = (
+            '<div style="text-align:center;font-weight:700;letter-spacing:0.4px;'
+            f'margin-bottom:20px;">{baslik_ic}</div>'
+        )
+
+    return (
+        '<div style="background:#ffffff;color:#1a1a1a;max-width:794px;margin:0 auto;'
+        "padding:56px 64px;border:1px solid #d0d4da;border-radius:3px;"
+        "box-shadow:0 6px 24px rgba(15, 30, 60, 0.18);"
+        "font-family:'Times New Roman', Georgia, serif;font-size:0.95rem;"
+        'line-height:1.55;">'
+        f"{baslik_html}"
+        f'<div style="white-space:pre-wrap;">{html.escape(govde)}</div>'
+        "</div>"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Emsal evrak yardımcıları (kurumsal hafıza)
+# ---------------------------------------------------------------------------
+
+def _emsal_sorgu_metni(sonuc: dict) -> str:
+    """
+    Emsal araması için en uygun sorgu metnini seçer.
+
+    Öncelik: ham evrak metni (arayüzde saklanır) > KVKK maskeli metin >
+    özet + konu birleşimi. Böylece dosya türünden bağımsız olarak her
+    sonuç için anlamlı bir sorgu üretilebilir.
+    """
+    ham = str(sonuc.get("_ham_metin") or "").strip()
+    if ham:
+        return ham
+    anonim = sonuc.get("anonimlestirme")
+    if isinstance(anonim, dict):
+        maskeli = str(anonim.get("metin") or "").strip()
+        if maskeli:
+            return maskeli
+    parcalar = [str(sonuc.get("ozet") or "").strip()]
+    bilgi = sonuc.get("bilgi_cikarim")
+    if isinstance(bilgi, dict):
+        parcalar.append(str(bilgi.get("konu") or "").strip())
+    return " ".join(p for p in parcalar if p).strip()
+
+
+def _kendi_kaydi_mi(sonuc: dict, emsal: dict) -> bool:
+    """
+    Emsal kaydı, az önce işlenen evrakın kendi kayıt defteri izi mi?
+
+    Aynı dosya adı = aynı evrak → emsal (geçmiş benzer evrak) sayılmaz.
+    'dogrudan_metin' kaynağında dosya adı ayırt edici olmadığından ek
+    olarak özet öneki karşılaştırılır (sezgisel; farklı metinler farklı
+    özet üretir).
+    """
+    emsal_kaynak = Path(str(emsal.get("kaynak") or "")).name
+    guncel_kaynak = Path(str(sonuc.get("input_file") or "")).name
+    if not emsal_kaynak or emsal_kaynak != guncel_kaynak:
+        return False
+    if emsal_kaynak != "dogrudan_metin":
+        return True
+    guncel_ozet = str(sonuc.get("ozet") or "").strip()[:80]
+    emsal_ozet = str(emsal.get("ozet") or "").strip()[:80]
+    return bool(guncel_ozet) and guncel_ozet == emsal_ozet
+
+
 # ---------------------------------------------------------------------------
 # İşleme yardımcıları
 # ---------------------------------------------------------------------------
@@ -217,6 +418,14 @@ def _dosya_isle(pipeline: Any, dosya_yolu: str, mode: str) -> dict:
     baslangic = time.time()
     sonuc = pipeline.process(dosya_yolu, mode=mode)
     sonuc.setdefault("islem_suresi_saniye", round(time.time() - baslangic, 2))
+    # Emsal araması için ham metni sakla (yalnızca arayüz içi kullanım;
+    # metin tabanlı dosyalarda; PDF/görüntüde özet/maskeli metne düşülür)
+    try:
+        yol = Path(dosya_yolu)
+        if yol.suffix.lower() == ".txt":
+            sonuc["_ham_metin"] = yol.read_text(encoding="utf-8")[:20_000]
+    except Exception as exc:
+        logger.debug(f"Ham metin saklanamadı (emsal araması özete düşer): {exc}")
     return sonuc
 
 
@@ -225,6 +434,44 @@ def _metin_isle(pipeline: Any, metin: str, mode: str) -> dict:
     baslangic = time.time()
     sonuc = pipeline.process_text(metin, mode=mode)
     sonuc.setdefault("islem_suresi_saniye", round(time.time() - baslangic, 2))
+    sonuc["_ham_metin"] = metin[:20_000]  # emsal araması için (arayüz içi)
+    return sonuc
+
+
+def _status_ile_isle(etiket: str, islem: Any) -> dict:
+    """
+    İşlemi st.status bloğu içinde çalıştırıp ajan akışı hissi verir.
+
+    İşlem bittiğinde her ajan adımı durum ikonu ve süresiyle blok içinde
+    listelenir; blok '✅ tamamlandı' durumuna çekilir. İşlem <1 sn sürse
+    de jüri, 11 ajanlık hattın adım adım çalıştığını görür.
+
+    Args:
+        etiket: Status başlığında gösterilecek işlem etiketi
+        islem: Parametresiz çağrılabilir; sonuç sözlüğü döndürür
+    """
+    with st.status(f"🤖 {etiket} — 11 ajanlık işlem hattı çalışıyor...", expanded=True) as durum:
+        try:
+            sonuc = islem()
+        except Exception:
+            durum.update(label=f"❌ {etiket} — işlem başarısız", state="error")
+            raise
+        adimlar = [a for a in (sonuc.get("islem_adimlari") or []) if isinstance(a, dict)]
+        for adim in adimlar:
+            ikon = ADIM_DURUM_STILLERI.get(str(adim.get("status", "")).strip().lower(), ("🔹",))[0]
+            try:
+                sure_metni = f"{float(adim.get('sure_saniye') or 0.0):.3f} sn"
+            except (TypeError, ValueError):
+                sure_metni = "—"
+            st.write(
+                f"{ikon} **{_ajan_adi(str(adim.get('agent', '—')))}** — "
+                f"{adim.get('description', '')} ({sure_metni})"
+            )
+        durum.update(
+            label=f"✅ {etiket} — {len(adimlar)} ajan adımı tamamlandı",
+            state="complete",
+            expanded=False,
+        )
     return sonuc
 
 
@@ -316,10 +563,56 @@ def _metrik_satiri(sonuc: dict) -> None:
     skor_metni = _fmt_yuzde(skor) if skor is not None else "—"
 
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Evrak Türü", tur, f"güven {tur_guven}" if tur_guven != "—" else None, delta_color="off")
-    k2.metric("Önerilen Birim", birim, f"güven {birim_guven}" if birim_guven != "—" else None, delta_color="off")
-    k3.metric("Toplam Süre", sure_metni)
-    k4.metric("Format Skoru", skor_metni)
+    k1.metric(
+        "Evrak Türü", tur,
+        f"güven {tur_guven}" if tur_guven != "—" else None,
+        delta_color="off",
+        help="Sınıflandırma ajanının tahmini (kural + istatistiksel model ensemble; "
+             "gerekirse LLM eskalasyonu).",
+    )
+    k2.metric(
+        "Önerilen Birim", birim,
+        f"güven {birim_guven}" if birim_guven != "—" else None,
+        delta_color="off",
+        help="Yönlendirme ajanının önerdiği sorumlu birim ve karar güveni.",
+    )
+    k3.metric(
+        "Toplam Süre", sure_metni,
+        help="Uçtan uca işlem süresi — tüm ajan adımları dahil, gerçek ölçüm.",
+    )
+    k4.metric(
+        "Format Skoru", skor_metni,
+        help="Üretilen taslağın resmî yazışma kurallarına (başlık, sayı, konu, "
+             "imza bloğu...) uygunluk skoru.",
+    )
+
+
+def _bolum_ajan_hatti(sonuc: dict) -> None:
+    """
+    Çok-ajanlı işlem hattını soldan sağa bağlantılı olarak görselleştirir.
+
+    Her ajan için durum ikonu (✅ başarılı / ⏭️ atlandı / ❌ hata), ad ve
+    süre gösterilir; en uzun süren adım rozetlenir. Koşullu kapıların
+    atlattığı adımlar da görünür — mimari jüri gözünde somutlaşır.
+    """
+    adimlar = sonuc.get("islem_adimlari") or []
+    st.subheader("🛰️ Çok-Ajanlı İşlem Hattı")
+    hatti_html = _ajan_hatti_html(adimlar)
+    if not hatti_html:
+        st.info("İşlem adımı kaydı bulunmuyor.")
+        return
+    st.markdown(hatti_html, unsafe_allow_html=True)
+
+    gecerli = [a for a in adimlar if isinstance(a, dict)]
+    basarili = sum(1 for a in gecerli if a.get("status") == "success")
+    atlanan = sum(1 for a in gecerli if a.get("status") == "atlandi")
+    hatali = sum(1 for a in gecerli if a.get("status") == "error")
+    ozet_parcalari = [f"✅ {basarili} başarılı"]
+    if atlanan:
+        ozet_parcalari.append(f"⏭️ {atlanan} atlandı (koşullu kapı)")
+    if hatali:
+        ozet_parcalari.append(f"❌ {hatali} hatalı (yedek yolla sürdürüldü)")
+    st.caption(" • ".join(ozet_parcalari) + " — ayrıntılar sayfa sonundaki İşlem Adımları tablosunda.")
 
 
 def _bolum_siniflandirma(sonuc: dict) -> None:
@@ -441,7 +734,13 @@ def _bolum_taslak(sonuc: dict, key_prefix: str) -> None:
 
     yazi_turu = sonuc.get("yazi_turu") or "taslak"
     st.caption(f"Taslak türü: **{yazi_turu}**")
-    st.code(taslak, language=None)
+    duz_sekme, resmi_sekme = st.tabs(["📝 Düz Metin", "📜 Resmî Görünüm"])
+    with duz_sekme:
+        st.code(taslak, language=None)
+    with resmi_sekme:
+        # A4 kâğıt görünümü: metin html.escape ile kaçırılır (bkz. _a4_gorunum_html)
+        st.markdown(_a4_gorunum_html(taslak), unsafe_allow_html=True)
+        st.caption("🖨️ A4 kâğıt oranında resmî görünüm — yazdırmaya uygundur.")
     st.download_button(
         label="⬇️ Taslağı indir (.txt)",
         data=taslak.encode("utf-8"),
@@ -545,6 +844,83 @@ def _bolum_bilgilendirmeler(sonuc: dict) -> None:
             st.info(icerik)
 
 
+def _bolum_emsal(sonuc: dict) -> None:
+    """
+    Kurumsal Hafıza — Emsal Evraklar bölümü.
+
+    Kayıt defterindeki geçmiş işlemler arasından, işlenen evraka metin
+    benzerliğiyle en yakın emsalleri kart olarak gösterir. Emsal modülü
+    (src/utils/emsal — paralel pakette geliştiriliyor) henüz yoksa bölüm
+    sessizce gizlenir; arayüz kırılmaz.
+    """
+    try:
+        from src.utils.emsal import emsal_ara
+    except Exception:
+        logger.debug("Emsal modülü bulunamadı; Kurumsal Hafıza bölümü gizlendi.")
+        return
+
+    sorgu = _emsal_sorgu_metni(sonuc)
+    if not sorgu:
+        return
+
+    st.subheader("🧠 Kurumsal Hafıza — Emsal Evraklar")
+    st.caption(
+        "Kayıt defterinde daha önce işlenen evraklar arasından, bu evraka metin "
+        "benzerliğiyle en yakın emsaller — geçmiş kararlarla tutarlılık sağlar."
+    )
+    # Kendi kaydını backend'de dışla (dosya adıyla); 'dogrudan_metin' kaynağında
+    # ad ayırt edici olmadığından dışlama _kendi_kaydi_mi sezgiseline bırakılır.
+    guncel_kaynak = Path(str(sonuc.get("input_file") or "")).name
+    haric = guncel_kaynak if guncel_kaynak != "dogrudan_metin" else ""
+    try:
+        # Limit 5 istenir; kendi kaydı elendikten sonra en çok 3 gösterilir
+        try:
+            emsaller = emsal_ara(sorgu, limit=5, haric_kaynak=haric)
+        except TypeError:
+            # Geriye dönük uyumluluk: haric_kaynak parametresi olmayan sürüm
+            emsaller = emsal_ara(sorgu, limit=5)
+    except Exception as exc:
+        logger.warning(f"Emsal araması başarısız: {exc}")
+        st.caption("Emsal araması bu oturumda kullanılamıyor.")
+        return
+
+    secilenler = [
+        e for e in (emsaller or [])
+        if isinstance(e, dict) and not _kendi_kaydi_mi(sonuc, e)
+    ][:3]
+
+    if not secilenler:
+        st.info(
+            "📭 Kayıt defterinde henüz benzer evrak yok — sistem evrak işledikçe "
+            "kurumsal hafıza oluşur ve emsaller burada listelenir."
+        )
+        return
+
+    kolonlar = st.columns(len(secilenler))
+    for kolon, emsal in zip(kolonlar, secilenler):
+        with kolon, st.container(border=True):
+            st.markdown(
+                f"**{_fmt_yuzde(emsal.get('benzerlik'))} benzer** — "
+                f"{emsal.get('tur_adi') or '—'}"
+            )
+            st.progress(_oran_0_1(emsal.get("benzerlik")))
+            satirlar = [f"🏢 {emsal.get('birim') or '—'}"]
+            if emsal.get("yazi_turu"):
+                satirlar.append(f"✍️ Taslak türü: {emsal['yazi_turu']}")
+            st.markdown("  \n".join(satirlar))
+            ozet = str(emsal.get("ozet") or "").strip()
+            if ozet:
+                st.caption(ozet[:220] + ("…" if len(ozet) > 220 else ""))
+            kunye = " • ".join(
+                p for p in (
+                    str(emsal.get("zaman") or "").strip(),
+                    Path(str(emsal.get("kaynak") or "")).name,
+                ) if p
+            )
+            if kunye:
+                st.caption(f"🗂️ {kunye}")
+
+
 def _bolum_islem_adimlari(sonuc: dict) -> None:
     """Meta: adım adım süre/durum tablosu (gerçek zamana yakın çalışma kanıtı)."""
     adimlar = sonuc.get("islem_adimlari") or []
@@ -564,10 +940,16 @@ def _bolum_islem_adimlari(sonuc: dict) -> None:
         except (TypeError, ValueError):
             pass
         durum = adim.get("status", "")
+        if durum == "success":
+            durum_metni = "✅ Başarılı"
+        elif durum == "atlandi":
+            durum_metni = f"⏭️ Atlandı ({adim.get('neden', 'koşullu kapı')})"
+        else:
+            durum_metni = f"❌ {adim.get('error', 'Hata')}"
         satirlar.append({
             "Ajan": adim.get("agent", "—"),
             "Adım": adim.get("description", "—"),
-            "Durum": "✅ Başarılı" if durum == "success" else f"❌ {adim.get('error', 'Hata')}",
+            "Durum": durum_metni,
             "Süre (sn)": f"{float(sure):.3f}" if isinstance(sure, (int, float)) else "—",
         })
     st.dataframe(satirlar, width="stretch", hide_index=True)
@@ -806,6 +1188,7 @@ def _sonuclari_goster(sonuc: dict, key_prefix: str) -> None:
     """Tüm sonuç bölümlerini düzenli bir yerleşimle çizer."""
     _metrik_satiri(sonuc)
     _bolum_oncelik(sonuc)  # önceliklendirme sonucu varsa gösterilir (guard'lı)
+    _bolum_ajan_hatti(sonuc)  # çok-ajanlı hattın görsel akışı (demo kozu)
     _bolum_islem_raporu(sonuc, key_prefix)  # HTML denetim raporu indirme
     st.divider()
 
@@ -822,6 +1205,9 @@ def _sonuclari_goster(sonuc: dict, key_prefix: str) -> None:
         _bolum_yonlendirme(sonuc)
         _bolum_bilgilendirmeler(sonuc)
 
+    # Kurumsal hafıza: kayıt defterindeki benzer geçmiş evraklar (emsal)
+    _bolum_emsal(sonuc)
+
     # Ek bölümler: KVKK nüshası (varsa), e-Yazışma üstverisi, geri bildirim
     _bolum_kvkk_nushasi(sonuc, key_prefix)
     _bolum_eyazisma_ustveri(sonuc, key_prefix)
@@ -837,6 +1223,10 @@ def _sonuclari_goster(sonuc: dict, key_prefix: str) -> None:
 
 def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
     """Sekme 1: dosya yükleme veya doğrudan metin girişi ile evrak işleme."""
+    st.caption(
+        "Tek evrak uçtan uca işlenir: okuma → sınıflandırma → analiz → "
+        "taslak → yönlendirme (11 ajanlık hat)."
+    )
     st.markdown("Evrakı **dosya yükleyerek** veya **metni yapıştırarak** işleyebilirsiniz.")
 
     giris_turu = st.radio(
@@ -859,12 +1249,14 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
             uzanti = Path(dosya.name).suffix.lower() or ".txt"
             gecici_yol = ""
             try:
-                with st.spinner("Evrak işleniyor... (OCR → analiz → taslak → yönlendirme)"):
-                    fd, gecici_yol = tempfile.mkstemp(suffix=uzanti, prefix="evrak_")
-                    with os.fdopen(fd, "wb") as f:
-                        f.write(dosya.getbuffer())
-                    yeni_sonuc = _dosya_isle(pipeline, gecici_yol, mode)
-                    yeni_sonuc["input_file"] = dosya.name  # geçici yol yerine özgün ad
+                fd, gecici_yol = tempfile.mkstemp(suffix=uzanti, prefix="evrak_")
+                with os.fdopen(fd, "wb") as f:
+                    f.write(dosya.getbuffer())
+                yeni_sonuc = _status_ile_isle(
+                    f"'{dosya.name}' işleniyor",
+                    lambda: _dosya_isle(pipeline, gecici_yol, mode),
+                )
+                yeni_sonuc["input_file"] = dosya.name  # geçici yol yerine özgün ad
             except Exception as exc:
                 logger.error(f"Dosya işleme hatası: {exc}")
                 st.error(
@@ -897,8 +1289,10 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
                 st.warning("Lütfen işlenecek bir evrak metni girin.")
             else:
                 try:
-                    with st.spinner("Evrak işleniyor... (analiz → taslak → yönlendirme)"):
-                        yeni_sonuc = _metin_isle(pipeline, metin, mode)
+                    yeni_sonuc = _status_ile_isle(
+                        "Metin işleniyor",
+                        lambda: _metin_isle(pipeline, metin, mode),
+                    )
                 except Exception as exc:
                     logger.error(f"Metin işleme hatası: {exc}")
                     st.error(f"Metin işlenirken bir sorun oluştu: {exc}")
@@ -918,6 +1312,7 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
 
 def _sekme_demo(pipeline: Any, mode: str) -> None:
     """Sekme 2: kurgusal demo evrakları üzerinde hızlı deneme."""
+    st.caption("Hazır kurgusal örneklerle sistemi tek tıkla deneyin — jüri demosu için en hızlı yol.")
     st.markdown(
         "Aşağıdaki **kurgusal örnek evraklar** ile sistemi hızlıca deneyebilirsiniz. "
         "Örnekler gerçek kamu verisi içermez."
@@ -959,9 +1354,11 @@ def _sekme_demo(pipeline: Any, mode: str) -> None:
 
         if st.button("🚀 Bu evrakı işle", type="primary", key="demo_isle_btn"):
             try:
-                with st.spinner(f"'{secilen.name}' işleniyor..."):
-                    sonuc = _dosya_isle(pipeline, str(secilen), mode)
-                    st.session_state["sonuc_demo"] = sonuc
+                sonuc = _status_ile_isle(
+                    f"'{secilen.name}' işleniyor",
+                    lambda: _dosya_isle(pipeline, str(secilen), mode),
+                )
+                st.session_state["sonuc_demo"] = sonuc
             except Exception as exc:
                 logger.error(f"Demo evrak işleme hatası: {exc}")
                 st.error(f"Demo evrak işlenirken bir sorun oluştu: {exc}")
@@ -979,6 +1376,7 @@ def _sekme_kokpit(pipeline: Any) -> None:
     yönetimine yönelik özet göstergeleri (tür/birim dağılımı, eksiklik,
     süre, tahmini tasarruf) çizer.
     """
+    st.caption("Kurum yönetimi görünümü: toplu işlem, dağılımlar ve tasarruf göstergeleri.")
     st.markdown(
         "Seçilen **kurgusal evrak kümesi** toplu işlenir ve kurum yönetimi için "
         "özet göstergeler üretilir. Örnekler gerçek kamu verisi içermez."
@@ -1018,10 +1416,22 @@ def _sekme_kokpit(pipeline: Any) -> None:
 
     # Üst satır metrik kartları
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Evrak Sayısı", str(ozet["evrak_sayisi"]))
-    k2.metric("Ort. İşlem Süresi", f"{ozet['ort_islem_suresi_sn']:.2f} sn")
-    k3.metric("Eksikli Evrak Oranı", _fmt_yuzde(ozet["eksikli_evrak_orani"]))
-    k4.metric("Kritik Eksikli Evrak", str(ozet["kritik_eksikli_sayisi"]))
+    k1.metric(
+        "Evrak Sayısı", str(ozet["evrak_sayisi"]),
+        help="Bu toplu işlemde uçtan uca işlenen evrak sayısı.",
+    )
+    k2.metric(
+        "Ort. İşlem Süresi", f"{ozet['ort_islem_suresi_sn']:.2f} sn",
+        help="Evrak başına ortalama uçtan uca işlem süresi (gerçek ölçüm).",
+    )
+    k3.metric(
+        "Eksikli Evrak Oranı", _fmt_yuzde(ozet["eksikli_evrak_orani"]),
+        help="En az bir eksik bilgi unsuru tespit edilen evrakların oranı.",
+    )
+    k4.metric(
+        "Kritik Eksikli Evrak", str(ozet["kritik_eksikli_sayisi"]),
+        help="Kritik öncelikli eksik bilgi içeren evrak sayısı — öncelikli takip önerilir.",
+    )
     if ozet.get("dusuk_guvenli_sayisi"):
         st.caption(
             f"⚠️ {ozet['dusuk_guvenli_sayisi']} evrak düşük güvenli karar içeriyor "
@@ -1050,9 +1460,19 @@ def _sekme_kokpit(pipeline: Any) -> None:
     with st.container(border=True):
         st.subheader("⏳ Tahmini Zaman Tasarrufu")
         t1, t2, t3 = st.columns(3)
-        t1.metric("Manuel (tahmini)", f"{tasarruf['manuel_toplam_saat']:.1f} saat")
-        t2.metric("Sistem (ölçülen)", f"{tasarruf['sistem_toplam_saniye']:.1f} sn")
-        t3.metric("Tasarruf Oranı", _fmt_yuzde(tasarruf["tasarruf_orani"]))
+        t1.metric(
+            "Manuel (tahmini)", f"{tasarruf['manuel_toplam_saat']:.1f} saat",
+            help="Varsayıma dayalı tahmindir — evrak başına manuel işlem süresi "
+                 "kabulünden hesaplanır (resmî kaynak yoktur).",
+        )
+        t2.metric(
+            "Sistem (ölçülen)", f"{tasarruf['sistem_toplam_saniye']:.1f} sn",
+            help="Sistemin bu kümeyi işlerken ölçülen gerçek toplam süresi.",
+        )
+        t3.metric(
+            "Tasarruf Oranı", _fmt_yuzde(tasarruf["tasarruf_orani"]),
+            help="Manuel varsayıma göre tasarruf — varsayım şeffaf biçimde alttaki notta yazılıdır.",
+        )
         st.caption(
             f"ℹ️ Manuel süre, evrak başına **{tasarruf['manuel_dakika_varsayimi']} dakika** "
             "kabulüne dayanan bir **varsayımdır** (resmî bir kaynağa dayanmaz); "
@@ -1122,6 +1542,7 @@ def _sekme_kayit_defteri(pipeline: Any) -> None:
     arayüzde işlenen her evrak tek satırlık denetim kaydıyla listelenir,
     tür/birim/öncelik/serbest metin ölçütleriyle filtrelenebilir.
     """
+    st.caption("Denetim izi görünümü: işlenen her evrakın kalıcı SQLite kaydı ve sorgulama.")
     st.markdown(
         "Bu arayüzde işlenen her evrak, **denetlenebilirlik** için evrak kayıt "
         "defterine (SQLite) işlenir — kamu evrak sistemlerindeki kayıt defteri / "
@@ -1153,10 +1574,23 @@ def _sekme_kayit_defteri(pipeline: Any) -> None:
 
     # İstatistik kartları
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Toplam Kayıt", str(istatistik["toplam"]))
-    k2.metric("Ort. İşlem Süresi", f"{istatistik['ort_sure_saniye']:.2f} sn")
-    k3.metric("İnsan Onayı Gerekli", str(istatistik["insan_onayi_sayisi"]))
-    k4.metric("Kritik Eksikli", str(istatistik["kritik_eksikli_sayisi"]))
+    k1.metric(
+        "Toplam Kayıt", str(istatistik["toplam"]),
+        help="Kayıt defterindeki (SQLite denetim izi) toplam işlem kaydı.",
+    )
+    k2.metric(
+        "Ort. İşlem Süresi", f"{istatistik['ort_sure_saniye']:.2f} sn",
+        help="Kayıtlı işlemlerin ortalama uçtan uca süresi (gerçek ölçüm).",
+    )
+    k3.metric(
+        "İnsan Onayı Gerekli", str(istatistik["insan_onayi_sayisi"]),
+        help="Düşük güvenli karar nedeniyle insan onayına işaretlenen işlem sayısı "
+             "(koşullu kapı 3).",
+    )
+    k4.metric(
+        "Kritik Eksikli", str(istatistik["kritik_eksikli_sayisi"]),
+        help="Kritik öncelikli eksik bilgi tespit edilen kayıt sayısı.",
+    )
 
     # Dağılım grafikleri (pandas, streamlit'in zorunlu bağımlılığıdır)
     import pandas as pd
@@ -1252,27 +1686,68 @@ def _sekme_kayit_defteri(pipeline: Any) -> None:
 
 def _sekme_hakkinda() -> None:
     """Sekme 3: mimari özeti, görev eşleşmesi ve veri kullanımı notu."""
+    st.caption("Sistemin mimarisi, şartname görev eşleşmesi ve veri kullanımı ilkeleri.")
     st.subheader("Mimari Özeti")
     st.markdown(
-        "Sistem, bir **orkestratör** tarafından koordine edilen **9 uzman ajandan** oluşur. "
+        "Sistem, bir **orkestratör** tarafından koordine edilen **11 uzman ajandan** oluşur. "
         "Her ajan paylaşılan durum nesnesini (`AgentState`) okuyup kendi alanlarını doldurur; "
-        "LLM erişilemezse tüm ajanlar **kural tabanlı** yedek yollarla tam işlevli çalışır."
+        "LLM erişilemezse tüm ajanlar **kural tabanlı** yedek yollarla tam işlevli çalışır. "
+        "Sınıflandırma, kural puanlayıcı ile eğitilmiş istatistiksel modelin **hibrit "
+        "ensemble** birleşimidir; akıştaki **koşullu kapılar** okunamayan metni, Türkçe "
+        "olmayan evrakı ve düşük güvenli kararları yakalayıp gerekirse **insan onayına** işaretler."
     )
     st.markdown(
         """
 | # | Ajan | Görevi | Şartname Görevi |
 |---|------|--------|-----------------|
 | 1 | OCR Agent | PDF/görüntü/metinden metin çıkarımı | Görev 1 |
-| 2 | Classification Agent | Evrak türü belirleme (kural + LLM eskalasyon) | Görev 1 |
+| 2 | Classification Agent | Evrak türü belirleme (kural ⊕ istatistiksel model ensemble, düşük güvende LLM eskalasyonu) | Görev 1 |
 | 3 | Info Extraction Agent | Tarih, kurum, kişi, sayı, konu, muhatap çıkarımı | Görev 1 |
 | 4 | Missing Info Agent | Eksik bilgi unsurlarının tespiti | Görev 1 |
-| 5 | Legislation Agent | İlgili mevzuat / yazışma kuralı önerisi | Görev 1 |
-| 6 | Summarization Agent | Kısa evrak özeti | Görev 1 |
-| 7 | Draft Writer Agent | Resmî yazı taslağı + format denetimi | Görev 2 |
-| 8 | Routing Agent | Doğru birime yönlendirme önerisi | Görev 2 |
-| 9 | User Info Agent | Süreç bilgilendirmesi + eksik bilgi talebi | Görev 2 |
-| — | Orchestrator | Akış koordinasyonu, süre/güven izleme | Görev 1 + 2 |
+| 5 | Legislation Agent | İlgili mevzuat / yazışma kuralı önerisi (BM25) | Görev 1 |
+| 6 | Triage Agent | Aciliyet / yasal süre tespiti ve önceliklendirme | Görev 1 |
+| 7 | Summarization Agent | Kısa evrak özeti | Görev 1 |
+| 8 | Anonimleştirme Agent | KVKK paylaşım nüshası (kişisel veri maskeleme) | Görev 1 |
+| 9 | Draft Writer Agent | Resmî yazı taslağı + format denetimi | Görev 2 |
+| 10 | Routing Agent | Doğru birime yönlendirme önerisi | Görev 2 |
+| 11 | User Info Agent | Süreç bilgilendirmesi + eksik bilgi talebi | Görev 2 |
+| — | Orchestrator | Akış koordinasyonu, koşullu kapılar, süre/güven izleme | Görev 1 + 2 |
 """
+    )
+
+    st.subheader("Mimari Şema")
+    st.code(
+        """
+Evrak (TXT / PDF / Görüntü / doğrudan metin)
+        │
+        ▼
+  [1] OCR ──► ◇ KAPI 1: metin okunabilir mi? ── hayır ──► adımlar atlanır + insan onayı
+        │ evet
+        ▼
+┌── GÖREV 1 · Sınıflandırma ve İçerik Analizi ────────────────────────────────┐
+│ [2] Sınıflandırma (kural ⊕ istatistiksel model = hibrit ensemble)           │
+│      └─ ◇ KAPI 3a: güven düşükse LLM eskalasyonu / insan onayı              │
+│ [3] Bilgi Çıkarım ─► [4] Eksik Bilgi ─► [5] Mevzuat (BM25)                  │
+│ [6] Önceliklendirme ─► [7] Özet ─► [8] KVKK Anonimleştirme                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+  ◇ KAPI 2: dil Türkçe mi? ── hayır ──► taslak adımı atlanır
+        │ evet
+┌── GÖREV 2 · Resmî Yazı Taslaklama ve Yönlendirme ───────────────────────────┐
+│ [9] Yazı Taslağı + format denetimi                                          │
+│ [10] Birim Yönlendirme ── ◇ KAPI 3b: güven düşükse insan onayı              │
+│ [11] Kullanıcı Bilgilendirme + eksik bilgi talepleri                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+        │
+        ▼
+Kayıt Defteri (SQLite denetim izi) · e-Yazışma üstverisi · HTML işlem raporu
+""".strip("\n"),
+        language=None,
+    )
+    st.caption(
+        "Orkestratör tüm hattı yönetir: her adımın süresi ve güveni izlenir, "
+        "kapı kararları işlem adımlarına şeffaf biçimde kaydedilir."
     )
 
     st.subheader("Şartname Görev Eşleşmesi")
@@ -1353,7 +1828,11 @@ def main() -> None:
             )
 
         ajan_sayisi = len(getattr(pipeline.orchestrator, "agents", {}) or {})
-        st.metric("Yüklü ajan sayısı", f"{ajan_sayisi} + orkestratör")
+        st.metric(
+            "Yüklü ajan sayısı", f"{ajan_sayisi} + orkestratör",
+            help="Orkestratörün koordine ettiği uzman ajan sayısı — her ajan tek bir "
+                 "görevden sorumludur (OCR, sınıflandırma, taslak, yönlendirme...).",
+        )
 
         st.divider()
         mode = st.radio(

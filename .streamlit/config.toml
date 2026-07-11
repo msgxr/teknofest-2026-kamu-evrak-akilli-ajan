@@ -19,6 +19,16 @@ address = "localhost"
 maxUploadSize = 20
 enableXsrfProtection = true
 
+# Kurumsal tema: koyu lacivert vurgu rengi + açık/nötr zeminler.
+# Kamu kurumu ciddiyetine uygun, yüksek kontrastlı bir palet hedeflenmiştir.
+[theme]
+base = "light"
+primaryColor = "#1f3a5f"
+backgroundColor = "#f7f8fa"
+secondaryBackgroundColor = "#eceff4"
+textColor = "#1a2332"
+font = "sans serif"
+
 [client]
 showErrorDetails = "none"
 
