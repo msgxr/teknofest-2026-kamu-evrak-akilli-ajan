@@ -1,6 +1,6 @@
 {
-  "zaman_damgasi": "2026-07-11T02:09:19",
-  "veri_dizini": "/Users/seymanur/Desktop/teknofest-2026-kamu-evrak-akilli-ajan/data/raw/kurgu_evraklar",
+  "zaman_damgasi": "2026-07-11T03:13:23",
+  "veri_dizini": "data\\raw\\kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "llm": {
     "backend": "offline",
@@ -78,17 +78,17 @@
     "fn": 0
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0124,
-    "evrak_basina_medyan_sure_saniye": 0.01,
+    "evrak_basina_ortalama_sure_saniye": 0.1436,
+    "evrak_basina_medyan_sure_saniye": 0.019,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
-      "classification": 0.001,
-      "info_extraction": 0.0041,
-      "missing_info": 0.0002,
-      "legislation": 0.0019,
-      "summarization": 0.001,
-      "draft_writer": 0.0001,
-      "routing": 0.0041,
+      "classification": 0.0016,
+      "info_extraction": 0.1269,
+      "missing_info": 0.0014,
+      "legislation": 0.0037,
+      "summarization": 0.0016,
+      "draft_writer": 0.0011,
+      "routing": 0.0073,
       "user_info": 0.0
     }
   },

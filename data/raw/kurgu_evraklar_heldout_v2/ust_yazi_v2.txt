@@ -1,0 +1,27 @@
+T.C.
+DAĞYELİ TEKNİK ÜNİVERSİTESİ REKTÖRLÜĞÜ
+Bilgi İşlem Daire Başkanlığı
+
+Konu  : Siber olay müdahale tatbikatı hazırlık çalışmaları
+Tarih : 06.07.2026
+
+BOZKIROVA VALİLİĞİNE
+(İl Siber Olaylara Müdahale Koordinasyonuna sunulmak üzere)
+
+İlgi : Valiliğinizin 19.06.2026 tarihli ve E-74152839-155.01-2026/604 sayılı yazısı
+
+İlgi yazı ile 11 Ağustos 2026 tarihinde il genelindeki kamu kurumlarının katılımıyla gerçekleştirilecek siber olay müdahale tatbikatına Üniversitemizin de dahil edilmesinin planlandığı bildirilmiş, tatbikata esas hazırlık bilgileri istenmiştir.
+
+Üniversitemiz bünyesinde tatbikata esas olmak üzere; kurumsal ağ topolojisinin güncel şeması çıkarılmış, merkezi günlük kayıt (log) sunucusunda son altı aya ait erişim kayıtlarının bütünlük doğrulaması tamamlanmış ve olay müdahale ekibimiz üç kişi olarak belirlenmiştir. Tatbikat senaryosunda kullanılmak üzere anonimleştirilmiş örnek günlük kayıtları hazırlanmış olup güvenli dosya aktarım yöntemi Koordinasyonunuzca bildirildiğinde paylaşılacaktır. Ekip üyelerimizin iletişim bilgileri yazımız ekinde sunulmuştur.
+
+Tatbikat hazırlık toplantılarına Başkanlığımız temsilcilerinin davet edilmesi hususunda bilgilerinizi ve gereğini arz ederim.
+
+                                                        Doç. Dr. Mahir TEPEDELEN
+                                                        Bilgi İşlem Daire Başkanı
+                                                        (e-imzalıdır)
+
+Ek : Olay müdahale ekibi iletişim listesi (1 sayfa)
+
+Dağıtım:
+Gereği : Bozkırova Valiliği
+Bilgi  : Rektörlük Makamı

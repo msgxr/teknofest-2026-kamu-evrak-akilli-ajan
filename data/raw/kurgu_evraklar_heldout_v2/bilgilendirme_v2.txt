@@ -1,0 +1,31 @@
+T.C.
+DAĞYELİ TEKNİK ÜNİVERSİTESİ REKTÖRLÜĞÜ
+Bilgi İşlem Daire Başkanlığı
+
+Sayı  : E-40561283-155.03-2026/778
+Konu  : Elektronik belge yönetim sistemi planlı bakım kesintisi
+Tarih : 07.07.2026
+
+BİLGİLENDİRME
+
+Üniversitemiz elektronik belge yönetim sisteminde (EBYS) sürüm yükseltme ve elektronik imza modülü güncellemesi yapılacağından, sistemin erişime kapalı kalacağı süre ve alınacak tedbirler aşağıda bilgilerinize sunulmaktadır:
+
+1. EBYS, 18 Temmuz 2026 Cumartesi günü saat 08.00'den 20 Temmuz 2026 Pazartesi günü saat 06.00'ya kadar tüm kullanıcıların erişimine kapatılacaktır.
+
+2. Kesinti süresince acil nitelikteki yazışmalar, birim evrak sorumluları aracılığıyla fiziksel ortamda yürütülecek; bu yazışmalar sistem açıldıktan sonra en geç iki iş günü içinde EBYS'ye aktarılacaktır.
+
+3. Güncelleme sonrasında elektronik imza işlemlerinde kullanılan istemci yazılımının yeni sürümünün kurulması gerekecek olup kurulum kılavuzu sistem açılışıyla birlikte duyurular sayfasında yayımlanacaktır.
+
+4. Kesinti öncesinde imza bekleyen belgelerin 17 Temmuz 2026 Cuma günü mesai bitimine kadar sonuçlandırılması, yarım kalan taslakların kaydedilmesi önem arz etmektedir.
+
+Uygulamaya ilişkin sorular için Başkanlığımız çağrı hattına (dahili 4400) başvurulabilir.
+
+Bilgilerinize sunulur.
+
+                                                        Doç. Dr. Mahir TEPEDELEN
+                                                        Bilgi İşlem Daire Başkanı
+                                                        (e-imzalıdır)
+
+Dağıtım:
+Gereği : Tüm akademik ve idari birimler
+Bilgi  : Rektörlük Makamı

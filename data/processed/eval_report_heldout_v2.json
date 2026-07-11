@@ -1,7 +1,7 @@
 {
-  "zaman_damgasi": "2026-07-11T03:13:53",
-  "veri_dizini": "data\\raw\\kurgu_evraklar_heldout",
-  "set_adi": "kurgu_evraklar_heldout",
+  "zaman_damgasi": "2026-07-11T03:14:22",
+  "veri_dizini": "data\\raw\\kurgu_evraklar_heldout_v2",
+  "set_adi": "kurgu_evraklar_heldout_v2",
   "llm": {
     "backend": "offline",
     "model": "gpt-4o-mini",
@@ -66,29 +66,40 @@
     "yanlis_siniflananlar": []
   },
   "yonlendirme": {
-    "accuracy": 1.0,
-    "yanlis_yonlendirilenler": []
+    "accuracy": 0.875,
+    "yanlis_yonlendirilenler": [
+      {
+        "dosya": "bilgilendirme_v1.txt",
+        "beklenen": "destek_hizmetleri",
+        "tahmin": "insan_kaynaklari"
+      },
+      {
+        "dosya": "onayli_belge_v2.txt",
+        "beklenen": "strateji",
+        "tahmin": "genel_mudurluk"
+      }
+    ]
   },
   "eksik_bilgi_tespiti": {
-    "micro_precision": 1.0,
-    "micro_recall": 1.0,
-    "micro_f1": 1.0,
-    "tp": 5,
-    "fp": 0,
-    "fn": 0
+    "micro_precision": 0.8571,
+    "micro_recall": 0.8571,
+    "micro_f1": 0.8571,
+    "tp": 6,
+    "fp": 1,
+    "fn": 1
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.2921,
+    "evrak_basina_ortalama_sure_saniye": 0.2927,
     "evrak_basina_medyan_sure_saniye": 0.0195,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
-      "classification": 0.0018,
-      "info_extraction": 0.2714,
-      "missing_info": 0.0019,
-      "legislation": 0.0048,
-      "summarization": 0.0024,
+      "classification": 0.0016,
+      "info_extraction": 0.2728,
+      "missing_info": 0.0016,
+      "legislation": 0.0051,
+      "summarization": 0.0017,
       "draft_writer": 0.0012,
-      "routing": 0.0087,
+      "routing": 0.0088,
       "user_info": 0.0
     }
   },
