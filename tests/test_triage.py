@@ -140,7 +140,8 @@ class TestTriageAgent:
         assert yasal["tip"] == "is_gunu"
         assert "4982" in yasal["kaynak"]
         # Çrş 01.07.2026 + 15 iş günü = Çrş 22.07.2026
-        assert result.triage["son_tarih"] == "2026-07-22"
+        # 15 iş günü hesabı 15 Temmuz ulusal tatilini atlar (2429 sayılı Kanun)
+        assert result.triage["son_tarih"] == "2026-07-23"
 
     def test_dilekce_30_gun(self):
         """Dilekçe türü 3071 s. Kanun'a göre 30 takvim günü süre almalı."""
@@ -155,6 +156,7 @@ class TestTriageAgent:
         assert yasal["sure_gun"] == 30
         assert yasal["tip"] == "takvim"
         assert "3071" in yasal["kaynak"]
+        # 30 TAKVİM günü (3071 m.7): tatiller takvim gününü etkilemez
         assert result.triage["son_tarih"] == "2026-07-22"
 
     # ------------------------------------------------------------------
@@ -324,4 +326,65 @@ class TestYardimcilar:
 
     def test_is_gunu_ekle_uzun(self):
         """Çarşamba 01.07 + 15 iş günü = Çarşamba 22.07."""
-        assert is_gunu_ekle(date(2026, 7, 1), 15) == date(2026, 7, 22)
+        # 15 Temmuz (Demokrasi ve Millî Birlik Günü) tatili atlanır
+        assert is_gunu_ekle(date(2026, 7, 1), 15) == date(2026, 7, 23)
+
+
+class TestResmiTatilHesabi:
+    """İş günü hesabında resmî tatil kenar durumları (P0-4 sertifikasyon).
+
+    Dayanaklar: 4982 m.11 (15 iş günü), 2429 sayılı Kanun (ulusal
+    bayram/genel tatiller). Sabit ulusal tatiller otomatik atlanır;
+    yıla özgü dinî bayramlar parametrik `resmi_tatiller` ile verilir.
+    """
+
+    def test_sabit_ulusal_tatil_atlanir(self):
+        """14 Tem 2026 Salı + 1 iş günü: 15 Temmuz tatili atlanmalı → 16 Per."""
+        assert is_gunu_ekle(date(2026, 7, 14), 1) == date(2026, 7, 16)
+
+    def test_tatil_hafta_sonu_kombinasyonu(self):
+        """28 Ağu 2026 Cuma + 1 iş günü: hafta sonu + 30 Ağu Pzt (Zafer
+        Bayramı da pazara denk 2026'da → 30 Ağu Pazar zaten hafta sonu)
+        → 31 Ağu Pazartesi."""
+        assert is_gunu_ekle(date(2026, 8, 28), 1) == date(2026, 8, 31)
+
+    def test_yilbasi_ve_yil_gecisi(self):
+        """31 Ara 2026 Per + 1 iş günü: 1 Oca 2027 Cuma tatil, hafta sonu
+        atlanır → 4 Oca 2027 Pazartesi."""
+        assert is_gunu_ekle(date(2026, 12, 31), 1) == date(2027, 1, 4)
+
+    def test_parametrik_dini_bayram_atlanir(self):
+        """Kurumca verilen tam tarihli ek tatil (kurgu bayram günü) atlanmalı."""
+        ek = {date(2026, 7, 13)}  # Pazartesi (kurgu ek tatil)
+        # 10 Tem Cuma → 11-12 hafta sonu + 13 ek tatil atlanır → 14 Salı
+        assert is_gunu_ekle(date(2026, 7, 10), 1, ek) == date(2026, 7, 14)
+        # Bileşik durum: +2 iş günü → 15 Tem SABİT tatili de atlanır → 16 Per
+        assert is_gunu_ekle(date(2026, 7, 10), 2, ek) == date(2026, 7, 16)
+
+    def test_parametrik_tatil_agent_uzerinden(self):
+        """TriageAgent resmi_tatiller parametresi iş günü hesabına yansımalı."""
+        metin = (
+            "T.C. KURGU KURUMU\n"
+            "Tarih : 10.07.2026\n"
+            "Konu : Bilgi edinme başvurusu hk.\n\n"
+            "4982 sayılı Bilgi Edinme Hakkı Kanunu kapsamında başvurumun "
+            "cevaplanmasını arz ederim.\n"
+        )
+        state = AgentState(raw_text=metin)
+        state.classification = {"tur": "dilekce", "guven": 0.9}
+        state.extracted_info = {"tarih": "10.07.2026"}
+
+        tatilsiz = TriageAgent(bugun=date(2026, 7, 10)).run(
+            AgentState(raw_text=metin, classification={"tur": "dilekce"},
+                       extracted_info={"tarih": "10.07.2026"})
+        ).triage
+        ek_tatilli = TriageAgent(
+            bugun=date(2026, 7, 10),
+            resmi_tatiller={date(2026, 7, 20), date(2026, 7, 21)},
+        ).run(state).triage
+
+        t1 = tatilsiz.get("son_tarih")
+        t2 = ek_tatilli.get("son_tarih")
+        assert t1 and t2, "Yasal süreden son işlem tarihi hesaplanmalı"
+        # İki ek tatil iş günü hesabını en az bir gün ileri atmalı
+        assert t2 > t1

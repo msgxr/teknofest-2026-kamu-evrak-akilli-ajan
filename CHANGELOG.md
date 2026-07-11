@@ -14,6 +14,18 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Triyaj yasal-süre motoru sertifikasyonu (P0-4, şartname izi: yenilik/G1 destek):**
+  - İş günü hesabına **sabit tarihli ulusal resmî tatiller** eklendi (2429
+    sayılı Kanun: 1 Oca, 23 Nis, 1 May, 19 May, 15 Tem, 30 Ağu, 29 Eki);
+    hicri takvime bağlı dinî bayramlar için **parametrik `resmi_tatiller`**
+    kümesi (`TriageAgent(resmi_tatiller=...)`). Ek tatil verilmediğinde
+    hesap ihtiyatlı (erken) taraftadır — süre kaçırma riski doğmaz.
+  - Kenar-durum testleri: 15 Temmuz atlama, tatil+hafta sonu bileşimi,
+    yıl geçişi (31 Ara→4 Oca), parametrik ek tatil + sabit tatil bileşimi,
+    ajan üzerinden uçtan uca etki. Teknik rapora kaynaklı yasal süre
+    dayanak tablosu (3071 m.7, 4982 m.11, 2577 m.7, CİMER, 2429) eklendi.
+  - `_acik_sureler` içindeki `self` erişim hatası giderildi (staticmethod →
+    instance method). 5 yeni test; toplam 301/301 yeşil.
 - **Sayı üretici + üstveri↔belge tutarlılık doğrulayıcı (P0-3, şartname izi: G2/yenilik):**
   - `src/utils/sayi_uretici.py`: m.11 biçimli (E-DETSİS-SDP-kayıt) kurgu
     sayı üretimi — kurum adından deterministik 8 haneli kurgu Devlet

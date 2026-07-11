@@ -310,22 +310,49 @@ def _tarih_coz(metin: str) -> Optional[date]:
     return None
 
 
-def is_gunu_ekle(baslangic: date, gun_sayisi: int) -> date:
-    """
-    Başlangıç tarihine hafta sonlarını (Cumartesi/Pazar) atlayarak
-    n iş günü ekler.
+# Sabit tarihli ulusal resmî tatiller (ay, gün) — 2429 sayılı Ulusal
+# Bayram ve Genel Tatiller Hakkında Kanun'da sayılan, yıla bağlı olmayan
+# günler. Hicri takvime bağlı dinî bayramlar (Ramazan/Kurban) ve 28 Ekim
+# öğleden sonrası (yarım gün) bu sabit listeye ALINMAZ: dinî bayramlar
+# yıla göre değiştiğinden kurum tarafından `resmi_tatiller` parametresiyle
+# tam tarih olarak sağlanır; yarım günü tatil saymamak hesabı ihtiyatlı
+# (erken) tarafta tutar ve süre kaçırma riski doğurmaz.
+SABIT_RESMI_TATILLER = frozenset({
+    (1, 1),    # Yılbaşı
+    (4, 23),   # Ulusal Egemenlik ve Çocuk Bayramı
+    (5, 1),    # Emek ve Dayanışma Günü
+    (5, 19),   # Atatürk'ü Anma, Gençlik ve Spor Bayramı
+    (7, 15),   # Demokrasi ve Millî Birlik Günü
+    (8, 30),   # Zafer Bayramı
+    (10, 29),  # Cumhuriyet Bayramı
+})
 
-    Resmî tatil listesi tutulmaz: ulusal/dinî tatiller yıla ve hicri
-    takvime bağlı değiştiğinden offline sabit listeyle güvenilir
-    izlenemez. Sonuç bu nedenle "yaklaşık en geç" tarihtir; tatile denk
-    gelen günler gerçek süreyi yalnızca İLERİ atar, yani hesap ihtiyatlı
-    (erken) taraftadır ve süre kaçırma riski doğurmaz.
+
+def is_gunu_ekle(
+    baslangic: date, gun_sayisi: int, tatiller: Optional[set] = None
+) -> date:
     """
+    Başlangıç tarihine hafta sonlarını (Cumartesi/Pazar), sabit tarihli
+    ulusal resmî tatilleri (SABIT_RESMI_TATILLER, 2429 sayılı Kanun) ve
+    parametrik ek tatilleri atlayarak n iş günü ekler.
+
+    Args:
+        baslangic: Sürenin işlemeye başladığı tarih
+        gun_sayisi: Eklenecek iş günü sayısı
+        tatiller: Kurumca sağlanan, yıla özgü TAM tarihli ek tatil kümesi
+            (ör. dinî bayramlar, idari izinler). Verilmezse yalnızca hafta
+            sonları ve sabit ulusal tatiller atlanır; bu durumda sonuç
+            "yaklaşık en geç" tarihtir ve olası ek tatiller gerçek süreyi
+            yalnızca İLERİ atacağından hesap ihtiyatlı (erken) taraftadır.
+    """
+    ek_tatiller = tatiller or set()
     gun = baslangic
     kalan = gun_sayisi
     while kalan > 0:
         gun += timedelta(days=1)
-        if gun.weekday() < 5:  # 0-4: Pazartesi-Cuma
+        hafta_ici = gun.weekday() < 5  # 0-4: Pazartesi-Cuma
+        resmi_tatil = (gun.month, gun.day) in SABIT_RESMI_TATILLER
+        if hafta_ici and not resmi_tatil and gun not in ek_tatiller:
             kalan -= 1
     return gun
 
@@ -340,14 +367,23 @@ class TriageAgent:
     state.triage sözlüğüne yazar.
     """
 
-    def __init__(self, bugun: Optional[date] = None) -> None:
+    def __init__(
+        self,
+        bugun: Optional[date] = None,
+        resmi_tatiller: Optional[set] = None,
+    ) -> None:
         """
         Args:
             bugun: "Kalan gün" hesabının referans günü. Verilmezse
                 gerçek sistem tarihi kullanılır (parametre test ve
                 geçmişe dönük simülasyon içindir).
+            resmi_tatiller: Kurumca sağlanan, yıla özgü TAM tarihli ek
+                tatil kümesi (dinî bayramlar, idari izinler). İş günü
+                hesabında hafta sonu + sabit ulusal tatillere ek olarak
+                atlanır (bkz. is_gunu_ekle).
         """
         self._bugun = bugun
+        self._resmi_tatiller = frozenset(resmi_tatiller or ())
         logger.info("Triage (Önceliklendirme) Agent başlatıldı.")
 
     def run(self, state: "AgentState") -> "AgentState":
@@ -391,7 +427,10 @@ class TriageAgent:
             skorlar.append(_SKOR_YASAL_SURE)
             if evrak_tarihi:
                 if yasal_sure["tip"] == "is_gunu":
-                    hedef = is_gunu_ekle(evrak_tarihi, yasal_sure["sure_gun"])
+                    hedef = is_gunu_ekle(
+                        evrak_tarihi, yasal_sure["sure_gun"],
+                        self._resmi_tatiller,
+                    )
                 else:
                     hedef = evrak_tarihi + timedelta(days=yasal_sure["sure_gun"])
                 son_tarih_adaylari.append((hedef, yasal_sure["kaynak"]))
@@ -498,8 +537,8 @@ class TriageAgent:
             return _tarih_coz(m.group(1))
         return None
 
-    @staticmethod
     def _acik_sureler(
+        self,
         tl: str,
         evrak_tarihi: Optional[date],
         sinyaller: List[dict],
@@ -546,7 +585,9 @@ class TriageAgent:
             birim = "iş günü" if is_gunu_mu else "gün"
             if evrak_tarihi:
                 if is_gunu_mu:
-                    hedef = is_gunu_ekle(evrak_tarihi, gun_sayisi)
+                    hedef = is_gunu_ekle(
+                        evrak_tarihi, gun_sayisi, self._resmi_tatiller
+                    )
                 else:
                     hedef = evrak_tarihi + timedelta(days=gun_sayisi)
                 aciklama = (
