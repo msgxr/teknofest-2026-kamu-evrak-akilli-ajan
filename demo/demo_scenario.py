@@ -163,6 +163,31 @@ def _display_results(sonuc: dict) -> None:
             border_style="magenta",
         ))
 
+    # Aciliyet / yasal süre (yenilik: süreli evrak takibi)
+    triage = sonuc.get("onceliklendirme") or {}
+    if triage.get("oncelik", "normal") != "normal" or triage.get("son_tarih"):
+        yasal = triage.get("yasal_sure") or {}
+        triage_text = f"[bold]Öncelik:[/bold] {triage.get('oncelik', '?').upper()}"
+        if triage.get("son_tarih"):
+            triage_text += f"\n[bold]Son işlem tarihi:[/bold] {triage['son_tarih']}"
+            if triage.get("kalan_gun") is not None:
+                triage_text += f" (kalan: {triage['kalan_gun']} gün)"
+        if yasal.get("kaynak"):
+            triage_text += f"\n[bold]Dayanak:[/bold] {yasal['kaynak']}"
+        console.print(Panel(triage_text, title="⏰ Aciliyet / Yasal Süre", border_style="red"))
+
+    # KVKK paylaşım nüshası (yenilik: kişisel veri maskeleme)
+    anonim = sonuc.get("anonimlestirme") or {}
+    if anonim.get("rapor", {}).get("toplam"):
+        maskeler = anonim["rapor"].get("maskelenen", {})
+        ozet_str = ", ".join(f"{k}: {v}" for k, v in maskeler.items() if v)
+        console.print(Panel(
+            f"[bold]Maskelenen kişisel veri:[/bold] {ozet_str}\n"
+            f"[dim]Paylaşım nüshası üretildi (KVKK 6698 sK. bağlamı).[/dim]",
+            title="🔒 KVKK Paylaşım Nüshası",
+            border_style="blue",
+        ))
+
     # Eksik bilgi talepleri (Görev 2: "gerekli durumlarda eksik bilgi talep edebilmesi")
     if sonuc.get("eksik_bilgi_talepleri"):
         talep_text = "\n".join(

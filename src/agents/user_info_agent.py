@@ -104,6 +104,12 @@ class UserInfoAgent:
         # 1. İşlem durumu bildirimi
         notifications.append(self._create_status_notification(state))
 
+        # Aciliyet/yasal süre bildirimi (triage): süreli evrakta süre
+        # kaçırma idari sorumluluk doğurur — kullanıcı açıkça uyarılır.
+        triage_bildirimi = self._create_triage_notification(getattr(state, "triage", {}))
+        if triage_bildirimi:
+            notifications.append(triage_bildirimi)
+
         # 2. Eksik bilgi bildirimleri
         if state.missing_info:
             notifications.append(
@@ -234,6 +240,41 @@ class UserInfoAgent:
                 {"tip": "bilgi_talebi", "alan": m["alan"], "aciklama": m["aciklama"]}
                 for m in critical + important
             ],
+        }
+
+    @staticmethod
+    def _create_triage_notification(triage: dict) -> Optional[dict]:
+        """
+        Aciliyet/yasal süre bildirimi oluşturur.
+
+        Öncelik "normal" ve son tarih yoksa bildirim üretilmez
+        (kullanıcıyı gereksiz uyarıyla yormamak için).
+        """
+        if not triage:
+            return None
+        oncelik = triage.get("oncelik", "normal")
+        son_tarih = triage.get("son_tarih")
+        if oncelik == "normal" and not son_tarih:
+            return None
+
+        parcalar = []
+        if oncelik != "normal":
+            parcalar.append(f"Evrak önceliği: {oncelik.upper()}")
+        if son_tarih:
+            kalan = triage.get("kalan_gun")
+            kalan_ifade = f" (kalan: {kalan} gün)" if kalan is not None else ""
+            parcalar.append(f"Son işlem tarihi: {son_tarih}{kalan_ifade}")
+        yasal = triage.get("yasal_sure") or {}
+        if yasal.get("kaynak"):
+            parcalar.append(f"Dayanak: {yasal['kaynak']}")
+        if triage.get("gerekce"):
+            parcalar.append(triage["gerekce"])
+
+        return {
+            "tip": "aciliyet",
+            "baslik": "Süreli Evrak Uyarısı",
+            "mesaj": "\n".join(parcalar),
+            "seviye": "uyari" if oncelik in ("ivedi", "yuksek") else "bilgi",
         }
 
     def _create_legislation_notification(self, legislation: list) -> dict:

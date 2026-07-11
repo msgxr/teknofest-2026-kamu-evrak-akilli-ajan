@@ -74,6 +74,13 @@ class AgentState:
     summary: str = ""
     summary_body: str = ""  # Künye satırı olmadan, cümle bütünlüğü korunmuş özet gövdesi
 
+    # Yenilik modülleri (Görev 1'i güçlendiren ek yetenekler)
+    # anonymized_text/anonymization_report: KVKK paylaşım nüshası (6698 sK. bağlamı)
+    # triage: aciliyet/yasal süre tespiti ve son işlem tarihi
+    anonymized_text: str = ""
+    anonymization_report: dict = field(default_factory=dict)
+    triage: dict = field(default_factory=dict)
+
     # Görev 2 sonuçları
     draft_text: str = ""
     draft_type: str = ""
@@ -126,6 +133,8 @@ class OrchestratorAgent:
         from src.agents.draft_writer_agent import DraftWriterAgent
         from src.agents.routing_agent import RoutingAgent
         from src.agents.user_info_agent import UserInfoAgent
+        from src.agents.triage_agent import TriageAgent
+        from src.agents.anonimlestirme_agent import AnonimlestirmeAgent
 
         self.agents = {
             "ocr": OCRAgent(),
@@ -137,6 +146,8 @@ class OrchestratorAgent:
             "draft_writer": DraftWriterAgent(),
             "routing": RoutingAgent(),
             "user_info": UserInfoAgent(),
+            "triage": TriageAgent(),
+            "anonimlestirme": AnonimlestirmeAgent(),
         }
         logger.info(f"{len(self.agents)} alt agent yüklendi.")
 
@@ -225,7 +236,9 @@ class OrchestratorAgent:
                 self._run_step("info_extraction", "Bilgi çıkarma")
                 self._run_step("missing_info", "Eksik bilgi tespiti")
                 self._run_step("legislation", "Mevzuat eşleştirme")
+                self._run_step("triage", "Aciliyet/yasal süre tespiti")
                 self._run_step("summarization", "Özet oluşturma")
+                self._run_step("anonimlestirme", "KVKK paylaşım nüshası")
 
             if mode in ("full", "draft"):
                 # GÖREV 2: Resmi Yazı Taslaklama ve Birim Yönlendirme
@@ -522,6 +535,11 @@ class OrchestratorAgent:
             "yonlendirme": self.state.routing_suggestion,
             "bilgilendirmeler": self.state.user_notifications,
             "eksik_bilgi_talepleri": self.state.clarification_requests,
+            "onceliklendirme": self.state.triage,
+            "anonimlestirme": {
+                "metin": self.state.anonymized_text,
+                "rapor": self.state.anonymization_report,
+            },
             "guven_izleme": self.state.confidence_trace,
             "islem_adimlari": self.state.processing_steps,
             "hatalar": self.state.errors,
