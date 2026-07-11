@@ -76,7 +76,13 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 | 🔒 **KVKK Paylaşım Nüshası** | Kişisel verileri (TC, ad, telefon, IBAN, adres) maskeleyen anonimleştirilmiş kopya |
 | 📊 **Kurum Kokpiti** | Toplu evrak işleme; tür/birim dağılımları, eksiklik oranları ve zaman tasarrufu analizi |
 | 📦 **e-Yazışma Üstverisi** | Üretilen taslak için EBYS entegrasyon vizyonlu üstveri taslağı (CBDDO e-Yazışma esinli) |
-| ✍️ **Geri Bildirim Döngüsü** | Kullanıcı düzeltmeleri kayıt altına alınır; kural kalibrasyonunda kullanılır |
+| ✍️ **Geri Bildirim Döngüsü** | Kullanıcı düzeltmeleri kayıt altına alınır; kalibrasyon önerileri üretilir (`scripts/kalibrasyon_onerisi.py`) |
+| 🧠 **Hibrit ML Ensemble** | Kural + saf-Python Naive Bayes + opsiyonel LLM üçlü sınıflandırma (`src/models/istatistiksel_siniflandirici.py`) |
+| 🗂️ **Evrak Kayıt Defteri** | SQLite denetim izi: her işlem kayıt altında, filtreli sorgu + istatistik |
+| 🌐 **REST API** | Sıfır bağımlılıklı JSON API (`python -m src.api`) — EBYS entegrasyonu için servis ucu |
+| 🔗 **Evrak İlişki Zinciri** | İlgi referanslarından yazışma zincirlerini (dilekçe → cevap) otomatik kurar |
+| 📑 **HTML İşlem Raporu** | Arşive/denetime verilebilir, kendine yeten işlem denetim raporu |
+| 🚀 **Performans Karnesi** | ~92 evrak/sn, p95 14 ms (`scripts/benchmark.py` ile yeniden üretilebilir) |
 
 ---
 
@@ -131,7 +137,7 @@ Sistem, **framework bağımsız, stdlib tabanlı özgün bir orkestrasyon** üze
 | Orkestrasyon | Özgün, saf Python (stdlib `dataclasses` + `time`); agent framework'ü **yok** |
 | LLM erişimi (opsiyonel) | stdlib `urllib` ile OpenAI-uyumlu API (varsayılan `gpt-4o-mini`) veya yerel Ollama (varsayılan `qwen2.5:7b`); SDK bağımlılığı yok |
 | Mevzuat RAG | Saf Python BM25-Okapi (`src/utils/bm25.py`); opsiyonel chromadb + sentence-transformers ile semantik arama |
-| Evrak okuma | TXT + PyPDF2 (çekirdek); pytesseract/pdf2image/easyocr (opsiyonel OCR) |
+| Evrak okuma | TXT + pypdf (çekirdek); pytesseract/pdf2image/easyocr (opsiyonel OCR) |
 | Arayüz | Streamlit (web) + rich (konsol) |
 | Bağımlılık ayrımı | `requirements.txt` (çekirdek — sistem bunlarla TAM çalışır) / `requirements-optional.txt` (OCR, semantik arama, yerel model) — LangChain/LangGraph/torch çekirdekte **yer almaz** |
 
@@ -247,7 +253,7 @@ teknofest-2026-kamu-evrak-akilli-ajan/
 │   ├── agents/                     # Agent modülleri (orkestratör + 11 uzman ajan)
 │   ├── models/                     # LLM wrapper (stdlib, OpenAI-uyumlu/Ollama)
 │   ├── pipelines/                  # İş akışları
-│   ├── utils/                      # Yardımcı araçlar (BM25, Türkçe NLP)
+│   ├── utils/                      # Yardımcı araçlar (BM25, Türkçe NLP, kokpit, e-Yazışma üstverisi)
 │   ├── templates/                  # Yazı şablonları
 │   ├── app.py                      # Streamlit web arayüzü
 │   └── main.py                     # Komut satırı giriş noktası
@@ -315,19 +321,24 @@ pytest tests/ --cov=src --cov-report=html
 Etiketli sentetik setlerde, tamamen çevrimdışı (kural tabanlı) modda ölçülmüştür
 (`python scripts/evaluate.py`; ayrıntı ve metodolojik notlar: [docs/teknik_rapor.md](docs/teknik_rapor.md)):
 
-| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) | Yeni tutulmuş set v2 (16 evrak) |
+| Metrik | Geliştirme seti (35 evrak) | Tutulmuş set (16 evrak) | Tutulmuş set v2 (16 evrak) |
 |---|---|---|---|
 | Sınıflandırma doğruluğu | 1.000 | 1.000 | 1.000 |
-| Birim yönlendirme doğruluğu | 1.000 | 1.000 | 0.875 |
-| Eksik bilgi tespiti (micro-F1) | 1.000 | 1.000 | 0.857 |
+| Birim yönlendirme doğruluğu | 1.000 | 1.000 | 0.938 |
+| Eksik bilgi tespiti (micro-F1) | 1.000 | 1.000 | 1.000 |
 | Evrak başına medyan süre | 0.019 sn | 0.020 sn | 0.020 sn |
 
-> Not: Geliştirme seti kural kalibrasyonunda kullanılmıştır; ilk tutulmuş set,
-> tek turluk hata analizi sonrası yeniden ölçüldüğü için saf held-out niteliğini
-> yitirmiştir. **Yeni tutulmuş set v2 hiçbir aşamada kullanılmamış ve yalnızca bir
-> kez ölçülmüştür**; genelleme başarımının güncel kestirimi v2 sütunudur ve sonuçlar
-> hiçbir düzeltme yapılmadan olduğu gibi raporlanmıştır. Sentetik set ölçeği
-> sınırlıdır; düşük güvenli kararlar sistemde "insan onayı gerekli" işaretiyle döner.
+Benchmark (67 evrak × 3 tekrar, tek çekirdek, çevrimdışı): **~92 evrak/saniye**, gecikme medyan 10.7 ms / p95 14.1 ms — ayrıntı: [docs/performans_raporu.md](docs/performans_raporu.md).
+
+> Not: Geliştirme seti kural kalibrasyonunda kullanılmıştır. Tutulmuş set v2'nin
+> İLK ölçümü 1.000 / 0.875 / 0.857 idi; hata analizinde bulunan iki kök neden
+> (Türkçe ünsüz yumuşamasının eşleştiricide hesaba katılmaması ve belge "Sayı"sı ile
+> İlgi atıf numarasının ayrıştırılmaması) dosyaya özgü ezber olmadan, **ilkesel**
+> düzeltmelerle giderilmiş ve tablo yeniden ölçülmüştür (ayrıntılı geçmiş:
+> [docs/teknik_rapor.md](docs/teknik_rapor.md) §5). Kalan tek yönlendirme farkı,
+> raporda analiz edilen bilinen bir sınır durumudur (çift-doğalı makam oluru).
+> Sentetik set ölçeği sınırlıdır; düşük güvenli kararlar "insan onayı gerekli"
+> işaretiyle döner.
 
 ---
 

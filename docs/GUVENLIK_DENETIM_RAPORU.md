@@ -11,6 +11,26 @@ Tüm düzeltmeler minimal-diff, davranışı korur; hiçbiri ücretli/bulut bile
 
 ---
 
+## Güncelleme Notu (2026-07-11, denetim sonrası)
+
+Bu rapor tarihli bir denetim belgesidir; gövdesindeki sayılar denetim anını
+yansıtır ve değiştirilmemiştir. Denetim sonrası gelişmeler:
+
+- **2 yenilik ajanı eklendi:** Triage/akıllı önceliklendirme
+  (`src/agents/triage_agent.py`) ve KVKK Anonimleştirme
+  (`src/agents/anonimlestirme_agent.py`). Ajan sayısı 9'dan **11'e** çıktı;
+  yeni ajanlar da aynı güvenlik çerçevesinde (merkezî girdi sınırı, kural
+  tabanlı çekirdek, serbest metnin insan onayına sunulması) çalışır.
+- **Test sayısı 37'den 87'ye çıktı** (`pytest tests/` → 87 passed).
+- **Veri hijyeni iyileştirmesi:** Kurgu TCKN'ler, NVİ entegrasyon
+  dokümanlarında test amaçlı kullanılan ve vatandaşlara atanmayan
+  `10000000xxx` aralığından (checksum geçerli) seçildi; telefon numaraları
+  `0555 000 00 XX` kurgu kalıbına çekildi (bkz. `data/README.md`). Bu,
+  §6'daki "[DOĞRULANAMADI]" başlığı altındaki gerçekçi TCKN/GSM tahsis
+  riskini pratikte ortadan kaldırır.
+
+---
+
 ## 1. Yönetici Özeti
 
 Sistem güvenlik açısından **olgun bir tasarıma** sahiptir: gerçek kişisel veri veya

@@ -8,7 +8,7 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 
 | Şartname gereksinimi | Kanıt (dosya) | Durum |
 |---|---|---|
-| Evrakı OCR veya doğrudan metin olarak okuyabilme | `src/agents/ocr_agent.py` (TXT/MD doğrudan; PDF PyPDF2; görüntü/taranmış PDF için opsiyonel Tesseract/EasyOCR) | ✅ |
+| Evrakı OCR veya doğrudan metin olarak okuyabilme | `src/agents/ocr_agent.py` (TXT/MD doğrudan; PDF pypdf; görüntü/taranmış PDF için opsiyonel Tesseract/EasyOCR) | ✅ |
 | Metni anlamlandırarak evrak türünü belirleme | `src/agents/classification_agent.py` (9 tür; anahtar kelime + 20+ yapısal sinyal + softmax güven; LLM eskalasyonu) | ✅ |
 | İçerikte geçen önemli bilgi unsurlarını çıkarma | `src/agents/info_extraction_agent.py` (tarih, sayı, checksum doğrulamalı T.C. kimlik, İlgi, konu, muhatap, kurum, kişi, IBAN, iletişim) | ✅ |
 | Eksik olan bilgileri tespit edebilme | `src/agents/missing_info_agent.py` (türe özgü `ZORUNLU_ALANLAR` + öncelik + giderme önerisi) | ✅ |
@@ -30,10 +30,25 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 | Şartname gereksinimi | Kanıt (dosya) | Durum |
 |---|---|---|
 | Uçtan uca evrak işleme ve yazışma hazırlama akışı | `src/agents/orchestrator.py` + `src/pipelines/end_to_end_pipeline.py` (iki görev tek akışta; 3 koşullu kapı) | ✅ |
-| Çok ajanlı mimari / agent orkestrasyonu | `src/agents/` — 9 uzman ajan + orkestratör, paylaşılan `AgentState` | ✅ |
+| Çok ajanlı mimari / agent orkestrasyonu | `src/agents/` — 11 uzman ajan + orkestratör, paylaşılan `AgentState` | ✅ |
+| Süreli evrakın önceliklendirilmesi — aciliyet damgaları ve yasal cevap sürelerinden son işlem tarihi (yenilik, m. 9) | `src/agents/triage_agent.py` (İVEDİ/GÜNLÜDÜR damgaları + metin içi süre kayıtları + 4982/3071/2577/CİMER yasal süre tablosu) + `tests/test_triage.py` | ✅ |
+| Kişisel verilerden arındırılmış paylaşım/arşiv nüshası — KVKK md. 4 ve md. 8 (yenilik, m. 9) | `src/agents/anonimlestirme_agent.py` (checksum doğrulamalı TCKN, telefon, e-posta, IBAN, kişi adı, adres için format koruyan maskeleme) + `tests/test_anonimlestirme.py` | ✅ |
 | Model eğitimi zorunlu değil; hazır/açık kaynak model kullanımı | `src/models/llm_wrapper.py` (OpenAI-uyumlu / Ollama / offline otomatik tespit; eğitim yok) | ✅ |
 | Performans ölçümü (sınıflandırma, yönlendirme, özet, eksik bilgi) | `scripts/evaluate.py` + `data/processed/eval_report*.json` (3 set: geliştirme, tutulmuş, tutulmuş v2) | ✅ |
 | Gerçek zamana yakın sonuç üretimi | `docs/teknik_rapor.md` §5 — evrak başına medyan ~0,02 sn; arayüzde adım adım süre tablosu | ✅ |
+
+## Yenilik Modülleri (m. 9 Yenilikçilik)
+
+Şartnamenin zorunlu kıldığı çekirdeğin ötesinde, kamu evrak pratiğindeki gerçek
+ihtiyaçlardan türetilen özgün modüller:
+
+| Yenilik | Kanıt (dosya) | Durum |
+|---|---|---|
+| Akıllı önceliklendirme (triyaj): İVEDİ/GÜNLÜDÜR damgaları, metin içi süre kayıtları ve yasal cevap süreleri (4982, 3071, 2577, CİMER) → son işlem tarihi hesabı | `src/agents/triage_agent.py`, `tests/test_triage.py` | ✅ |
+| KVKK anonimleştirme: kişisel verileri (TCKN, telefon, e-posta, IBAN, kişi adı, adres) format koruyarak maskeleyen paylaşım nüshası | `src/agents/anonimlestirme_agent.py`, `tests/test_anonimlestirme.py` | ✅ |
+| Kurum kokpiti: toplu evrak işleme istatistikleri (tür/birim dağılımı, eksiklik oranları, zaman tasarrufu analizi) | `src/utils/kokpit.py`, `tests/test_kokpit_eyazisma.py`, `src/app.py` (kokpit sekmesi) | ✅ |
+| e-Yazışma üstveri taslağı: taslak + yönlendirme kararının EBYS'ye aktarılabilir makine okunur üstverisi (CBDDO e-Yazışma esinli, kavram kanıtı) | `src/utils/eyazisma.py`, `tests/test_kokpit_eyazisma.py` | ✅ |
+| Geri bildirim döngüsü: kullanıcının tür/birim düzeltmeleri JSONL olarak kaydedilir, kural kalibrasyonuna girdi olur | `src/app.py` ("Sonucu Düzelt" bölümü + JSONL kayıt) | ✅ |
 
 ## Veri Kullanımı (m. 6.5)
 
