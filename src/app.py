@@ -42,7 +42,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 import streamlit as st
 
-from src.utils.eyazisma import uret_ustveri
+from src.utils.eyazisma import uret_ustveri, ustveri_belge_tutarliligi
 from src.utils.islem_raporu import uret_html_rapor
 from src.utils.kokpit import kokpit_ozeti
 
@@ -1067,7 +1067,9 @@ def _bolum_eyazisma_ustveri(sonuc: dict, key_prefix: str) -> None:
     entegrasyon vizyonunu gösteren bir TASLAKTIR (bkz. src/utils/eyazisma).
     """
     try:
-        ustveri = uret_ustveri(sonuc)
+        taslak_metni = str(sonuc.get("yazi_taslagi") or "")
+        ustveri = uret_ustveri(sonuc, taslak_metni)
+        tutarlilik = ustveri_belge_tutarliligi(ustveri, taslak_metni)
     except Exception as exc:  # üstveri hiçbir koşulda sonuç ekranını düşürmemeli
         logger.warning(f"e-Yazışma üstverisi üretilemedi: {exc}")
         return
@@ -1077,6 +1079,22 @@ def _bolum_eyazisma_ustveri(sonuc: dict, key_prefix: str) -> None:
             "e-Yazışma Paketi (CBDDO) yapısından **esinlenen** üstveri taslağı — "
             "EBYS entegrasyon vizyonunu gösterir; resmî şema birebir uygulanmamıştır."
         )
+        # m.28/3: üstveri ile belge görüntüsü arasında fark olamaz —
+        # ilke otomatik denetlenir ve sonucu burada gösterilir
+        if tutarlilik.get("tutarli"):
+            st.success(
+                "Üstveri ↔ belge görüntüsü birebir tutarlı "
+                f"(dayanak: {tutarlilik.get('dayanak', '')})"
+            )
+        else:
+            farklar = [
+                k["alan"] for k in tutarlilik.get("kontroller", [])
+                if not k.get("tutarli")
+            ]
+            st.error(
+                "Üstveri ile belge görüntüsü arasında fark var: "
+                f"{', '.join(farklar)} (dayanak: {tutarlilik.get('dayanak', '')})"
+            )
         st.json(ustveri)
         st.download_button(
             label="⬇️ Üstveriyi indir (.json)",

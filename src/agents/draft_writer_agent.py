@@ -214,14 +214,14 @@ _EK_BEYANI = re.compile(r"(?mi)^\s*ek(?:ler)?\s*(?:-?\s*\d+\s*)?:")
 # "iç kalite kuralı" dayanağıyla işaretlenir.
 # ----------------------------------------------------------------------
 
-# m.11/1-2: sayı = "E"/"Z"/"O" ibaresi + DETSİS'teki Devlet Teşkilatı
-# Numarası + standart dosya planı kodu + kayıt numarası, kısa çizgiyle
-# (örnek biçim m.11/2: E-67915368-903.07.02-4752)
-_SAYI_BICIM_DESENI = re.compile(r"\b[EZO]-\d{8}-[\d.]+-\d+\b")
-
-# Sayı ve Konu satırlarının değerlerini yakalar (biçim/özlük denetimi)
-_SAYI_SATIRI = re.compile(r"(?mi)^\s*Say[ıi]\s*:\s*(.+)$")
-_KONU_SATIRI = re.compile(r"(?mi)^\s*Konu\s*:\s*(.+)$")
+# Sayı biçimi (m.11), alan satırları ve gizlilik damgası desenleri ortak
+# modülden gelir (e-Yazışma üstveri doğrulayıcısıyla tek doğruluk kaynağı)
+from src.utils.yazisma_desenleri import (  # noqa: E402
+    GIZLILIK_DAMGASI as _GIZLILIK_DAMGASI,
+    KONU_SATIRI as _KONU_SATIRI,
+    SAYI_BICIM_DESENI as _SAYI_BICIM_DESENI,
+    SAYI_SATIRI as _SAYI_SATIRI,
+)
 
 # m.13/2 "kısa ve öz" konunun makul mühendislik karşılığı: bu uzunluğu
 # aşan konu uyarılır (yönetmelikte katı karakter sınırı yoktur; m.13/1
@@ -247,12 +247,6 @@ _MADDELEME_SATIRI = re.compile(r"(?m)^\s*([a-zçğıöşüA-ZÇĞİÖŞÜ])([.)]
 # yazışmalarda yetki devredenin unvanı kullanılmaz.
 _YETKI_DEVRI_SATIRI = re.compile(r"(?m)^[^\S\n]*\S[^\n]*\sa\.[^\S\n]*$")
 
-# m.25 (gizlilik dereceli belgeler) + m.26/4 (KİŞİYE ÖZEL): damga,
-# tek başına satır hâlinde büyük harflerle aranır (tesadüfi kelime
-# eşleşmesini önlemek için)
-_GIZLILIK_DAMGASI = re.compile(
-    r"(?m)^\s*(ÇOK GİZLİ|GİZLİ|HİZMETE ÖZEL|KİŞİYE ÖZEL)\s*$"
-)
 
 # BÜYÜK harf hitap/yönelme biçimleri (…MÜDÜRLÜĞÜNE, …BAŞKANLIĞINA,
 # …MAKAMINA, …BİRİMLERE benzeri) — morfolojik desen

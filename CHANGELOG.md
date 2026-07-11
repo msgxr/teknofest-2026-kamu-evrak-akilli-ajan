@@ -14,6 +14,21 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Eklendi
 
+- **Sayı üretici + üstveri↔belge tutarlılık doğrulayıcı (P0-3, şartname izi: G2/yenilik):**
+  - `src/utils/sayi_uretici.py`: m.11 biçimli (E-DETSİS-SDP-kayıt) kurgu
+    sayı üretimi — kurum adından deterministik 8 haneli kurgu Devlet
+    Teşkilatı Numarası; gerçek DETSİS/SDP kayıtlarıyla eşleşme iddia
+    edilmez. Taslaklara sayı yazılmaz (dürüst EBYS ibaresi korunur);
+    üstverideki `sayi_onerisi` alanını besler.
+  - `uret_ustveri` artık belge metnini alır: Sayı/Konu/tarih/gizlilik
+    üstveriye belge görüntüsünden BİREBİR taşınır; yeni
+    `ustveri_belge_tutarliligi` doğrulayıcısı **m.28/3 ilkesini**
+    ("belge görüntüsü ile üstveri arasında fark olamaz") otomatik
+    denetime çevirir ve Streamlit'te sonuç rozetiyle gösterilir.
+  - Ortak yazışma desenleri tek modülde toplandı
+    (`src/utils/yazisma_desenleri.py`); format denetçisi ve üstveri
+    doğrulayıcı aynı doğruluk kaynağını kullanır. 15 yeni birim test
+    (`tests/test_sayi_ustveri.py`).
 - **Madde-referanslı format denetçisi (P0-2, şartname izi: G2-b):**
   - Her denetim kuralı `{kural_id, kural, durum, detay, dayanak, agirlik}`
     şemasına taşındı; dayanaklar 2646 sayılı Yönetmeliğin RESMÎ metninden

@@ -76,7 +76,7 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 | ⏰ **Akıllı Önceliklendirme** | İVEDİ/GÜNLÜDÜR damgaları + yasal sürelerden (4982, 3071, 2577, CİMER) son işlem tarihi hesabı |
 | 🔒 **KVKK Paylaşım Nüshası** | Kişisel verileri (TC, ad, telefon, IBAN, adres) maskeleyen anonimleştirilmiş kopya |
 | 📊 **Kurum Kokpiti** | Toplu evrak işleme; tür/birim dağılımları, eksiklik oranları ve zaman tasarrufu analizi |
-| 📦 **e-Yazışma Üstverisi** | Üretilen taslak için EBYS entegrasyon vizyonlu üstveri taslağı (CBDDO e-Yazışma esinli) |
+| 📦 **e-Yazışma Üstverisi + m.28/3 Tutarlılık Denetimi** | EBYS entegrasyon vizyonlu üstveri taslağı (CBDDO e-Yazışma esinli); üstveri↔belge görüntüsü **birebir eşitlik denetimi** (Yön. m.28/3'ün otomasyonu) + m.11 biçimli kurgu sayı önerisi (`src/utils/sayi_uretici.py`) |
 | ✍️ **Geri Bildirim Döngüsü** | Kullanıcı düzeltmeleri kayıt altına alınır; kalibrasyon önerileri üretilir (`scripts/kalibrasyon_onerisi.py`) |
 | 🧠 **Hibrit ML Ensemble** | Kural + saf-Python Naive Bayes + opsiyonel LLM üçlü sınıflandırma (`src/models/istatistiksel_siniflandirici.py`) |
 | 🗂️ **Evrak Kayıt Defteri** | SQLite denetim izi: her işlem kayıt altında, filtreli sorgu + istatistik |
