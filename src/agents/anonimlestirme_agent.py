@@ -162,7 +162,7 @@ _MAKAM_SOZCUKLERI = {
 # ----------------------------------------------------------------------
 
 def _tc_maskesi(numara: str) -> str:
-    """İlk hane açık, kalan 10 hane yıldız: '27481596372' → '2**********'."""
+    """İlk hane açık, kalan 10 hane yıldız: '10000000078' → '2**********'."""
     return numara[0] + "*" * (len(numara) - 1)
 
 
@@ -170,7 +170,7 @@ def _telefon_maskesi(telefon: str) -> str:
     """
     İlk 2 hane açık, kalan haneler yıldız; ayraç/boşluk düzeni korunur.
 
-    '0555 314 78 26' → '05** *** ** **'
+    '0555 000 00 01' → '05** *** ** **'
     """
     sonuc = []
     acik_hane = 0

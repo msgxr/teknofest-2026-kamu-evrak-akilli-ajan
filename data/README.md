@@ -4,7 +4,12 @@ Bu dizin, proje kapsamında kullanılan veri setlerini içerir.
 
 ## ⚠️ Önemli Not
 
-**Bu projede gerçek kamu verisi kullanılmamaktadır.** Tüm evraklar sentetiktir; geçen kişi, kurum, sayı, T.C. kimlik numarası ve olaylar kurgudur. Kurgu T.C. kimlik numaraları yalnızca algoritmik (checksum) doğrulama testleri için üretilmiş olup gerçek kişilere ait değildir.
+**Bu projede gerçek kamu verisi kullanılmamaktadır.** Tüm evraklar sentetiktir; geçen kişi adları, kurumlar, sayılar ve olaylar kurgudur. Kişisel veri niteliğindeki alanlar bilinçli olarak açıkça-kurgu değerlerden seçilmiştir:
+
+- **T.C. kimlik numaraları:** NVİ entegrasyon dokümanlarında test amaçlı kullanılan, vatandaşlara atanmayan düşük numara aralığından (`10000000xxx`) seçilmiş, checksum-geçerli test numaralarıdır (ör. `10000000146`). Gerçek hiçbir kişiye ait değildir.
+- **Telefon numaraları:** `0555 000 00 XX` kurgu kalıbındadır; gerçek abone numarası değildir.
+- **Kişi adları:** Tamamen kurgu ad-soyad kombinasyonlarıdır; gerçek kişilerle benzerlik tesadüftür.
+- **Kurum ve yer adları:** Ağırlıklı olarak kurgu kurum evreni kullanılır; geçen il/ilçe adları yalnızca coğrafi bağlam içindir ve gerçek kamu verisi içermez.
 
 Aynı ilke evraklardaki diğer tanımlayıcı görünümlü değerler için de geçerlidir:
 

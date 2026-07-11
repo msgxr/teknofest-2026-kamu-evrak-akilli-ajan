@@ -62,9 +62,9 @@ class TestAnonimlestirmeAgent:
 
     def test_telefon_maskeleme(self):
         """Telefonun ilk 2 hanesi açık kalmalı, düzen korunmalı."""
-        state = SahteState(raw_text="Telefon : 0555 314 78 26")
+        state = SahteState(raw_text="Telefon : 0555 000 00 01")
         result = self.agent.run(state)
-        assert "0555 314 78 26" not in result.anonymized_text
+        assert "0555 000 00 01" not in result.anonymized_text
         assert "05** *** ** **" in result.anonymized_text
         assert result.anonymization_report["maskelenen"]["telefon"] == 1
 
@@ -245,7 +245,7 @@ class TestAnonimlestirmeAgent:
 
     def test_rapor_yapisi(self):
         """Rapor sözlüğü beklenen anahtar şemasını taşımalı."""
-        state = SahteState(raw_text="Ad Soyad : Elif KOÇAK, Tel: 0555 314 78 26")
+        state = SahteState(raw_text="Ad Soyad : Elif KOÇAK, Tel: 0555 000 00 01")
         result = self.agent.run(state)
         rapor = result.anonymization_report
         assert set(rapor.keys()) == {"maskelenen", "toplam", "yontem"}
