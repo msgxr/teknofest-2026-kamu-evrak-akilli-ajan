@@ -157,23 +157,30 @@ class OrchestratorAgent:
         }
         logger.info(f"{len(self.agents)} alt agent yüklendi.")
 
-    def process(self, input_file: str, mode: str = "full") -> dict:
+    def process(self, input_file: str, mode: str = "full", on_step=None) -> dict:
         """
         Evrak dosyasını işleme sürecini başlatır.
 
         Args:
             input_file: İşlenecek evrak dosya yolu
             mode: Çalışma modu ('full', 'classify', 'draft')
+            on_step: Opsiyonel geri-çağırım; her ajan adımı TAMAMLANDIĞINDA adım
+                sözlüğüyle ({agent, description, status, sure_saniye}) çağrılır —
+                canlı akış (streaming) arayüzü için. None ise davranış değişmez.
 
         Returns:
             Tüm işlem sonuçlarını içeren sözlük
         """
+        self._on_step = on_step
         self.state = AgentState(input_file=input_file)
         logger.info(f"Evrak işleme başlatıldı: {input_file} (mod: {mode})")
         self._run_step("ocr", "OCR ile metin çıkarımı")
         return self._run_workflow(mode)
 
-    def process_text(self, text: str, mode: str = "full", source_name: str = "dogrudan_metin") -> dict:
+    def process_text(
+        self, text: str, mode: str = "full",
+        source_name: str = "dogrudan_metin", on_step=None,
+    ) -> dict:
         """
         Doğrudan metin girişini işler (dosya/OCR adımı olmadan).
 
@@ -181,10 +188,12 @@ class OrchestratorAgent:
             text: İşlenecek evrak metni
             mode: Çalışma modu ('full', 'classify', 'draft')
             source_name: Kaynak etiketi (raporlamada gösterilir)
+            on_step: Opsiyonel adım geri-çağırımı (canlı akış için).
 
         Returns:
             Tüm işlem sonuçlarını içeren sözlük
         """
+        self._on_step = on_step
         self.state = AgentState(input_file=source_name, raw_text=text)
         self.state.ocr_result = {
             "source_file": source_name,
@@ -524,6 +533,15 @@ class OrchestratorAgent:
             })
             self.state.errors.append(f"{agent_name}: {e}")
             logger.error(f"✗ {description} sırasında hata: {e}")
+
+        # Canlı akış (streaming) kancası: adım tamamlandığında dinleyiciye bildir.
+        # Geri-çağırım hatası pipeline'ı ASLA bozmaz (yalnızca sunum katmanı).
+        on_step = getattr(self, "_on_step", None)
+        if on_step and self.state.processing_steps:
+            try:
+                on_step(self.state.processing_steps[-1])
+            except Exception as cb_hata:
+                logger.debug(f"on_step geri-çağırımı hatası (yok sayıldı): {cb_hata}")
 
     def _compile_results(self) -> dict:
         """Tüm sonuçları derleyerek tek bir sözlük döndürür."""

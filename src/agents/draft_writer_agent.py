@@ -38,6 +38,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from src.utils.taslak_hakemi import taslak_puanla
+from src.utils.taslak_reflexion import yapisal_geri_bildirim
+
+# Reflexion hedef skoru: LLM taslağının format skoru bu eşiğin altındaysa
+# hedefli geri bildirimle bir tur daha üretilir (keep-best; asla gerilemez).
+REFLEXION_HEDEF_SKOR = 0.85
 from src.utils.turkish_nlp import extract_sentences, turkish_lower
 
 if TYPE_CHECKING:
@@ -381,26 +386,58 @@ class DraftWriterAgent:
         Returns:
             (taslak_metni, uretim_yontemi) ikilisi
         """
+        gizlilik = self._gizlilik_damgasi(state.raw_text)
+
+        def skorla(metin: str) -> float:
+            return self._validate_format(
+                metin, yazi_turu, gizlilik_damgasi=gizlilik
+            )["skor"]
+
+        # (skor, oncelik, taslak, yontem) — oncelik eşitlikte kural tabanlıyı seçer
+        adaylar = []
+
+        # 1. LLM adayı (+ Reflexion turu)
         try:
-            draft = self._generate_with_llm(yazi_turu, state)
-            skor = self._validate_format(draft, yazi_turu)["skor"]
-            if skor < 0.6:
-                logger.warning(
-                    f"LLM taslağı format denetiminden geçemedi (skor={skor:.2f}); "
-                    f"kural tabanlı taslağa dönülüyor."
-                )
-                return self._generate_from_template(yazi_turu, state), "kural_tabanli"
-            return draft, "llm"
+            llm_draft = self._generate_with_llm(yazi_turu, state)
+            val = self._validate_format(
+                llm_draft, yazi_turu, gizlilik_damgasi=gizlilik
+            )
+            adaylar.append((val["skor"], 0, llm_draft, "llm"))
+            if val["skor"] < REFLEXION_HEDEF_SKOR:
+                geri_bildirim = yapisal_geri_bildirim(val)
+                if geri_bildirim:
+                    revize = self._generate_with_llm(
+                        yazi_turu, state, duzeltme_notu=geri_bildirim
+                    )
+                    adaylar.append((skorla(revize), 0, revize, "llm+reflexion"))
+                    logger.info(
+                        "Reflexion turu uygulandı: format skoru "
+                        f"{val['skor']:.2f} → {adaylar[-1][0]:.2f}"
+                    )
         except Exception as e:
-            logger.warning(f"LLM taslak oluşturulamadı, şablon kullanılıyor: {e}")
-            return self._generate_from_template(yazi_turu, state), "kural_tabanli"
+            logger.info(f"LLM taslak yolu atlandı (offline/hata): {e}")
+
+        # 2. Kural tabanlı şablon: her zaman güvenli, deterministik aday
+        sablon = self._generate_from_template(yazi_turu, state)
+        adaylar.append((skorla(sablon), 1, sablon, "kural_tabanli"))
+
+        # 3. Keep-best: en yüksek format skoru; eşitlikte kural tabanlı seçilir
+        adaylar.sort(key=lambda a: (a[0], a[1]), reverse=True)
+        _, _, en_iyi_draft, en_iyi_yontem = adaylar[0]
+        return en_iyi_draft, en_iyi_yontem
 
     # ------------------------------------------------------------------
     # LLM yolu
     # ------------------------------------------------------------------
 
-    def _generate_with_llm(self, yazi_turu: str, state: "AgentState") -> str:
-        """LLM ile yönetmelik kurallarına uygun yazı taslağı oluşturur."""
+    def _generate_with_llm(
+        self, yazi_turu: str, state: "AgentState", duzeltme_notu: str = ""
+    ) -> str:
+        """LLM ile yönetmelik kurallarına uygun yazı taslağı oluşturur.
+
+        `duzeltme_notu` verilirse (Reflexion turu) bir önceki taslağın eksik
+        kaldığı kurallar prompt'a gömülür ve hedefli düzeltme istenir.
+        """
         from src.models.llm_wrapper import (
             GUVENLIK_SISTEM_EKI,
             LLMUnavailableError,
@@ -435,6 +472,7 @@ class DraftWriterAgent:
 
         # GÜVENLİK: evrak metni belge_blogu ile "yalnızca veri" olarak
         # işaretlenir (dolaylı prompt injection savunması, OWASP LLM01)
+        duzeltme_blogu = f"\n{duzeltme_notu}\n" if duzeltme_notu else ""
         prompt = f"""Aşağıdaki gelen evraka karşılık resmî bir "{DRAFT_TYPE_LABELS.get(yazi_turu, yazi_turu)}" taslağı yaz.
 
 {belge_blogu(state.raw_text, 3000)}
@@ -460,7 +498,7 @@ Resmî Yazışma Yönetmeliği (RG 10.06.2020/31151) format kuralları — MUTLA
 8. İmza bloğu: ad-soyad yerine "(e-imzalıdır)" ve altında unvan yaz.
 9. "Ek :" bölümüne yalnızca gerçekten var olan ekleri yaz; ek yoksa "Ek : Yoktur." yaz. Gerekiyorsa "Dağıtım:" bölümü ekle.
 10. Köşeli parantezli yer tutucu ([...]) KULLANMA; tüm alanları gerçek içerikle doldur.
-
+{duzeltme_blogu}
 Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
 
         system_prompt = (

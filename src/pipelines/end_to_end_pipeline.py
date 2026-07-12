@@ -61,7 +61,9 @@ class EndToEndPipeline:
             f" (kayıt defteri: {'aktif' if self.kayit_defteri else 'kapalı'})."
         )
 
-    def process(self, input_file: str, mode: str = "full", kayit: bool = True) -> dict:
+    def process(
+        self, input_file: str, mode: str = "full", kayit: bool = True, on_step=None
+    ) -> dict:
         """
         Evrak dosyasını uçtan uca işler.
 
@@ -78,7 +80,7 @@ class EndToEndPipeline:
         logger.info(f"Pipeline başlatıldı: {input_file}")
 
         # Orkestratör ile tüm agent'ları çalıştır
-        results = self.orchestrator.process(input_file, mode=mode)
+        results = self.orchestrator.process(input_file, mode=mode, on_step=on_step)
 
         # İşlem süresini ekle
         elapsed = time.time() - start_time
@@ -94,6 +96,7 @@ class EndToEndPipeline:
         mode: str = "full",
         source_name: str = "dogrudan_metin",
         kayit: bool = True,
+        on_step=None,
     ) -> dict:
         """
         Doğrudan metin girişini uçtan uca işler (dosya/OCR adımı olmadan).
@@ -108,7 +111,9 @@ class EndToEndPipeline:
             Tüm işlem sonuçlarını içeren sözlük
         """
         start_time = time.time()
-        results = self.orchestrator.process_text(text, mode=mode, source_name=source_name)
+        results = self.orchestrator.process_text(
+            text, mode=mode, source_name=source_name, on_step=on_step
+        )
         results["islem_suresi_saniye"] = round(time.time() - start_time, 2)
         self._kayda_gecir(results, kayit)
         return results

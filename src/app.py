@@ -417,10 +417,10 @@ def _kendi_kaydi_mi(sonuc: dict, emsal: dict) -> bool:
 # İşleme yardımcıları
 # ---------------------------------------------------------------------------
 
-def _dosya_isle(pipeline: Any, dosya_yolu: str, mode: str) -> dict:
+def _dosya_isle(pipeline: Any, dosya_yolu: str, mode: str, on_step=None) -> dict:
     """Dosyayı pipeline üzerinden işler ve toplam süreyi garanti eder."""
     baslangic = time.time()
-    sonuc = pipeline.process(dosya_yolu, mode=mode)
+    sonuc = pipeline.process(dosya_yolu, mode=mode, on_step=on_step)
     sonuc.setdefault("islem_suresi_saniye", round(time.time() - baslangic, 2))
     # Emsal araması için ham metni sakla (yalnızca arayüz içi kullanım;
     # metin tabanlı dosyalarda; PDF/görüntüde özet/maskeli metne düşülür)
@@ -433,10 +433,10 @@ def _dosya_isle(pipeline: Any, dosya_yolu: str, mode: str) -> dict:
     return sonuc
 
 
-def _metin_isle(pipeline: Any, metin: str, mode: str) -> dict:
+def _metin_isle(pipeline: Any, metin: str, mode: str, on_step=None) -> dict:
     """Doğrudan metin girişini pipeline üzerinden işler (kayıt defteri dahil)."""
     baslangic = time.time()
-    sonuc = pipeline.process_text(metin, mode=mode)
+    sonuc = pipeline.process_text(metin, mode=mode, on_step=on_step)
     sonuc.setdefault("islem_suresi_saniye", round(time.time() - baslangic, 2))
     sonuc["_ham_metin"] = metin[:20_000]  # emsal araması için (arayüz içi)
     return sonuc
@@ -454,25 +454,47 @@ def _status_ile_isle(etiket: str, islem: Any) -> dict:
         etiket: Status başlığında gösterilecek işlem etiketi
         islem: Parametresiz çağrılabilir; sonuç sözlüğü döndürür
     """
-    with st.status(f"🤖 {etiket} — 11 ajanlık işlem hattı çalışıyor...", expanded=True) as durum:
+    def _adim_yaz(hedef: Any, adim: dict) -> None:
+        ikon = ADIM_DURUM_STILLERI.get(
+            str(adim.get("status", "")).strip().lower(), ("🔹",)
+        )[0]
         try:
-            sonuc = islem()
+            sure_metni = f"{float(adim.get('sure_saniye') or 0.0):.3f} sn"
+        except (TypeError, ValueError):
+            sure_metni = "—"
+        hedef.write(
+            f"{ikon} **{_ajan_adi(str(adim.get('agent', '—')))}** — "
+            f"{adim.get('description', '')} ({sure_metni})"
+        )
+
+    with st.status(f"🤖 {etiket} — 11 ajanlık işlem hattı çalışıyor...", expanded=True) as durum:
+        canli = st.container()
+        sayac = {"n": 0}
+
+        def _canli_adim(adim: dict) -> None:
+            # Her ajan adımı TAMAMLANDIKÇA anlık yazılır (gerçek canlı akış)
+            _adim_yaz(canli, adim)
+            sayac["n"] += 1
+
+        try:
+            try:
+                sonuc = islem(_canli_adim)  # canlı akış (on_step destekli çağrı)
+            except TypeError:
+                sonuc = islem()  # geriye dönük: on_step kabul etmeyen çağrı
         except Exception:
             durum.update(label=f"❌ {etiket} — işlem başarısız", state="error")
             raise
-        adimlar = [a for a in (sonuc.get("islem_adimlari") or []) if isinstance(a, dict)]
-        for adim in adimlar:
-            ikon = ADIM_DURUM_STILLERI.get(str(adim.get("status", "")).strip().lower(), ("🔹",))[0]
-            try:
-                sure_metni = f"{float(adim.get('sure_saniye') or 0.0):.3f} sn"
-            except (TypeError, ValueError):
-                sure_metni = "—"
-            st.write(
-                f"{ikon} **{_ajan_adi(str(adim.get('agent', '—')))}** — "
-                f"{adim.get('description', '')} ({sure_metni})"
-            )
+
+        # Canlı yazılamadıysa (eski yol) adımları işlem sonrası listele
+        if sayac["n"] == 0:
+            for adim in (
+                a for a in (sonuc.get("islem_adimlari") or []) if isinstance(a, dict)
+            ):
+                _adim_yaz(canli, adim)
+                sayac["n"] += 1
+
         durum.update(
-            label=f"✅ {etiket} — {len(adimlar)} ajan adımı tamamlandı",
+            label=f"✅ {etiket} — {sayac['n']} ajan adımı tamamlandı",
             state="complete",
             expanded=False,
         )
@@ -1300,7 +1322,9 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
                     f.write(dosya.getbuffer())
                 yeni_sonuc = _status_ile_isle(
                     f"'{dosya.name}' işleniyor",
-                    lambda: _dosya_isle(pipeline, gecici_yol, mode),
+                    lambda on_step=None: _dosya_isle(
+                        pipeline, gecici_yol, mode, on_step=on_step
+                    ),
                 )
                 yeni_sonuc["input_file"] = dosya.name  # geçici yol yerine özgün ad
             except Exception as exc:
@@ -1337,7 +1361,9 @@ def _sekme_evrak_isle(pipeline: Any, mode: str) -> None:
                 try:
                     yeni_sonuc = _status_ile_isle(
                         "Metin işleniyor",
-                        lambda: _metin_isle(pipeline, metin, mode),
+                        lambda on_step=None: _metin_isle(
+                            pipeline, metin, mode, on_step=on_step
+                        ),
                     )
                 except Exception as exc:
                     logger.error(f"Metin işleme hatası: {exc}")
