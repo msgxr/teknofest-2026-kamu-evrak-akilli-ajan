@@ -1,14 +1,14 @@
 {
-  "zaman_damgasi": "2026-07-12T23:15:03",
+  "zaman_damgasi": "2026-07-12T23:45:58",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v3",
   "set_adi": "kurgu_evraklar_heldout_v3",
   "tekrarlanabilirlik": {
-    "git_commit": "87f50bfd28bbaf58ffad843f6610ea4c3d919aef",
+    "git_commit": "451a65841af070152b876143543afcc54bd2e666",
     "calisma_agaci_kirli": true,
     "python": "3.9.6",
     "platform": "macOS-14.6-arm64-arm-64bit",
     "requirements_sha256": "e2115bf6d8282fa5",
-    "set_icerik_hash": "a907b64635db27f7"
+    "set_icerik_hash": "52b2dc5ab35774a1"
   },
   "llm": {
     "backend": "offline",
@@ -242,9 +242,9 @@
   },
   "kalibrasyon": {
     "n": 16,
-    "ece": 0.3385,
+    "ece": 0.3379,
     "mce": 0.683,
-    "brier": 0.1923,
+    "brier": 0.1921,
     "aurc": 0.0226,
     "reliability_kutulari": [
       {
@@ -316,7 +316,7 @@
           0.8
         ],
         "sayi": 3,
-        "ortalama_guven": 0.7347,
+        "ortalama_guven": 0.7363,
         "dogruluk": 1.0
       },
       {
@@ -325,7 +325,7 @@
           0.9
         ],
         "sayi": 2,
-        "ortalama_guven": 0.8635,
+        "ortalama_guven": 0.866,
         "dogruluk": 1.0
       },
       {
@@ -344,7 +344,7 @@
     "kapsama": 0.4375,
     "risk": 0.0,
     "reddedilen": 9,
-    "ortalama_belirsizlik": 0.3594
+    "ortalama_belirsizlik": 0.3589
   },
   "konformal": {
     "alfa": 0.1,
@@ -403,7 +403,7 @@
   "ozet_kalitesi": {
     "n": 16,
     "sadakat": 1.0,
-    "kaynak_kapsama": 0.4114,
+    "kaynak_kapsama": 0.414,
     "sikistirma_orani": 0.4731
   },
   "performans": {
@@ -412,9 +412,9 @@
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
       "classification": 0.0061,
-      "info_extraction": 0.0018,
+      "info_extraction": 0.0019,
       "missing_info": 0.0004,
-      "legislation": 0.0015,
+      "legislation": 0.0014,
       "triage": 0.0002,
       "summarization": 0.0011,
       "anonimlestirme": 0.0011,

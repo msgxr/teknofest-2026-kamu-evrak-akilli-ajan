@@ -1,9 +1,9 @@
 {
-  "zaman_damgasi": "2026-07-12T23:15:01",
+  "zaman_damgasi": "2026-07-12T23:45:57",
   "veri_dizini": "data/raw/kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "tekrarlanabilirlik": {
-    "git_commit": "87f50bfd28bbaf58ffad843f6610ea4c3d919aef",
+    "git_commit": "451a65841af070152b876143543afcc54bd2e666",
     "calisma_agaci_kirli": true,
     "python": "3.9.6",
     "platform": "macOS-14.6-arm64-arm-64bit",
@@ -413,17 +413,17 @@
     "sikistirma_orani": 0.3941
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0129,
+    "evrak_basina_ortalama_sure_saniye": 0.013,
     "evrak_basina_medyan_sure_saniye": 0.011,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
-      "classification": 0.0019,
+      "classification": 0.0018,
       "info_extraction": 0.0031,
-      "missing_info": 0.0002,
+      "missing_info": 0.0003,
       "legislation": 0.0013,
       "triage": 0.0001,
       "summarization": 0.001,
-      "anonimlestirme": 0.001,
+      "anonimlestirme": 0.0011,
       "draft_writer": 0.001,
       "routing": 0.0033,
       "user_info": 0.0

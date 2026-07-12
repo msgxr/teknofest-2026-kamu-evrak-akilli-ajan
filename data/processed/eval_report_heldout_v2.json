@@ -1,9 +1,9 @@
 {
-  "zaman_damgasi": "2026-07-12T23:15:02",
+  "zaman_damgasi": "2026-07-12T23:45:58",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v2",
   "set_adi": "kurgu_evraklar_heldout_v2",
   "tekrarlanabilirlik": {
-    "git_commit": "87f50bfd28bbaf58ffad843f6610ea4c3d919aef",
+    "git_commit": "451a65841af070152b876143543afcc54bd2e666",
     "calisma_agaci_kirli": true,
     "python": "3.9.6",
     "platform": "macOS-14.6-arm64-arm-64bit",
@@ -431,11 +431,11 @@
     "sikistirma_orani": 0.4928
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.018,
+    "evrak_basina_ortalama_sure_saniye": 0.0182,
     "evrak_basina_medyan_sure_saniye": 0.0125,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
-      "classification": 0.0062,
+      "classification": 0.0064,
       "info_extraction": 0.0021,
       "missing_info": 0.0005,
       "legislation": 0.0018,
