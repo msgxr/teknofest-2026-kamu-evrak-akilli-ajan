@@ -168,6 +168,52 @@ def uret_ustveri(sonuc: dict, belge_metni: str = "") -> dict:
     return ustveri
 
 
+def uret_ustveri_xml(sonuc: dict, belge_metni: str = "") -> str:
+    """e-Yazışma Paketi / TS 13298 tarzı üstveri XML'i üretir (stdlib xml).
+
+    Resmî e-Yazışma Paketi'nin temel üstveri elemanlarını (Konu, BelgeTarihi,
+    Tür, GüvenlikKodu, İvedilik, Muhatap, İlgiListesi, DağıtımListesi) XML olarak
+    modeller; kurum EBYS'lerine standart-yakın aktarım için bir köprüdür.
+
+    DÜRÜSTLÜK / KAPSAM: Bu bir üstveri ÖRNEĞİDİR. e-imza, şifreleme ve tam paket
+    imzalama KAPSAM DIŞIDIR; resmî şema doğrulaması (XSD) için CBDDO e-Yazışma
+    Teknik Rehberi esastır. Kaçınılan sahte kesinlik: numaralar/DETSIS gerçek
+    değil, kurgu ÖNERİdir (belge tutarlılık denetimi kapsamı dışı alanlar).
+
+    Literatür/Kaynak: e-Yazışma Teknik Rehberi (CBDDO); TS 13298 EBYS standardı.
+    """
+    import xml.etree.ElementTree as ET
+
+    ustveri = uret_ustveri(sonuc, belge_metni)
+    belge = _sozluk(ustveri.get("belge"))
+    muhatap = _sozluk(ustveri.get("muhatap"))
+
+    kok = ET.Element("Ustveri", {
+        "surum": str(ustveri.get("ustveri_surumu", "")),
+        "kaynak": str(ustveri.get("kaynak_sistem", "")),
+    })
+    belge_ge = ET.SubElement(kok, "Belge")
+    ET.SubElement(belge_ge, "Konu").text = str(belge.get("konu", ""))
+    ET.SubElement(belge_ge, "BelgeTarihi").text = str(belge.get("belge_tarihi") or "")
+    ET.SubElement(belge_ge, "Tur").text = str(belge.get("tur", ""))
+    ET.SubElement(belge_ge, "GuvenlikKodu").text = str(belge.get("guvenlik_kodu") or "")
+    ET.SubElement(belge_ge, "Ivedilik").text = str(belge.get("ivedilik", "normal"))
+    ET.SubElement(belge_ge, "SayiOnerisi").text = str(belge.get("sayi_onerisi", ""))
+
+    muhatap_ge = ET.SubElement(kok, "Muhatap")
+    ET.SubElement(muhatap_ge, "Ad").text = str(muhatap.get("ad", ""))
+
+    ilgi_ge = ET.SubElement(kok, "IlgiListesi")
+    for ilgi in _metin_listesi(ustveri.get("ilgi_listesi")):
+        ET.SubElement(ilgi_ge, "Ilgi").text = str(ilgi)
+
+    dagitim_ge = ET.SubElement(kok, "DagitimListesi")
+    for hedef in _metin_listesi(ustveri.get("dagitim")):
+        ET.SubElement(dagitim_ge, "Dagitim").text = str(hedef)
+
+    return ET.tostring(kok, encoding="unicode")
+
+
 def ustveri_belge_tutarliligi(ustveri: dict, belge_metni: str) -> dict:
     """
     Üstveri ↔ belge görüntüsü BİREBİR eşitlik denetimi (m.28/3 otomasyonu).

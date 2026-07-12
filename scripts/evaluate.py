@@ -577,6 +577,7 @@ def evraklari_isle(
                 dosya_yolu.read_text(encoding="utf-8", errors="ignore")
                 if dosya_yolu.suffix.lower() == ".txt" else ""
             ),
+            "anonim_metin": (result.get("anonimlestirme") or {}).get("metin", "") or "",
             "adimlar": adimlar,
             "toplam_sure": round(toplam_sure, 4),
         })
@@ -689,6 +690,29 @@ def metrikleri_hesapla(
         "sikistirma_orani": _ort(sik_l),
     }
 
+    # 8. KVKK maskeleme kaçak denetimi (anonimleştirme sızıntı ölçümü)
+    from src.utils.kvkk_denetim import kacak_olc
+    _kvkk_toplam = 0
+    _kvkk_sizintili = 0
+    _kvkk_n = 0
+    for s in sonuclar:
+        anon = s.get("anonim_metin", "")
+        if not anon:
+            continue
+        _kvkk_n += 1
+        kacak = kacak_olc(anon)
+        _kvkk_toplam += kacak["toplam"]
+        if kacak["toplam"] > 0:
+            _kvkk_sizintili += 1
+    kvkk = {
+        "degerlendirilen": _kvkk_n,
+        "toplam_kacak": _kvkk_toplam,
+        "sizintili_evrak": _kvkk_sizintili,
+        "sizintisiz_oran": (
+            round((_kvkk_n - _kvkk_sizintili) / _kvkk_n, 4) if _kvkk_n else None
+        ),
+    }
+
     return {
         "zaman_damgasi": datetime.now().isoformat(timespec="seconds"),
         "veri_dizini": goreli_yol(veri_dizini),
@@ -725,6 +749,7 @@ def metrikleri_hesapla(
         "kalibrasyon": kalibrasyon,
         "secici_tahmin": secici_tahmin,
         "konformal": konformal,
+        "kvkk": kvkk,
         "ozet_kalitesi": ozet_kalitesi,
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,

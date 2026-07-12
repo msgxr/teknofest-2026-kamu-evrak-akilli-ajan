@@ -561,6 +561,24 @@ class OrchestratorAgent:
                 neden = f"Çapraz tutarlılık: {celiski['aciklama']}"
                 if neden not in self.state.human_review_reasons:
                     self.state.human_review_reasons.append(neden)
+
+        # Emsal-tabanlı öneri (CBR): düşük güvenli kararlarda kurumsal hafızadan
+        # benzer geçmiş evrakların çoğunluk kararı ADVISORY olarak eklenir
+        # (kararı EZMEZ). Boş defterde None → değerlendirme davranışı korunur.
+        emsal_onerisi_sonuc = None
+        if self.state.human_review_required and self.state.raw_text:
+            try:
+                from src.utils.emsal import emsal_ara
+                from src.utils.emsal_cbr import emsal_onerisi
+
+                emsaller = emsal_ara(self.state.raw_text, limit=3)
+                emsal_onerisi_sonuc = emsal_onerisi(
+                    emsaller,
+                    (self.state.classification or {}).get("tur"),
+                    (self.state.routing_suggestion or {}).get("birim_kodu"),
+                )
+            except Exception as emsal_hata:
+                logger.debug(f"Emsal önerisi hesaplanamadı: {emsal_hata}")
         return {
             "input_file": self.state.input_file,
             "ocr": self.state.ocr_result,
@@ -584,6 +602,7 @@ class OrchestratorAgent:
             },
             "guven_izleme": self.state.confidence_trace,
             "tutarlilik_denetimi": tutarlilik,
+            "emsal_onerisi": emsal_onerisi_sonuc,
             "islem_adimlari": self.state.processing_steps,
             "hatalar": self.state.errors,
             # Kapı 3: düşük güvenli kararlar için insan onayı işareti
