@@ -1,0 +1,1354 @@
+<title>Kamu Evrak Akıllı Ajanı - Kurumsal Panel</title>
+
+<!--
+  Kamu Evrak Akıllı Ajanı - TEKNOFEST 2026 Yapay Zeka Dil Ajanları
+  Tek dosyalık, bağımlılıksız kurumsal panel (HTML + CSS + saf JS).
+  v3: Tam Türkçe metin (diakritikli), Orkestratör konsolu, 3 kapı denetimi,
+      canlı ajan hattı, güven göstergesi. Yabancı/özel glifler temizlendi.
+-->
+
+<style>
+  :root{
+    --bg:#f5f7fb; --bg-grid:#eef2f8;
+    --surface:#ffffff; --surface-2:#f2f5fa; --surface-3:#e8edf5;
+    --border:#e3e9f2; --border-strong:#d1dae8;
+    --ink:#0e1729; --ink-2:#39465e; --ink-3:#66738a; --ink-4:#93a0b5;
+    --brand:#1e3a8a; --brand-2:#2557d6; --brand-3:#5b8def;
+    --brand-soft:#e9f0fe; --brand-softer:#f2f6fe;
+    --accent:#059669; --accent-2:#10b981; --accent-soft:#e6f6ef;
+    --warn:#b45309; --warn-soft:#fdf1e3;
+    --danger:#dc2626; --danger-soft:#fdecec;
+    --violet:#7c3aed; --violet-soft:#f0eafe;
+    --sky:#0369a1; --sky-soft:#e3f1fb;
+    --nav-bg:linear-gradient(178deg,#12275f 0%,#0d1c47 55%,#0a1738 100%);
+    --nav-ink:#c3d0ea; --nav-ink-2:#8ea1c9; --nav-active:#ffffff;
+    --nav-active-bg:rgba(255,255,255,.09); --nav-active-bar:#5b8def; --nav-border:rgba(255,255,255,.08);
+    --term-bg:#0c1730; --term-ink:#cdd9f2; --term-dim:#7f92b8;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.05);
+    --shadow-md:0 4px 14px -3px rgba(15,23,42,.12),0 2px 6px -2px rgba(15,23,42,.06);
+    --shadow-lg:0 20px 44px -14px rgba(15,23,42,.24);
+    --ring:0 0 0 3px rgba(37,87,214,.32);
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-pill:999px;
+    --fs-mono:'Cascadia Code','SFMono-Regular',ui-monospace,'Segoe UI Mono',Consolas,monospace;
+    --fs-ui:'Segoe UI',-apple-system,BlinkMacSystemFont,system-ui,Roboto,'Helvetica Neue',Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0a1020; --bg-grid:#0f1728; --surface:#111a2e; --surface-2:#16223a; --surface-3:#1c2b47;
+      --border:#233350; --border-strong:#2c3e60; --ink:#eaf0fb; --ink-2:#b3c1da; --ink-3:#8394b3; --ink-4:#5e6f8f;
+      --brand:#3b6fe8; --brand-2:#4f84ff; --brand-3:#79a2ff; --brand-soft:rgba(63,111,232,.16); --brand-softer:rgba(63,111,232,.09);
+      --accent:#34d399; --accent-2:#2dd4a7; --accent-soft:rgba(52,211,153,.14); --warn:#f0b054; --warn-soft:rgba(240,176,84,.14);
+      --danger:#f87171; --danger-soft:rgba(248,113,113,.13); --violet:#a78bfa; --violet-soft:rgba(167,139,250,.14);
+      --sky:#38bdf8; --sky-soft:rgba(56,189,248,.13);
+      --term-bg:#0a1428; --term-ink:#c4d2ee; --term-dim:#6f83aa;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 6px 18px -4px rgba(0,0,0,.5); --shadow-lg:0 22px 48px -14px rgba(0,0,0,.6);
+      --ring:0 0 0 3px rgba(79,132,255,.4);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f7fb; --bg-grid:#eef2f8; --surface:#ffffff; --surface-2:#f2f5fa; --surface-3:#e8edf5;
+    --border:#e3e9f2; --border-strong:#d1dae8; --ink:#0e1729; --ink-2:#39465e; --ink-3:#66738a; --ink-4:#93a0b5;
+    --brand:#1e3a8a; --brand-2:#2557d6; --brand-3:#5b8def; --brand-soft:#e9f0fe; --brand-softer:#f2f6fe;
+    --accent:#059669; --accent-2:#10b981; --accent-soft:#e6f6ef; --warn:#b45309; --warn-soft:#fdf1e3;
+    --danger:#dc2626; --danger-soft:#fdecec; --violet:#7c3aed; --violet-soft:#f0eafe; --sky:#0369a1; --sky-soft:#e3f1fb;
+    --term-bg:#0c1730; --term-ink:#cdd9f2; --term-dim:#7f92b8;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.05);
+    --shadow-md:0 4px 14px -3px rgba(15,23,42,.12),0 2px 6px -2px rgba(15,23,42,.06);
+    --shadow-lg:0 20px 44px -14px rgba(15,23,42,.24); --ring:0 0 0 3px rgba(37,87,214,.32);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a1020; --bg-grid:#0f1728; --surface:#111a2e; --surface-2:#16223a; --surface-3:#1c2b47;
+    --border:#233350; --border-strong:#2c3e60; --ink:#eaf0fb; --ink-2:#b3c1da; --ink-3:#8394b3; --ink-4:#5e6f8f;
+    --brand:#3b6fe8; --brand-2:#4f84ff; --brand-3:#79a2ff; --brand-soft:rgba(63,111,232,.16); --brand-softer:rgba(63,111,232,.09);
+    --accent:#34d399; --accent-2:#2dd4a7; --accent-soft:rgba(52,211,153,.14); --warn:#f0b054; --warn-soft:rgba(240,176,84,.14);
+    --danger:#f87171; --danger-soft:rgba(248,113,113,.13); --violet:#a78bfa; --violet-soft:rgba(167,139,250,.14);
+    --sky:#38bdf8; --sky-soft:rgba(56,189,248,.13); --term-bg:#0a1428; --term-ink:#c4d2ee; --term-dim:#6f83aa;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 6px 18px -4px rgba(0,0,0,.5); --shadow-lg:0 22px 48px -14px rgba(0,0,0,.6);
+    --ring:0 0 0 3px rgba(79,132,255,.4);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--fs-ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.5;font-feature-settings:"kern" 1,"liga" 1}
+  .ic{width:18px;height:18px;flex:0 0 auto}
+  .ic-arr{width:14px;height:14px;flex:0 0 auto;vertical-align:-2px;color:var(--ink-3)}
+  svg{display:block}
+  ::selection{background:var(--brand-2);color:#fff}
+  :focus-visible{outline:none;box-shadow:var(--ring);border-radius:var(--r-sm)}
+  button{font-family:inherit}
+
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:266px;flex:0 0 266px;background:var(--nav-bg);color:var(--nav-ink);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;border-right:1px solid var(--nav-border);z-index:20}
+  .brand{display:flex;align-items:center;gap:12px;padding:20px 20px 18px}
+  .brand-badge{width:42px;height:42px;border-radius:11px;flex:0 0 auto;background:linear-gradient(145deg,#3d6cf0,#2557d6 60%,#1b3fa8);display:grid;place-items:center;color:#fff;box-shadow:0 6px 16px -4px rgba(37,87,214,.6);position:relative;overflow:hidden}
+  .brand-badge svg{width:23px;height:23px}
+  .brand-badge::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 45%)}
+  .brand-txt b{display:block;color:#fff;font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.15}
+  .brand-txt span{display:block;color:var(--nav-ink-2);font-size:11px;font-weight:600;letter-spacing:.4px;margin-top:2px}
+  .nav-group{padding:6px 12px}
+  .nav-label{font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--nav-ink-2);padding:14px 12px 8px;opacity:.85}
+  .nav-item{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--nav-ink);padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:600;position:relative;text-align:left;transition:background .15s,color .15s}
+  .nav-item .ic{width:18px;height:18px;opacity:.9}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav-item.active{background:var(--nav-active-bg);color:var(--nav-active)}
+  .nav-item.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--nav-active-bar)}
+  .nav-badge{margin-left:auto;background:rgba(255,255,255,.14);color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:var(--r-pill);font-variant-numeric:tabular-nums}
+  .nav-badge.live{background:var(--accent);animation:pulse-badge 2.4s infinite}
+  .nav-foot{margin-top:auto;padding:14px;border-top:1px solid var(--nav-border)}
+  .sys-card{background:rgba(255,255,255,.05);border:1px solid var(--nav-border);border-radius:12px;padding:12px 13px}
+  .sys-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--nav-ink)}
+  .sys-row+.sys-row{margin-top:9px}
+  .sys-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 3px rgba(16,185,129,.18);flex:0 0 auto}
+  .sys-dot.amber{background:#f0b054;box-shadow:0 0 0 3px rgba(240,176,84,.18)}
+  .sys-row b{color:#fff;font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:16px;padding:0 26px;height:66px;background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--border)}
+  .crumb{display:flex;flex-direction:column;gap:1px;min-width:0}
+  .crumb .k{font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.2px}
+  .crumb h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.3px;color:var(--ink)}
+  .search{margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-pill);padding:9px 15px;width:290px;color:var(--ink-3);transition:border-color .15s,box-shadow .15s}
+  .search:focus-within{border-color:var(--brand-2);box-shadow:var(--ring)}
+  .search input{border:0;background:transparent;outline:none;color:var(--ink);font-size:13px;width:100%;font-family:inherit}
+  .search input::placeholder{color:var(--ink-4)}
+  .kbds{display:flex;gap:3px}
+  kbd{font-family:var(--fs-ui);font-size:10.5px;font-weight:700;color:var(--ink-3);background:var(--surface);border:1px solid var(--border-strong);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+  .tb-btn{width:40px;height:40px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;position:relative;transition:all .15s}
+  .tb-btn:hover{background:var(--surface-2);color:var(--ink);border-color:var(--border-strong)}
+  .tb-btn .dot{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--danger);border:2px solid var(--surface)}
+  .user{display:flex;align-items:center;gap:10px;padding-left:6px;border-left:1px solid var(--border);margin-left:2px}
+  .avatar{width:38px;height:38px;border-radius:11px;background:linear-gradient(145deg,#2557d6,#1e3a8a);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+  .user-meta b{font-size:13px;font-weight:700;color:var(--ink);display:block;line-height:1.2}
+  .user-meta span{font-size:11px;color:var(--ink-3)}
+
+  .content{padding:26px;flex:1;background:radial-gradient(1200px 400px at 80% -10%,var(--bg-grid),transparent 60%)}
+  .panel{display:none;animation:fade .32s ease both}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .sec-head{display:flex;align-items:flex-end;gap:14px;margin-bottom:18px}
+  .sec-head .txt h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.4px}
+  .sec-head .txt p{margin:3px 0 0;font-size:13px;color:var(--ink-3)}
+  .sec-head .spacer{margin-left:auto}
+  .chip-live{display:inline-flex;align-items:center;gap:7px;background:var(--accent-soft);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 26%,transparent);font-size:12px;font-weight:700;padding:6px 12px;border-radius:var(--r-pill)}
+  .chip-live .beat{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:beat 1.4s infinite}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+  .grid-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .metric{padding:18px;position:relative;overflow:hidden}
+  .metric .top{display:flex;align-items:center;justify-content:space-between}
+  .m-ico{width:40px;height:40px;border-radius:11px;display:grid;place-items:center}
+  .m-ico.brand{background:var(--brand-soft);color:var(--brand-2)}
+  .m-ico.accent{background:var(--accent-soft);color:var(--accent)}
+  .m-ico.violet{background:var(--violet-soft);color:var(--violet)}
+  .m-ico.amber{background:var(--warn-soft);color:var(--warn)}
+  .trend{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:var(--r-pill)}
+  .trend.up{background:var(--accent-soft);color:var(--accent)}
+  .metric .val{font-size:29px;font-weight:800;letter-spacing:-1px;margin:14px 0 2px;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .metric .lbl{font-size:12.5px;color:var(--ink-3);font-weight:600}
+  .spark{display:flex;align-items:flex-end;gap:3px;height:34px;margin-top:12px}
+  .spark i{flex:1;background:linear-gradient(180deg,var(--brand-3),var(--brand-2));border-radius:3px 3px 0 0;opacity:.85;min-height:3px;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+  .spark.accent i{background:linear-gradient(180deg,var(--accent-2),var(--accent))}
+
+  .grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:16px}
+  .card-h{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border)}
+  .card-h .ci{width:32px;height:32px;border-radius:9px;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center}
+  .card-h h3{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.2px}
+  .card-h p{margin:1px 0 0;font-size:11.5px;color:var(--ink-3)}
+  .card-h .r{margin-left:auto}
+  .tag{font-size:11px;font-weight:700;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:var(--r-pill)}
+
+  .log{max-height:360px;overflow-y:auto;padding:8px}
+  .log-item{display:flex;gap:12px;padding:11px 12px;border-radius:11px;transition:background .15s}
+  .log-item:hover{background:var(--surface-2)}
+  .log-item.fresh{animation:slidein .5s ease both}
+  .log-ico{width:32px;height:32px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;margin-top:1px}
+  .log-body{min-width:0;flex:1}
+  .log-body .t{font-size:13px;color:var(--ink);font-weight:500;line-height:1.4}
+  .log-body .t b{font-weight:700}
+  .log-meta{display:flex;align-items:center;gap:8px;margin-top:4px}
+  .log-agent{font-size:11px;font-weight:700;padding:1px 8px;border-radius:var(--r-pill)}
+  .log-time{font-size:11px;color:var(--ink-4);font-variant-numeric:tabular-nums}
+  .tone-brand{background:var(--brand-soft);color:var(--brand-2)}
+  .tone-accent{background:var(--accent-soft);color:var(--accent)}
+  .tone-violet{background:var(--violet-soft);color:var(--violet)}
+  .tone-amber{background:var(--warn-soft);color:var(--warn)}
+  .tone-sky{background:var(--sky-soft);color:var(--sky)}
+
+  .dist{padding:16px 18px 18px;display:flex;flex-direction:column;gap:15px}
+  .dist-row .dr-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .dist-row .dr-name{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .dist-row .dr-val{font-size:12.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+  .bar{height:9px;background:var(--surface-3);border-radius:var(--r-pill);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--brand),var(--brand-2));width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+
+  .work{display:grid;grid-template-columns:minmax(0,410px) 1fr;gap:16px;align-items:start}
+  .drop{border:2px dashed var(--border-strong);border-radius:var(--r-md);padding:24px 18px;text-align:center;background:var(--surface-2);cursor:pointer;transition:all .18s}
+  .drop:hover,.drop.drag{border-color:var(--brand-2);background:var(--brand-softer)}
+  .drop .di{width:52px;height:52px;border-radius:14px;background:var(--surface);border:1px solid var(--border);color:var(--brand-2);display:grid;place-items:center;margin:0 auto 12px;box-shadow:var(--shadow-sm)}
+  .drop b{font-size:14px;font-weight:700;color:var(--ink)}
+  .drop span{display:block;font-size:12px;color:var(--ink-3);margin-top:3px}
+  .drop .exts{margin-top:11px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .drop .exts em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--ink-3);background:var(--surface-3);padding:3px 8px;border-radius:6px}
+  .divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--ink-4);font-size:11px;font-weight:700;letter-spacing:1px}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+  .samples{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+  .samp{font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--border);padding:6px 11px;border-radius:var(--r-pill);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+  .samp:hover{border-color:var(--brand-2);color:var(--brand-2)}
+  .samp.on{background:var(--brand-2);border-color:var(--brand-2);color:#fff}
+  textarea.doc{width:100%;min-height:220px;resize:vertical;border:1px solid var(--border);border-radius:var(--r-md);padding:14px;font-family:var(--fs-mono);font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--surface-2);outline:none;transition:border-color .15s,box-shadow .15s}
+  textarea.doc:focus{border-color:var(--brand-2);box-shadow:var(--ring)}
+  .run-row{display:flex;align-items:center;gap:11px;margin-top:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;cursor:pointer;font-weight:700;font-size:13.5px;padding:12px 20px;border-radius:var(--r-md);transition:all .16s}
+  .btn-primary{background:linear-gradient(180deg,var(--brand-2),var(--brand));color:#fff;box-shadow:0 8px 18px -6px rgba(37,87,214,.5)}
+  .btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;filter:none}
+  .btn-ghost{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}
+  .btn-ghost:hover{background:var(--surface-3);color:var(--ink)}
+  .hint{font-size:11.5px;color:var(--ink-4)}
+
+  .out{min-height:520px;overflow:hidden}
+  .out-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:70px 30px;color:var(--ink-3)}
+  .out-empty .oe{width:66px;height:66px;border-radius:18px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-4);display:grid;place-items:center;margin-bottom:16px}
+  .out-empty b{font-size:15px;color:var(--ink-2);font-weight:700}
+  .out-empty span{font-size:13px;margin-top:5px;max-width:340px}
+
+  .orch-head{display:flex;align-items:center;gap:13px;padding:16px 18px;background:linear-gradient(120deg,var(--brand),#16307a);color:#fff;position:relative;overflow:hidden}
+  .orch-head::after{content:"";position:absolute;right:-40px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.4),transparent 60%)}
+  .orch-ava{width:46px;height:46px;border-radius:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;color:#fff;flex:0 0 auto;position:relative;z-index:1}
+  .orch-ava svg{width:24px;height:24px}
+  .orch-ava.busy{animation:orbGlow 1.4s ease-in-out infinite}
+  .orch-meta{z-index:1;min-width:0}
+  .orch-meta b{display:block;font-size:15px;font-weight:700;letter-spacing:-.2px}
+  .orch-meta span{display:block;font-size:11.5px;color:#c3d3f5;margin-top:1px}
+  .orch-timer{margin-left:auto;z-index:1;text-align:right}
+  .orch-timer .tv{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .orch-timer .tl{font-size:10px;color:#c3d3f5;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+
+  .gates{display:flex;gap:8px;padding:13px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--surface-2)}
+  .gate{flex:1;min-width:150px;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:var(--surface);border:1px solid var(--border);transition:all .3s}
+  .gate .gi{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--surface-3);color:var(--ink-4);flex:0 0 auto;transition:all .3s}
+  .gate .gi svg{width:15px;height:15px}
+  .gate .gt{min-width:0}
+  .gate .gt b{display:block;font-size:11.5px;font-weight:700;color:var(--ink-2);line-height:1.2}
+  .gate .gt span{display:block;font-size:10.5px;color:var(--ink-4);margin-top:1px}
+  .gate.pass{border-color:color-mix(in srgb,var(--accent) 40%,transparent);background:var(--accent-soft)}
+  .gate.pass .gi{background:var(--accent);color:#fff}
+  .gate.pass .gt b{color:var(--accent)}
+  .gate.pass .gt span{color:color-mix(in srgb,var(--accent) 75%,var(--ink-3))}
+
+  .pipeline{display:flex;align-items:center;gap:0;padding:15px 18px 6px;overflow-x:auto}
+  .pchip{display:flex;flex-direction:column;align-items:center;gap:6px;flex:0 0 auto;position:relative;padding:0 4px}
+  .pchip .pc-dot{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--surface-2);border:1.5px solid var(--border);color:var(--ink-4);transition:all .3s;position:relative}
+  .pchip .pc-dot svg{width:18px;height:18px}
+  .pchip .pc-name{font-size:10px;font-weight:600;color:var(--ink-4);text-align:center;max-width:66px;line-height:1.2;transition:color .3s}
+  .pchip.active .pc-dot{background:var(--brand-soft);border-color:var(--brand-2);color:var(--brand-2);box-shadow:0 0 0 4px var(--brand-softer)}
+  .pchip.active .pc-dot::after{content:"";position:absolute;inset:-1.5px;border-radius:11px;border:1.5px solid transparent;border-top-color:var(--brand-2);animation:spin .7s linear infinite}
+  .pchip.active .pc-name{color:var(--brand-2)}
+  .pchip.done .pc-dot{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .pchip.done .pc-name{color:var(--accent)}
+  .pconn{width:22px;height:2px;background:var(--border);flex:0 0 auto;margin-top:-16px;transition:background .3s}
+  .pconn.done{background:var(--accent)}
+
+  .orch-console{margin:10px 18px 0;background:var(--term-bg);border-radius:var(--r-md);padding:12px 14px;font-family:var(--fs-mono);font-size:11.5px;line-height:1.75;color:var(--term-ink);max-height:150px;overflow-y:auto;border:1px solid rgba(255,255,255,.06)}
+  .cline{display:flex;gap:8px;animation:slidein .3s ease both;white-space:pre-wrap}
+  .cline .ct{color:var(--term-dim);flex:0 0 auto}
+  .cline .cok{color:#34d399;font-weight:700}
+  .cline .cdis{color:#5b8def;font-weight:700}
+  .cline .cwarn{color:#f0b054;font-weight:700}
+  .cline .csys{color:#a78bfa;font-weight:700}
+
+  .steps{padding:14px 10px 8px}
+  .step{display:flex;gap:14px;padding:8px 10px 20px;position:relative;opacity:0;transform:translateY(10px);animation:stepin .4s ease forwards}
+  .step:not(:last-child)::before{content:"";position:absolute;left:26px;top:44px;bottom:2px;width:2px;background:var(--border)}
+  .step-num{width:36px;height:36px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;z-index:1;background:var(--accent);border:1.5px solid var(--accent);color:#fff}
+  .step-num svg{width:18px;height:18px}
+  .step-b{flex:1;min-width:0}
+  .step-b .sh{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .step-b .sh h4{margin:0;font-size:14px;font-weight:700;letter-spacing:-.2px}
+  .step-b .sh .by{font-size:10.5px;font-weight:700;color:var(--brand-2);background:var(--brand-soft);padding:2px 8px;border-radius:var(--r-pill)}
+  .step-b .desc{font-size:13px;color:var(--ink-2);margin:9px 0 0;line-height:1.55}
+  .cls-row{display:flex;gap:14px;align-items:center;margin-top:11px}
+  .gauge{position:relative;width:78px;height:78px;flex:0 0 auto}
+  .gauge .gv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .gv b{font-size:17px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
+  .gauge .gv span{font-size:8.5px;color:var(--ink-4);font-weight:600;margin-top:1px}
+  .cls-info{min-width:0;flex:1}
+  .mtags{display:flex;flex-wrap:wrap;gap:7px}
+  .mtag{font-size:11.5px;font-weight:600;color:var(--brand-2);background:var(--brand-soft);border:1px solid color-mix(in srgb,var(--brand-2) 22%,transparent);padding:5px 10px;border-radius:8px;font-family:var(--fs-mono)}
+  .callout{margin-top:11px;display:flex;gap:9px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 26%,transparent);font-size:12.5px;color:var(--warn);font-weight:600}
+  .callout svg{width:16px;height:16px;flex:0 0 auto;margin-top:1px}
+  .scorebar{margin-top:11px;display:flex;align-items:center;gap:12px}
+  .scorebar .bar{flex:1}
+  .scorebar .bar i{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .scorebar b{font-size:13px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .checks{margin:11px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+  .checks li{display:flex;gap:8px;font-size:12.5px;color:var(--ink-2)}
+  .checks li svg{width:16px;height:16px;color:var(--accent);margin-top:1px;flex:0 0 auto}
+  .checks li.warn svg{color:var(--warn)}
+  .draft{margin-top:12px;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+  .draft-h{display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+  .draft-h svg{width:15px;height:15px;color:var(--ink-3)}
+  .draft-h .dt{font-size:12px;font-weight:700;color:var(--ink-2)}
+  .draft-h .meta{margin-left:auto;font-size:10.5px;color:var(--ink-4);font-family:var(--fs-mono)}
+  .btn-copy{display:inline-flex;align-items:center;gap:6px;background:var(--brand-2);color:#fff;border:0;font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:8px;cursor:pointer;transition:all .15s}
+  .btn-copy svg{width:14px;height:14px}
+  .btn-copy:hover{filter:brightness(1.08)}
+  .btn-copy.done{background:var(--accent)}
+  .draft-body{padding:16px;font-family:var(--fs-mono);font-size:12px;line-height:1.7;color:var(--ink);white-space:pre-wrap;max-height:320px;overflow:auto}
+  .draft-body .rh{color:var(--brand-2);font-weight:700}
+
+  .orch-banner{display:flex;align-items:center;gap:14px;padding:16px 18px;margin-bottom:16px;background:linear-gradient(120deg,var(--brand),#16307a);border-radius:var(--r-lg);color:#fff;position:relative;overflow:hidden;box-shadow:var(--shadow-md)}
+  .orch-banner::after{content:"";position:absolute;right:-30px;top:-50px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.4),transparent 60%)}
+  .orch-banner .ob-ava{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;z-index:1;flex:0 0 auto}
+  .orch-banner .ob-ava svg{width:27px;height:27px}
+  .orch-banner .ob-meta{z-index:1}
+  .orch-banner .ob-meta b{font-size:16px;font-weight:700;display:block}
+  .orch-banner .ob-meta span{font-size:12px;color:#c9d7f6}
+  .orch-banner .ob-stats{margin-left:auto;z-index:1;display:flex;gap:22px}
+  .orch-banner .ob-stat{text-align:center}
+  .orch-banner .ob-stat .n{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .orch-banner .ob-stat .l{font-size:10.5px;color:#c9d7f6;font-weight:600}
+  .grid-agents{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .agent{padding:16px;transition:transform .15s,box-shadow .15s,border-color .15s}
+  .agent:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border-strong)}
+  .agent .a-top{display:flex;align-items:flex-start;gap:12px}
+  .a-ico{width:44px;height:44px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;position:relative}
+  .a-ico svg{width:22px;height:22px}
+  .a-ico.on{background:var(--accent-soft);color:var(--accent)}
+  .a-ico.idle{background:var(--surface-3);color:var(--ink-3)}
+  .a-ico.on::after{content:"";position:absolute;right:-2px;top:-2px;width:11px;height:11px;border-radius:50%;background:var(--accent);border:2.5px solid var(--surface);animation:beat 1.6s infinite}
+  .a-name{font-size:14px;font-weight:700;letter-spacing:-.2px;line-height:1.25}
+  .a-role{font-size:11.5px;color:var(--ink-3);margin-top:2px;line-height:1.4}
+  .status{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--r-pill)}
+  .status.on{background:var(--accent-soft);color:var(--accent)}
+  .status.idle{background:var(--surface-3);color:var(--ink-3)}
+  .status .sd{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .status.on .sd{animation:beat 1.6s infinite}
+  .a-task{margin-top:13px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+  .a-task svg{width:14px;height:14px;color:var(--ink-4);flex:0 0 auto}
+  .a-task b{color:var(--ink);font-weight:600}
+  .a-foot{display:flex;gap:16px;margin-top:11px}
+  .a-stat .n{font-size:15px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+  .a-stat .l{font-size:10.5px;color:var(--ink-4);font-weight:600}
+  .net-wrap{margin-top:16px;overflow:hidden}
+  .net-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border)}
+  .net-head .ci{width:32px;height:32px;border-radius:9px;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center}
+  .net-svg{width:100%;height:auto;display:block;background:radial-gradient(700px 300px at 50% 40%,var(--brand-softer),transparent 70%)}
+  .net-link{stroke:var(--brand-2);stroke-width:1.6;fill:none;opacity:.28;stroke-dasharray:5 7;animation:flow 3s linear infinite}
+  .net-node .halo{fill:var(--brand-2);opacity:.10}
+  .net-node.on .halo{fill:var(--accent);opacity:.14;animation:halo 2.6s ease-in-out infinite}
+  .net-node .core{fill:var(--surface);stroke:var(--border-strong);stroke-width:1.5}
+  .net-node.on .core{stroke:var(--accent)}
+  .net-node.hub .core{fill:var(--brand);stroke:var(--brand-2);stroke-width:2}
+  .net-node text{font-size:9.5px;font-weight:700;fill:var(--ink-2);font-family:var(--fs-ui)}
+  .net-node.hub text{fill:#fff}
+  .packet{fill:var(--accent)}
+
+  .lib-head{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .lib-search{flex:1;min-width:240px;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:11px 15px;color:var(--ink-3);box-shadow:var(--shadow-sm)}
+  .lib-search:focus-within{border-color:var(--brand-2);box-shadow:var(--ring)}
+  .lib-search input{border:0;background:transparent;outline:none;color:var(--ink);font-size:13.5px;width:100%;font-family:inherit}
+  .lib-stat{display:flex;gap:8px}
+  .lib-stat .ls{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:9px 15px;text-align:center;box-shadow:var(--shadow-sm)}
+  .lib-stat .ls b{display:block;font-size:17px;font-weight:800;color:var(--brand-2);font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+  .lib-stat .ls span{font-size:10.5px;color:var(--ink-3);font-weight:600}
+  .lib-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+  .law-list{padding:6px}
+  .law{display:flex;align-items:center;gap:13px;padding:12px}
+  .law:hover{background:var(--surface-2);border-radius:11px}
+  .law+.law{border-top:1px solid var(--border)}
+  .law-ico{width:38px;height:38px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-2)}
+  .law-ico svg{width:19px;height:19px}
+  .law-ico.ynt{background:var(--violet-soft);color:var(--violet)}
+  .law-ico.reh{background:var(--warn-soft);color:var(--warn)}
+  .law-b{flex:1;min-width:0}
+  .law-b .ln{font-size:13px;font-weight:600;color:var(--ink);line-height:1.35}
+  .law-b .lm{font-size:11px;color:var(--ink-3);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+  .law-b .lm span{display:inline-flex;align-items:center;gap:4px}
+  .law-b .lm svg{width:12px;height:12px}
+  .idx{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent)}
+  .idx svg{width:12px;height:12px}
+  .law-empty{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:13px}
+  .rag{padding:18px}
+  .rag h3{margin:0 0 3px;font-size:14.5px;font-weight:700}
+  .rag p.s{margin:0 0 15px;font-size:12px;color:var(--ink-3);line-height:1.5}
+  .rag-drop{border:2px dashed var(--border-strong);border-radius:var(--r-md);padding:24px 16px;text-align:center;cursor:pointer;transition:all .18s;background:var(--surface-2)}
+  .rag-drop:hover{border-color:var(--brand-2);background:var(--brand-softer)}
+  .rag-drop .ri{width:46px;height:46px;border-radius:13px;background:var(--surface);border:1px solid var(--border);color:var(--brand-2);display:grid;place-items:center;margin:0 auto 11px;box-shadow:var(--shadow-sm)}
+  .rag-drop b{font-size:13px;font-weight:700}
+  .rag-drop span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+  .rag-prog{margin-top:14px;display:none}
+  .rag-prog.show{display:block;animation:fade .3s}
+  .rag-prog .pt{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:7px}
+  .rag-prog .pt b{color:var(--brand-2);font-variant-numeric:tabular-nums}
+  .rag-steps{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:9px}
+  .rag-steps li{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink-3)}
+  .rag-steps li .rs{width:20px;height:20px;border-radius:6px;background:var(--surface-3);display:grid;place-items:center;flex:0 0 auto}
+  .rag-steps li .rs svg{width:12px;height:12px}
+  .rag-steps li.done{color:var(--ink-2)}
+  .rag-steps li.done .rs{background:var(--accent-soft);color:var(--accent)}
+  .rag-steps li.active .rs{background:var(--brand-soft);color:var(--brand-2)}
+
+  /* ===== SEKME B v4 - 3 SUTUN: KUYRUK | GORUNTULEYICI | SOHBET ===== */
+  .work3{display:grid;grid-template-columns:252px minmax(0,1fr) 356px;gap:16px;align-items:start}
+  .col-sticky{position:sticky;top:88px}
+  .queue-h{padding:14px 16px 8px}
+  .queue-h b{font-size:13px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-3)}
+  .queue{padding:6px}
+  .qitem{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:11px 12px;border-radius:11px;cursor:pointer;transition:all .15s}
+  .qitem+.qitem{margin-top:2px}
+  .qitem:hover{background:var(--surface-2)}
+  .qitem.on{background:var(--brand-softer);border-color:color-mix(in srgb,var(--brand-2) 28%,transparent)}
+  .qitem .qhead{display:flex;align-items:center;gap:8px}
+  .qitem .qico{width:28px;height:28px;border-radius:8px;background:var(--surface-3);color:var(--ink-3);display:grid;place-items:center;flex:0 0 auto}
+  .qitem .qico svg{width:15px;height:15px}
+  .qitem.on .qico{background:var(--brand-soft);color:var(--brand-2)}
+  .qitem .qt{font-size:13px;font-weight:700;color:var(--ink);line-height:1.25;flex:1;min-width:0}
+  .qitem .qm{font-size:11px;color:var(--ink-3);margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .qb{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:var(--r-pill);letter-spacing:.2px}
+  .qb.normal{background:var(--surface-3);color:var(--ink-3)}
+  .qb.ivedi{background:var(--warn-soft);color:var(--warn)}
+  .qmeta{padding:10px 14px 14px;border-top:1px solid var(--border);margin-top:4px}
+  .qmeta .btn{width:100%;padding:10px}
+
+  /* Goruntuleyici */
+  .viewer-head{display:flex;align-items:flex-start;gap:11px;padding:15px 18px;border-bottom:1px solid var(--border)}
+  .vh-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:7px}
+  .vchip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:var(--r-pill)}
+  .vchip.type{background:var(--brand-soft);color:var(--brand-2)}
+  .vchip.sec{background:var(--surface-3);color:var(--ink-3)}
+  .vchip.pri{background:var(--warn-soft);color:var(--warn)}
+  .viewer-head h3{margin:0;font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--ink)}
+  .viewer-head .vmeta{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+  .vtabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--border);overflow-x:auto}
+  .vtab{display:inline-flex;align-items:center;gap:7px;border:0;background:transparent;color:var(--ink-3);font-size:12.5px;font-weight:600;padding:12px 12px;cursor:pointer;position:relative;white-space:nowrap;transition:color .15s}
+  .vtab svg{width:15px;height:15px}
+  .vtab:hover{color:var(--ink-2)}
+  .vtab.on{color:var(--brand-2)}
+  .vtab.on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2.5px;border-radius:3px 3px 0 0;background:var(--brand-2)}
+  .vtab .vdot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+  .vbody{padding:20px 22px;min-height:360px}
+
+  .doc-view{max-width:640px;margin:0 auto}
+  .dv-head{text-align:center;margin-bottom:18px}
+  .dv-head b{display:block;font-size:13.5px;font-weight:700;letter-spacing:.3px;color:var(--ink)}
+  .dv-head span{display:block;font-size:12px;color:var(--ink-2);margin-top:1px}
+  .dv-table{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px}
+  .dv-row{display:flex;font-size:12.5px}
+  .dv-row+.dv-row{border-top:1px solid var(--border)}
+  .dv-row .dk{width:88px;flex:0 0 auto;background:var(--surface-2);padding:9px 12px;font-weight:700;color:var(--ink-2)}
+  .dv-row .dvv{padding:9px 12px;color:var(--ink);font-family:var(--fs-mono);font-size:11.5px}
+  .dv-body{font-size:13.5px;line-height:1.9;color:var(--ink);text-align:justify;margin:0 0 18px}
+  .dv-sign{text-align:right;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:20px}
+  .dv-foot{border-top:1px dashed var(--border);padding-top:12px;display:grid;gap:7px}
+  .dv-foot div{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+  .dv-foot svg{width:14px;height:14px;color:var(--ink-4);flex:0 0 auto}
+
+  .vplace{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:44px 20px;color:var(--ink-3)}
+  .vplace .vpi{width:56px;height:56px;border-radius:15px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-4);display:grid;place-items:center;margin-bottom:14px}
+  .vplace b{font-size:14px;color:var(--ink-2);font-weight:700}
+  .vplace span{font-size:12.5px;margin:5px 0 15px;max-width:280px}
+  .skel{display:grid;gap:11px;padding:6px}
+  .skel i{height:13px;border-radius:6px;background:linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2));background-size:200% 100%;animation:shimmer 1.2s infinite}
+  .skel i:nth-child(2){width:85%}.skel i:nth-child(3){width:92%}.skel i:nth-child(4){width:70%}
+  @keyframes shimmer{to{background-position:-200% 0}}
+
+  .ozet-points{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+  .ozet-points li{display:flex;gap:10px;font-size:13px;color:var(--ink-2);line-height:1.5}
+  .ozet-points li .op{width:22px;height:22px;border-radius:7px;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center;font-size:11px;font-weight:800;flex:0 0 auto}
+  .ex-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .ex-table tr{border-bottom:1px solid var(--border)}
+  .ex-table td{padding:10px 8px;vertical-align:top}
+  .ex-table td.k{width:150px;color:var(--ink-3);font-weight:600}
+  .ex-table td.v{color:var(--ink);font-weight:600}
+  .ex-table td.v .conf-mini{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:var(--r-pill);margin-left:6px}
+  .kaynak{margin-top:12px;font-size:11.5px;color:var(--ink-3);display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+  .kaynak b{color:var(--ink-2)}
+  .hitl{margin-top:12px;display:flex;gap:9px;padding:10px 12px;border-radius:10px;background:var(--brand-soft);border:1px solid color-mix(in srgb,var(--brand-2) 26%,transparent);font-size:12px;color:var(--brand-2);font-weight:600}
+  .hitl svg{width:16px;height:16px;flex:0 0 auto;margin-top:1px}
+
+  /* Orkestrator sohbet paneli */
+  .chat{display:flex;flex-direction:column;max-height:calc(100vh - 110px);min-height:520px}
+  .chat-head{display:flex;align-items:center;gap:11px;padding:15px 16px;border-bottom:1px solid var(--border)}
+  .chat-ava{width:40px;height:40px;border-radius:11px;background:linear-gradient(145deg,#2557d6,#1e3a8a);color:#fff;display:grid;place-items:center;flex:0 0 auto;position:relative}
+  .chat-ava svg{width:21px;height:21px}
+  .chat-ava::after{content:"";position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:var(--accent);border:2.5px solid var(--surface)}
+  .chat-head b{font-size:14px;font-weight:700;display:block;line-height:1.2}
+  .chat-head span{font-size:11px;color:var(--ink-3)}
+  .chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:13px;min-height:0}
+  .bubble{max-width:90%;font-size:12.5px;line-height:1.55;border-radius:13px;padding:11px 13px;animation:slidein .3s ease both}
+  .bubble.bot{align-self:flex-start;background:var(--surface-2);color:var(--ink);border:1px solid var(--border);border-bottom-left-radius:4px}
+  .bubble.user{align-self:flex-end;background:linear-gradient(180deg,var(--brand-2),var(--brand));color:#fff;border-bottom-right-radius:4px}
+  .bubble .btag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);margin-bottom:7px}
+  .bubble .btag svg{width:12px;height:12px}
+  .bubble b{font-weight:700}
+  .bubble .bmini{margin-top:8px;font-family:var(--fs-mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--ink-2);white-space:pre-wrap;max-height:120px;overflow:auto}
+  .typing{align-self:flex-start;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--border);border-radius:13px;border-bottom-left-radius:4px;padding:10px 13px;animation:slidein .3s ease both}
+  .typing .dots{display:flex;gap:3px}
+  .typing .dots i{width:6px;height:6px;border-radius:50%;background:var(--brand-2);animation:beat 1.1s infinite}
+  .typing .dots i:nth-child(2){animation-delay:.15s}.typing .dots i:nth-child(3){animation-delay:.3s}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;padding:0 16px 12px}
+  .chip-cmd{font-size:11.5px;font-weight:600;color:var(--brand-2);background:var(--brand-soft);border:1px solid color-mix(in srgb,var(--brand-2) 22%,transparent);padding:7px 11px;border-radius:var(--r-pill);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+  .chip-cmd svg{width:13px;height:13px}
+  .chip-cmd:hover{background:var(--brand-2);color:#fff}
+  .chip-cmd:hover svg{color:#fff}
+  .chip-cmd.hero{background:var(--brand-2);color:#fff}
+  .chat-input{display:flex;align-items:center;gap:8px;padding:12px 14px;border-top:1px solid var(--border)}
+  .chat-input input{flex:1;border:1px solid var(--border);background:var(--surface-2);border-radius:var(--r-pill);padding:11px 15px;font-size:12.5px;color:var(--ink);outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+  .chat-input input:focus{border-color:var(--brand-2);box-shadow:var(--ring)}
+  .chat-send{width:40px;height:40px;border-radius:50%;border:0;background:var(--brand-2);color:#fff;display:grid;place-items:center;cursor:pointer;flex:0 0 auto;transition:all .15s}
+  .chat-send svg{width:17px;height:17px}
+  .chat-send:hover{filter:brightness(1.1);transform:scale(1.05)}
+  .chat-send:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  @media (max-width:1300px){.work3{grid-template-columns:220px minmax(0,1fr) 320px}}
+  @media (max-width:1120px){.work3{grid-template-columns:1fr}.chat{max-height:none;min-height:440px}.col-sticky{position:static}}
+
+  /* ===== KVKK SAYFASI ===== */
+  .kvkk-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;align-items:start}
+  .legal{padding:26px 30px}
+  .legal .lead{font-size:13.5px;color:var(--ink-2);line-height:1.7;padding:14px 16px;background:var(--brand-softer);border:1px solid var(--border);border-left:3px solid var(--brand-2);border-radius:10px;margin-bottom:22px}
+  .legal h3{font-size:14.5px;font-weight:700;margin:22px 0 7px;letter-spacing:-.2px;display:flex;gap:10px;align-items:center}
+  .legal h3 .ln{width:23px;height:23px;border-radius:7px;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center;font-size:11.5px;font-weight:800;flex:0 0 auto}
+  .legal p{font-size:13px;color:var(--ink-2);line-height:1.75;margin:0 0 8px}
+  .legal .upd{margin-top:24px;padding-top:14px;border-top:1px solid var(--border);font-size:11.5px;color:var(--ink-4)}
+  .comp-list{list-style:none;margin:0;padding:6px}
+  .comp-list li{display:flex;align-items:center;gap:11px;padding:11px 12px;font-size:13px;color:var(--ink-2);font-weight:500}
+  .comp-list li+li{border-top:1px solid var(--border)}
+  .comp-list li .ck{width:26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:0 0 auto}
+  .vs-card{padding:18px}
+  .vs-card h4{margin:0 0 13px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3)}
+  .vs-row{display:flex;gap:10px;font-size:12.5px;margin-bottom:11px;color:var(--ink-2);line-height:1.5}
+  .vs-row svg{color:var(--ink-4);flex:0 0 auto;margin-top:1px}
+  .vs-row b{color:var(--ink);font-weight:600}
+
+  /* ===== AYARLAR SAYFASI ===== */
+  .set-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .set-card{padding:18px;display:flex;gap:14px;align-items:flex-start}
+  .set-ico{width:42px;height:42px;border-radius:11px;background:var(--brand-soft);color:var(--brand-2);display:grid;place-items:center;flex:0 0 auto}
+  .set-ico svg{width:20px;height:20px}
+  .set-b{flex:1;min-width:0}
+  .set-b>b{font-size:14px;font-weight:700;display:block}
+  .set-b>span{font-size:12px;color:var(--ink-3);display:block;margin-top:2px;line-height:1.4}
+  .set-ctl{margin-top:13px}
+  .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px}
+  .seg button{border:0;background:transparent;color:var(--ink-2);font-size:12.5px;font-weight:600;padding:7px 15px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .15s}
+  .seg button.on{background:var(--brand-2);color:#fff;box-shadow:var(--shadow-sm)}
+  .field{display:flex;gap:8px}
+  .field input{flex:1;min-width:0;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink);outline:none;font-family:inherit}
+  .field input:focus{border-color:var(--brand-2);box-shadow:var(--ring)}
+  .sel{width:100%;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink);outline:none;font-family:inherit;cursor:pointer}
+  .sel:focus{border-color:var(--brand-2);box-shadow:var(--ring)}
+  .range-row{display:flex;align-items:center;gap:14px}
+  .range-row input[type=range]{flex:1;accent-color:var(--brand-2);cursor:pointer;height:5px}
+  .range-row b{font-size:15px;font-weight:800;color:var(--brand-2);font-variant-numeric:tabular-nums;min-width:46px;text-align:right}
+  .switch{width:46px;height:27px;border-radius:var(--r-pill);background:var(--surface-3);border:1px solid var(--border);position:relative;cursor:pointer;transition:background .2s;padding:0;flex:0 0 auto}
+  .switch .knob{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:left .2s}
+  .switch.on{background:var(--accent);border-color:var(--accent)}
+  .switch.on .knob{left:21px}
+  @media (max-width:1080px){.kvkk-grid{grid-template-columns:1fr}}
+  @media (max-width:900px){.set-grid{grid-template-columns:1fr}}
+
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes beat{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.5}}
+  @keyframes pulse-badge{0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+  @keyframes slidein{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+  @keyframes stepin{to{opacity:1;transform:none}}
+  @keyframes flow{to{stroke-dashoffset:-24}}
+  @keyframes halo{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+  @keyframes orbGlow{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.25)}50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.step{opacity:1;transform:none}}
+
+  @media (max-width:1240px){.work{grid-template-columns:1fr}}
+  @media (max-width:1180px){.grid-metrics{grid-template-columns:repeat(2,1fr)}.grid-2,.lib-grid{grid-template-columns:1fr}.grid-agents{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:820px){.sidebar{display:none}.grid-metrics,.grid-agents{grid-template-columns:1fr}.search{width:auto;flex:1}.orch-banner .ob-stats{display:none}}
+</style>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-badge" id="ic-logo"></div>
+      <div class="brand-txt"><b>Evrak Zekâ</b><span>KAMU AJAN SİSTEMİ</span></div>
+    </div>
+    <nav class="nav-group" id="nav">
+      <div class="nav-label">Çalışma Alanı</div>
+      <button class="nav-item active" data-tab="dash"><span class="i" data-i="dashboard"></span> Genel Bakış</button>
+      <button class="nav-item" data-tab="work"><span class="i" data-i="fileText"></span> Evrak İşleme <span class="nav-badge live">CANLI</span></button>
+      <button class="nav-item" data-tab="agents"><span class="i" data-i="bot"></span> Ajan Yönetimi <span class="nav-badge">9</span></button>
+      <button class="nav-item" data-tab="lib"><span class="i" data-i="book"></span> Mevzuat ve RAG</button>
+      <div class="nav-label">Sistem</div>
+      <button class="nav-item" data-tab="kvkk"><span class="i" data-i="shield"></span> KVKK ve Uyum</button>
+      <button class="nav-item" data-tab="ayarlar"><span class="i" data-i="settings"></span> Ayarlar</button>
+    </nav>
+    <div class="nav-foot">
+      <div class="sys-card">
+        <div class="sys-row"><span class="sys-dot"></span> Çevrimdışı çekirdek <b>Aktif</b></div>
+        <div class="sys-row"><span class="sys-dot"></span> Mevzuat endeksi <b>15</b></div>
+        <div class="sys-row"><span class="sys-dot amber"></span> LLM köprüsü <b id="sysLlm">Ollama</b></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">
+        <span class="k">TEKNOFEST 2026  |  Yapay Zeka Dil Ajanları</span>
+        <h1 id="crumb-title">Genel Bakış</h1>
+      </div>
+      <div class="search">
+        <span class="i" data-i="search"></span>
+        <input id="globalSearch" placeholder="Evrak, ajan veya mevzuat ara..." />
+        <span class="kbds"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+      </div>
+      <button class="tb-btn" id="themeBtn" title="Tema değiştir"><span class="i" data-i="moon"></span></button>
+      <button class="tb-btn" title="Bildirimler"><span class="i" data-i="bell"></span><span class="dot"></span></button>
+      <div class="user">
+        <div class="avatar">MG</div>
+        <div class="user-meta"><b>M. Günay</b><span>Evrak Yöneticisi</span></div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="panel active" id="panel-dash">
+        <div class="sec-head">
+          <div class="txt"><h2>Kurumsal Genel Bakış</h2><p>Akıllı ajan hattının anlık performansı ve evrak akışı</p></div>
+          <div class="spacer"></div>
+          <span class="chip-live"><span class="beat"></span> Canlı izleme</span>
+        </div>
+        <div class="grid-metrics" id="metrics"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h">
+              <div class="ci"><span class="i" data-i="activity"></span></div>
+              <div><h3>Canlı Ajan Akışı</h3><p>Ajanların gerçek zamanlı işlem günlüğü</p></div>
+              <div class="r"><span class="tag" id="logCount">0 olay/dk</span></div>
+            </div>
+            <div class="log" id="log"></div>
+          </div>
+          <div class="card">
+            <div class="card-h">
+              <div class="ci"><span class="i" data-i="building"></span></div>
+              <div><h3>Birim Bazlı Evrak Sevki</h3><p>Otomatik yönlendirilen evrak dağılımı</p></div>
+            </div>
+            <div class="dist" id="dist"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-work">
+        <div class="sec-head">
+          <div class="txt"><h2>Evrak İşleme ve Analiz</h2><p>Gelen evrakı seçin; sağdaki Orkestratör Ajana komut verin, uzman ajanlar uçtan uca çalışsın</p></div>
+        </div>
+        <div class="work3">
+          <div class="col-sticky">
+            <div class="card">
+              <div class="queue-h"><b>Gelen Evrak (3)</b></div>
+              <div class="queue" id="queue"></div>
+              <div class="qmeta"><button class="btn btn-ghost" id="pasteBtn"><span class="i" data-i="upload"></span> Yeni evrak yükle</button></div>
+            </div>
+          </div>
+          <div class="card" id="viewer"></div>
+          <div class="col-sticky">
+            <div class="card chat">
+              <div class="chat-head">
+                <div class="chat-ava"><span class="i" data-i="sparkles"></span></div>
+                <div><b>Orkestratör Ajan</b><span>Komutu doğru ajana yönlendirir</span></div>
+              </div>
+              <div class="chat-msgs" id="chatMsgs"></div>
+              <div class="chips" id="chatChips"></div>
+              <div class="chat-input">
+                <input id="chatInput" placeholder="Bir komut yazın..." autocomplete="off" />
+                <button class="chat-send" id="chatSend"><span class="i" data-i="send"></span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-agents">
+        <div class="sec-head">
+          <div class="txt"><h2>Çoklu Ajan Yönetimi</h2><p>Orkestratör eşgüdümünde çalışan 9 uzman ajan</p></div>
+          <div class="spacer"></div>
+          <span class="chip-live"><span class="beat"></span> 6 ajan aktif</span>
+        </div>
+        <div class="orch-banner">
+          <div class="ob-ava"><span class="i" data-i="cpu"></span></div>
+          <div class="ob-meta"><b>Orkestratör Ajanı</b><span>Koşullu akış yöneticisi - 3 kapı (okunabilirlik / dil / güven)</span></div>
+          <div class="ob-stats">
+            <div class="ob-stat"><div class="n">9</div><div class="l">Uzman ajan</div></div>
+            <div class="ob-stat"><div class="n">3</div><div class="l">Karar kapısı</div></div>
+            <div class="ob-stat"><div class="n">3,4sn</div><div class="l">Ort. hat süresi</div></div>
+          </div>
+        </div>
+        <div class="grid-agents" id="agents"></div>
+        <div class="card net-wrap">
+          <div class="net-head">
+            <div class="ci"><span class="i" data-i="network"></span></div>
+            <div><h3 style="margin:0;font-size:14.5px;font-weight:700">Ajan Eşgüdüm Ağı</h3><p style="margin:1px 0 0;font-size:11.5px;color:var(--ink-3)">Orkestratör ile uzman ajanlar arası canlı mesajlaşma</p></div>
+            <div class="r" style="margin-left:auto"><span class="tag">Orkestratör: <b style="color:var(--accent)">çevrimiçi</b></span></div>
+          </div>
+          <svg class="net-svg" id="netSvg" viewBox="0 0 760 340" role="img" aria-label="Ajan eşgüdüm ağ diyagramı"></svg>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-lib">
+        <div class="sec-head">
+          <div class="txt"><h2>Mevzuat Kütüphanesi ve RAG</h2><p>Endeksli kanun, yönetmelik ve rehberler - Retrieval-Augmented Generation kaynakları</p></div>
+        </div>
+        <div class="lib-head">
+          <div class="lib-search">
+            <span class="i" data-i="search"></span>
+            <input id="libSearch" placeholder="Kanun no, başlık veya anahtar kelime ile ara... (ör. 3194, imar, KVKK)" />
+          </div>
+          <div class="lib-stat">
+            <div class="ls"><b id="libTotal">15</b><span>Kaynak</span></div>
+            <div class="ls"><b>886</b><span>Madde</span></div>
+            <div class="ls"><b>4.2k</b><span>Parça</span></div>
+          </div>
+        </div>
+        <div class="lib-grid">
+          <div class="card">
+            <div class="card-h">
+              <div class="ci"><span class="i" data-i="book"></span></div>
+              <div><h3>Endeksli Mevzuat</h3><p id="libShown">15 kaynak listeleniyor</p></div>
+            </div>
+            <div class="law-list" id="lawList"></div>
+          </div>
+          <div class="card rag">
+            <h3>Yeni Mevzuat Ekle</h3>
+            <p class="s">Bir PDF yükleyin; sistem otomatik olarak metni çıkarır, parçalara böler ve BM25 + vektör endeksine işler.</p>
+            <div class="rag-drop" id="ragDrop">
+              <div class="ri"><span class="i" data-i="upload"></span></div>
+              <b>Mevzuat PDF'i yükleyin</b>
+              <span>Resmî Gazete, kanun veya yönetmelik metni</span>
+            </div>
+            <div class="rag-prog" id="ragProg">
+              <div class="pt"><span id="ragLabel">Endeksleniyor...</span><b id="ragPct">0%</b></div>
+              <div class="bar"><i id="ragBar"></i></div>
+              <ul class="rag-steps" id="ragSteps">
+                <li data-s="0"><span class="rs"><span class="i" data-i="fileText"></span></span> Metin çıkarımı (OCR / PDF)</li>
+                <li data-s="1"><span class="rs"><span class="i" data-i="scissors"></span></span> Parçalama (chunking)</li>
+                <li data-s="2"><span class="rs"><span class="i" data-i="database"></span></span> Endeksleme (BM25 + vektör)</li>
+                <li data-s="3"><span class="rs"><span class="i" data-i="check"></span></span> Doğrulama ve yayına alma</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+          <section class="panel" id="panel-kvkk">
+        <div class="sec-head">
+          <div class="txt"><h2>KVKK ve Veri Koruma</h2><p>6698 sayılı Kişisel Verilerin Korunması Kanunu uyum beyanı ve aydınlatma metni</p></div>
+          <div class="spacer"></div>
+          <span class="chip-live"><span class="beat"></span> KVKK uyumlu</span>
+        </div>
+        <div class="kvkk-grid">
+          <div class="card legal">
+            <div class="lead">Bu sistem, TEKNOFEST 2026 Yapay Zeka Dil Ajanları Yarışması kapsamında geliştirilmiş bir <b>prototiptir</b> ve <b>gerçek kişisel veri işlemez</b>. Tüm evraklar sentetik/kurgudur. Aşağıdaki metin, gerçek kullanım senaryosunda uygulanacak KVKK ilkelerini tanımlar.</div>
+            <h3><span class="ln">1</span> Veri Sorumlusu</h3>
+            <p>Bu uygulamayı işleten kamu kurumu (<b id="kvkkOrg">ÖRNEK BELEDİYE BAŞKANLIĞI</b>), 6698 sayılı Kanun kapsamında veri sorumlusudur. İletişim bilgileri sistem yöneticisi tarafından güncellenir.</p>
+            <h3><span class="ln">2</span> İşlenen Kişisel Veri Kategorileri</h3>
+            <p>Evrak süreçlerinde yalnızca başvuru için gerekli kimlik ve iletişim verileri (ad-soyad, T.C. kimlik numarası, adres, başvuru içeriği) işlenir. Prototip sürümünde bu veriler tamamen kurgudur.</p>
+            <h3><span class="ln">3</span> İşleme Amacı ve Hukuki Sebep</h3>
+            <p>Veriler; evrakın sınıflandırılması, ilgili birime yönlendirilmesi ve resmî yanıt üretilmesi amacıyla, kamu görevinin yerine getirilmesi hukuki sebebine (KVKK Md. 5/2-e) dayanılarak işlenir.</p>
+            <h3><span class="ln">4</span> Veri Minimizasyonu ve Maskeleme</h3>
+            <p>Yalnızca amaç için gerekli asgari veri işlenir. Kişisel veriler, ajan çıktılarında ve ekranlarda otomatik olarak maskelenir. Bu davranış Ayarlar bölümünden yönetilebilir.</p>
+            <h3><span class="ln">5</span> Saklama, İmha ve Aktarım</h3>
+            <p>Sistem <b>offline-first</b> mimaride çalışır; veriler kurum içinde kalır, üçüncü kişilere veya yurt dışına aktarılmaz. Saklama süresi sonunda ilgili mevzuata uygun olarak imha edilir.</p>
+            <h3><span class="ln">6</span> İlgili Kişinin Hakları (Md. 11)</h3>
+            <p>İlgili kişi; verilerinin işlenip işlenmediğini öğrenme, düzeltilmesini veya silinmesini isteme, işlemeye itiraz etme ve zararın giderilmesini talep etme haklarına sahiptir.</p>
+            <h3><span class="ln">7</span> Güvenlik ve Denetlenebilirlik</h3>
+            <p>Erişim yetkilendirmesi, düşük güvenli kararlarda insan onayı (HITL), tam işlem günlüğü ve koşum mührü ile veri güvenliği ve izlenebilirlik sağlanır.</p>
+            <div class="upd">Son güncelleme: 12.07.2026  |  Sürüm: Prototip 4.0  |  Bu metin bilgilendirme amaçlıdır, sentetik veri üzerinde çalışır.</div>
+          </div>
+          <div class="col-sticky">
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-h"><div class="ci"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div><div><h3>Uyum Kontrol Listesi</h3><p>Aktif KVKK güvenceleri</p></div></div>
+              <ul class="comp-list">
+                <li><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> Gerçek kişisel veri işlenmez</li>
+                <li><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> Sentetik veri ilkesi</li>
+                <li><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> Otomatik PII maskeleme</li>
+                <li><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> Offline-first: veri kurum dışına çıkmaz</li>
+                <li><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> Açık kaynak ve şeffaflık (Apache 2.0)</li>
+                <li><span class="ck"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> İlgili kişi hakları (Md. 11) desteği</li>
+              </ul>
+            </div>
+            <div class="card vs-card">
+              <h4>Veri Sorumlusu İletişim</h4>
+              <div class="vs-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/></svg><span><b>Kurum:</b> <span id="kvkkOrg2">ÖRNEK BELEDİYE BAŞKANLIĞI</span></span></div>
+              <div class="vs-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span><b>KEP:</b> ornek.belediye@hs01.kep.tr</span></div>
+              <div class="vs-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span><b>İrtibat:</b> Bilgi İşlem / KVKK Sorumlusu</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="panel" id="panel-ayarlar">
+        <div class="sec-head"><div class="txt"><h2>Ayarlar</h2><p>Görünüm, model ve uyum tercihlerini buradan yönetin</p></div></div>
+        <div class="set-grid" id="ayarlarGrid"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  document.documentElement.lang='tr';
+  var SETTINGS={org:'ÖRNEK BELEDİYE BAŞKANLIĞI',llm:'Ollama',threshold:94,mask:true,notify:true,theme:'sistem'};
+
+  var P={
+    dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+    fileText:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+    bot:'<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+    cpu:'<rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/>',
+    book:'<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/>',
+    activity:'<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>',
+    building:'<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+    upload:'<path d="M4 14.9A7 7 0 1 1 15.7 8h1.8a4.5 4.5 0 0 1 2.5 8.2"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>',
+    sparkles:'<path d="M9.94 14.06A2 2 0 0 0 8.5 12.6l-5.9-1.53a.5.5 0 0 1 0-.96L8.5 8.6A2 2 0 0 0 9.94 7.2l1.53-5.9a.5.5 0 0 1 .96 0l1.54 5.9a2 2 0 0 0 1.44 1.44l5.9 1.53a.5.5 0 0 1 0 .96l-5.9 1.53a2 2 0 0 0-1.44 1.44l-1.53 5.9a.5.5 0 0 1-.96 0z"/>',
+    scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
+    scale:'<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+    penTool:'<path d="M15.7 10.4 2 22"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/>',
+    network:'<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
+    check:'<path d="M20 6 9 17l-5-5"/>',
+    copy:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+    clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    zap:'<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    scissors:'<circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/>',
+    database:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+    inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    fileCheck:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/>',
+    route:'<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+    fileSearch:'<path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M4.3 20.7a1 1 0 0 1-1-1V4a2 2 0 0 1 2-2h9l5 5v3.5"/><circle cx="16" cy="17" r="3"/><path d="m21 22-1.9-1.9"/>',
+    layers:'<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84z"/><path d="M2 12.5 11.17 16.7a2 2 0 0 0 1.66 0L22 12.5"/><path d="M2 17.5l9.17 4.2a2 2 0 0 0 1.66 0L22 17.5"/>',
+    eye:'<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
+    arrowRight:'<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    doorGate:'<path d="M13 4h3a2 2 0 0 1 2 2v14"/><path d="M2 20h3"/><path d="M13 20h9"/><path d="M10 12v.01"/><path d="M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z"/>',
+    send:'<path d="M14.54 21.69a.5.5 0 0 0 .94-.02l6.5-19a.5.5 0 0 0-.64-.63l-19 6.5a.5.5 0 0 0-.02.94l7.93 3.18a2 2 0 0 1 1.11 1.11z"/><path d="m21.85 2.15-10.94 10.94"/>',
+    listChecks:'<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+    paperclip:'<path d="M13.234 20.252 21 12.3a4.25 4.25 0 0 0-6-6L4.31 17.032a6.377 6.377 0 0 0 9 9l6.377-6.377"/>',
+    building2:'<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/>',
+    user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    userCheck:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>'
+  };
+  function svg(name){return '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[name]||'')+'</svg>';}
+  var ARR='<svg class="ic-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+P.arrowRight+'</svg>';
+  document.querySelectorAll('[data-i]').forEach(function(el){el.innerHTML=svg(el.getAttribute('data-i'));});
+  document.getElementById('ic-logo').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'+P.fileCheck+'</svg>';
+
+  var $=function(s,r){return (r||document).querySelector(s);};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+
+  var titles={dash:'Genel Bakış',work:'Evrak İşleme',agents:'Ajan Yönetimi',lib:'Mevzuat ve RAG',kvkk:'KVKK ve Uyum',ayarlar:'Ayarlar'};
+  $$('#nav .nav-item').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var tab=btn.getAttribute('data-tab');
+      $$('#nav .nav-item').forEach(function(b){b.classList.toggle('active',b===btn);});
+      $$('.panel').forEach(function(p){p.classList.remove('active');});
+      $('#panel-'+tab).classList.add('active');
+      $('#crumb-title').textContent=titles[tab]||'Genel Bakış';
+      if(tab==='dash') animateBars();
+      if(tab==='agents') buildNetwork();
+    });
+  });
+
+  $('#themeBtn').addEventListener('click',function(){
+    var root=document.documentElement;
+    var cur=root.getAttribute('data-theme')||((window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light');
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    this.querySelector('.ic').outerHTML=svg(next==='dark'?'sun':'moon');
+  });
+
+  var metrics=[
+    {ico:'inbox',tone:'brand',val:'1.482',lbl:'Toplam İşlenen Evrak',trend:'+12,4%',spark:[9,11,8,13,12,16,14,18,17,21,19,24]},
+    {ico:'bot',tone:'accent',val:'9 / 9',lbl:'Aktif Çalışan Ajan',trend:'Tümü çevrimiçi',spark:[20,20,19,20,21,20,20,21,20,20,21,22],a:true},
+    {ico:'zap',tone:'violet',val:'%85',lbl:'Ort. Süre Tasarrufu',trend:'-41 dk/evrak',spark:[10,12,11,14,15,14,17,18,19,20,22,23]},
+    {ico:'shield',tone:'amber',val:'%99,4',lbl:'Mevzuat Uyum Skoru',trend:'+0,3',spark:[18,19,19,20,20,21,21,22,22,23,23,24],a:true}
+  ];
+  $('#metrics').innerHTML=metrics.map(function(m){
+    var bars=m.spark.map(function(h){return '<i style="height:0" data-h="'+(h/24*100)+'"></i>';}).join('');
+    return '<div class="card metric"><div class="top"><div class="m-ico '+m.tone+'">'+svg(m.ico)+'</div><span class="trend up">'+m.trend+'</span></div>'
+      +'<div class="val">'+m.val+'</div><div class="lbl">'+m.lbl+'</div>'
+      +'<div class="spark'+(m.a?' accent':'')+'">'+bars+'</div></div>';
+  }).join('');
+  function animateBars(){
+    $$('.spark i').forEach(function(b,i){setTimeout(function(){b.style.height=b.getAttribute('data-h')+'%';},i*22);});
+    $$('#dist .bar i').forEach(function(b){b.style.width=b.getAttribute('data-w')+'%';});
+  }
+
+  var dist=[
+    {name:'Yazı İşleri Müdürlüğü',val:348},{name:'CİMER / Halkla İlişkiler',val:296},
+    {name:'İmar ve Şehircilik Müd.',val:214},{name:'İnsan Kaynakları Müd.',val:158},
+    {name:'Mali Hizmetler Müd.',val:132},{name:'Hukuk İşleri Müdürlüğü',val:96}
+  ];
+  var distMax=Math.max.apply(null,dist.map(function(d){return d.val;}));
+  $('#dist').innerHTML=dist.map(function(d){
+    return '<div class="dist-row"><div class="dr-top"><span class="dr-name">'+d.name+'</span><span class="dr-val">'+d.val+'</span></div>'
+      +'<div class="bar"><i data-w="'+(d.val/distMax*100).toFixed(0)+'"></i></div></div>';
+  }).join('');
+
+  var logPool=[
+    {ico:'fileSearch',tone:'brand',agent:'Sınıflandırma',t:'Dilekçe <b>#2026-1487</b> sınıflandırıldı '+ARR+' <b>Talep Dilekçesi</b> (güven %96)'},
+    {ico:'scale',tone:'violet',agent:'Mevzuat Analist',t:'İmar itirazı için <b>3194 s. Kanun Md. 8/b</b> eşleştirildi'},
+    {ico:'layers',tone:'sky',agent:'Özetleme',t:'Genelge <b>#GN-204</b> için 3 maddelik yönetici özeti üretildi'},
+    {ico:'route',tone:'accent',agent:'Yönlendirme',t:'Evrak <b>#2026-1490</b> '+ARR+' <b>İnsan Kaynakları Müd.</b> sevk edildi'},
+    {ico:'penTool',tone:'brand',agent:'Cevap Hazırlama',t:'CİMER başvurusu <b>#C-8841</b> için resmî cevap taslağı hazırlandı'},
+    {ico:'fileText',tone:'amber',agent:'Eksik Bilgi',t:'Dilekçe <b>#2026-1492</b> içinde eksik alan: <b>T.C. Kimlik No</b>'},
+    {ico:'fileCheck',tone:'accent',agent:'Yazışma Stil',t:'Üst yazı <b>#UY-77</b> resmî yazışma kurallarına uygun (skor %98)'},
+    {ico:'scan',tone:'sky',agent:'OCR',t:'Taranmış belge <b>#SC-330</b> OCR ile metne çevrildi (2 sayfa)'},
+    {ico:'route',tone:'accent',agent:'Yönlendirme',t:'Kabahat tutanağı <b>#KT-59</b> '+ARR+' <b>Zabıta Müdürlüğü</b> yönlendirildi'},
+    {ico:'scale',tone:'violet',agent:'Mevzuat Analist',t:'Bilgi edinme talebi için <b>4982 s. Kanun Md. 7</b> tarandı'},
+    {ico:'inbox',tone:'brand',agent:'Sınıflandırma',t:'Resmî yazı <b>#2026-1495</b> '+ARR+' <b>Bilgilendirme Yazısı</b> (güven %93)'}
+  ];
+  var logEl=$('#log'),logIdx=0;
+  function pad(n){return (n<10?'0':'')+n;}
+  function nowStr(){var d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+  function addLog(fresh){
+    var m=logPool[logIdx%logPool.length];logIdx++;
+    var el=document.createElement('div');
+    el.className='log-item'+(fresh?' fresh':'');
+    el.innerHTML='<div class="log-ico tone-'+m.tone+'">'+svg(m.ico)+'</div><div class="log-body"><div class="t">'+m.t+'</div>'
+      +'<div class="log-meta"><span class="log-agent tone-'+m.tone+'">'+m.agent+' Ajanı</span><span class="log-time">'+nowStr()+'</span></div></div>';
+    logEl.insertBefore(el,logEl.firstChild);
+    while(logEl.children.length>9) logEl.removeChild(logEl.lastChild);
+    $('#logCount').textContent=(12+(logIdx%18))+' olay/dk';
+  }
+  for(var s=0;s<6;s++) addLog(false);
+  setInterval(function(){addLog(true);},2600);
+
+  var SAMPLES={
+    dilekce:{label:'Dilekçe',icon:'fileText',
+      text:'T.C.\nKADIKÖY BELEDİYE BAŞKANLIĞI\nİmar ve Şehircilik Müdürlüğüne\n\nKonu: İmar durumu itirazı\n\nİlçeniz Fenerbahçe Mahallesi, 1024 ada 15 parselde kayıtlı taşınmazıma ilişkin 12.06.2026 tarihli imar durumu belgesinde belirtilen çekme mesafelerinin yürürlükteki uygulama imar planına aykırı olduğu kanaatindeyim. Söz konusu parselde yapılaşma koşullarının yeniden değerlendirilmesini ve sonucun tarafıma yazılı olarak bildirilmesini arz ederim.\n\nAd Soyad: A. Yılmaz (kurgu)\nAdres: Fenerbahçe Mah. Örnek Sk. No:5 Kadıköy/İstanbul\nTarih: 05.07.2026',
+      cls:'Talep / İtiraz Dilekçesi',unit:'İmar ve Şehircilik Müdürlüğü',conf:96,
+      summary:'Vatandaş, taşınmazına ait imar durumu belgesindeki çekme mesafelerine itiraz etmekte ve yapılaşma koşullarının yeniden değerlendirilerek yazılı yanıt verilmesini talep etmektedir.',
+      missing:'T.C. Kimlik Numarası belirtilmemiş - 3071 s. Kanun Md. 4 gereği başvuruda zorunludur.',
+      laws:['3194 s. İmar Kanunu Md. 8/b','3194 s. İmar Kanunu Md. 32','Planlı Alanlar İmar Yön. Md. 5','2577 s. İYUK Md. 11'],
+      verdict:'İtiraz usulden uygun. 2577 s. Kanun Md. 11 uyarınca <b>30 gün</b> içinde değerlendirilip yazılı yanıt verilmelidir.',
+      style:94,styleNotes:[['ok','Resmî hitap ve "arz ederim" kapanışı uygun'],['ok','Konu satırı ve tarih mevcut'],['warn','Başvuru sahibi iletişim/e-posta bilgisi eksik']],
+      draft:'T.C.\nKADIKÖY BELEDİYE BAŞKANLIĞI\nİmar ve Şehircilik Müdürlüğü\n\n<rh>Sayı</rh> : E-42918317-115.01.03-{otomatik}\n<rh>Konu</rh> : İmar Durumu İtirazı Hk.\n\nSayın A. Yılmaz,\n\n<rh>İlgi</rh> : 05.07.2026 tarihli dilekçeniz.\n\nİlgi dilekçenizde, Fenerbahçe Mahallesi 1024 ada 15 parsele ilişkin imar durumu belgesindeki çekme mesafelerine yönelik itirazınız Müdürlüğümüzce incelenmiştir. 3194 sayılı İmar Kanunu ve Planlı Alanlar İmar Yönetmeliği hükümleri çerçevesinde parsele ait yapılaşma koşulları yeniden değerlendirmeye alınmıştır.\n\nSöz konusu değerlendirme sonucu, 2577 sayılı İdari Yargılama Usulü Kanunu\'nun 11 inci maddesi uyarınca en geç 30 (otuz) gün içerisinde tarafınıza yazılı olarak bildirilecektir.\n\nBilgilerinize rica ederim.\n\n{e-imzalıdır}\nBirim Amiri\nİmar ve Şehircilik Müdürlüğü'},
+    resmi:{label:'Resmî Yazı',icon:'fileCheck',
+      text:'T.C.\nÇEVRE, ŞEHİRCİLİK VE İKLİM DEĞİŞİKLİĞİ BAKANLIĞI\nYerel Yönetimler Genel Müdürlüğü\n\nSayı: E-88170299-045.03\nKonu: İmar planı verilerinin paylaşılması\n\nKADIKÖY BELEDİYE BAŞKANLIĞINA\n\nİlgi: 20.06.2026 tarihli ve 3391 sayılı yazınız.\n\nİlçeniz sınırlarında 2024-2026 yılları arasında onaylanan 1/1000 ölçekli uygulama imar planı değişikliklerine ait sayısal verilerin, Genel Müdürlüğümüz coğrafi bilgi sistemine aktarılmak üzere 15 (on beş) gün içinde gönderilmesi hususunda gereğini rica ederim.',
+      cls:'Kurumlar Arası Bilgi/Belge Talebi',unit:'Yazı İşleri + İmar Müd.',conf:94,
+      summary:'Bakanlık, 2024-2026 döneminde onaylanan 1/1000 ölçekli uygulama imar planı değişikliklerine ait sayısal verilerin 15 gün içinde gönderilmesini talep etmektedir.',
+      missing:'Eksik zorunlu alan tespit edilmedi. Yanıt süresi (15 gün) takvime işlenmelidir.',
+      laws:['3194 s. İmar Kanunu Md. 8','5393 s. Belediye Kanunu Md. 14','Resmî Yazışma Yön. Md. 10','e-Yazışma Teknik Rehberi'],
+      verdict:'Talep mevzuata uygun. Kurumlar arası veri paylaşımı için <b>15 gün</b> içinde resmî yanıt üst yazısı hazırlanmalıdır.',
+      style:98,styleNotes:[['ok','Sayı, konu, ilgi ve "rica ederim" kapanışı tam'],['ok','e-Yazışma üstveri alanları uyumlu'],['ok','Hiyerarşik hitap doğru (Başkanlığına)']],
+      draft:'T.C.\nKADIKÖY BELEDİYE BAŞKANLIĞI\nİmar ve Şehircilik Müdürlüğü\n\n<rh>Sayı</rh> : E-42918317-045.03-{otomatik}\n<rh>Konu</rh> : İmar Planı Verilerinin Paylaşılması Hk.\n\nÇEVRE, ŞEHİRCİLİK VE İKLİM DEĞİŞİKLİĞİ BAKANLIĞINA\n(Yerel Yönetimler Genel Müdürlüğü)\n\n<rh>İlgi</rh> : 25.06.2026 tarihli ve E-88170299-045.03 sayılı yazınız.\n\nİlgi yazınızda talep edilen, İlçemiz sınırlarında 2024-2026 yılları arasında onaylanan 1/1000 ölçekli uygulama imar planı değişikliklerine ait sayısal veriler hazırlanmış olup, e-Yazışma Teknik Rehberi standartlarında ekte gönderilmektedir.\n\nBilgilerinize arz ederim.\n\n{e-imzalıdır}\nBirim Amiri\n\nEk: Sayısal imar planı verileri (1 adet veri paketi)'},
+    tutanak:{label:'Kabahat Tutanağı',icon:'scale',
+      text:'T.C.\nKADIKÖY BELEDİYE BAŞKANLIĞI\nZabıta Müdürlüğü\n\nİDARİ YAPTIRIM KARAR TUTANAĞI\n\nTarih: 08.07.2026  Saat: 14:20\nYer: Caferağa Mah. Sahil Cad. No:12\n\nYukarıda belirtilen adreste faaliyet gösteren işyerinin, işgaliye alanı dışına masa-sandalye koyarak kaldırım işgali yaptığı görülmüştür. Durum tarafımızca tespit edilmiş olup, ilgili hakkında gerekli idari işlemin yapılması arz olunur.\n\nTespit eden zabıta memurları: (kurgu) - İmzalar: ...',
+      cls:'İdari Yaptırım / Kabahat Tutanağı',unit:'Zabıta Müdürlüğü',conf:92,
+      summary:'Zabıta ekibi, bir işyerinin işgaliye alanı dışına masa-sandalye koyarak kaldırım işgali yaptığını tespit etmiş ve idari işlem başlatılmasını talep etmektedir.',
+      missing:'İşyeri unvanı ve işletmeci T.C. Kimlik/vergi no eksik - idari yaptırım kararı için tamamlanmalıdır.',
+      laws:['5326 s. Kabahatler Kanunu Md. 32','5393 s. Belediye Kanunu Md. 15/m','1608 s. Kanun Md. 1'],
+      verdict:'Kaldırım işgali 5326 s. Kanun Md. 32 kapsamında kabahat oluşturur. İdari para cezası kararı düzenlenmelidir.',
+      style:90,styleNotes:[['ok','Tarih, saat ve yer bilgisi eksiksiz'],['ok','Tespit ifadesi resmî üslupta'],['warn','Tutanakta imza ve tanık alanları tamamlanmalı']],
+      draft:'T.C.\nKADIKÖY BELEDİYE BAŞKANLIĞI\nEncümen Kararı\n\n<rh>Karar No</rh> : 2026/{otomatik}\n<rh>Konu</rh> : İdari Para Cezası Uygulanması Hk.\n\nZabıta Müdürlüğünün 08.07.2026 tarihli idari yaptırım karar tutanağı Encümenimizce görüşülmüştür.\n\nCaferağa Mahallesi Sahil Caddesi No:12 adresinde faaliyet gösteren işyerinin, 5326 sayılı Kabahatler Kanunu\'nun 32 nci maddesine aykırı olarak kaldırım işgali yaptığı sabit görülmüştür.\n\nBu doğrultuda ilgili işletme hakkında 5326 sayılı Kanun uyarınca idari para cezası uygulanmasına, kararın tebliğ tarihinden itibaren 15 gün içinde itiraz yolunun açık olduğunun bildirilmesine oy birliğiyle karar verilmiştir.\n\n{e-imzalıdır}\nEncümen Başkanı'}
+  };
+
+  /* ===== EVRAK ISLEME v4: KUYRUK + GORUNTULEYICI + ORKESTRATOR SOHBET ===== */
+  var DOCS={
+    dilekce:{
+      title:'İmar durumu bilgi talebi',queueType:'Dilekçe',qico:'fileText',
+      sayi:'B.10.4.2024/1287',tarih:'18.06.2024',priority:'Normal',
+      org:'ÖRNEK BELEDİYE BAŞKANLIĞI',unitHeader:'İmar ve Şehircilik Müdürlüğü',
+      sender:'Ahmet Yılmaz (Vatandaş)',konu:'Taşınmaza ilişkin imar durumu hakkında bilgi talebi',ilgi:'-',
+      ekler:'Tapu fotokopisi (1 sayfa)',dagitim:'İmar ve Şehircilik Müdürlüğü',
+      body:'İlçeniz Merkez Mahallesi 214 ada 7 parselde kayıtlı taşınmazın güncel imar durumu hakkında tarafıma yazılı bilgi verilmesini arz ederim. Söz konusu parsel üzerinde konut yapımı planlanmakta olup, kat yüksekliği ve çekme mesafeleri konusunda resmî bilgiye ihtiyaç duyulmaktadır.',
+      cls:'Talep / Bilgi Talebi Dilekçesi',unit:'İmar ve Şehircilik Müdürlüğü',conf:96,
+      summary:'Vatandaş, Merkez Mahallesi 214 ada 7 parseldeki taşınmazı için güncel imar durumu bilgisini (kat yüksekliği ve çekme mesafeleri dâhil) yazılı olarak talep etmektedir; parselde konut yapımı planlanmaktadır.',
+      points:['Merkez Mah. 214 ada 7 parsel için güncel imar durumu bilgisi isteniyor.','Talep gerekçesi: parselde konut yapımı planı (kat yüksekliği, çekme mesafeleri).','Yazılı ve resmî yanıt bekleniyor; 4982 s. Kanun kapsamında süreli.'],
+      hasMissing:true,missing:'T.C. Kimlik Numarası belirtilmemiş - 3071 s. Kanun Md. 4 gereği başvuruda zorunludur.',
+      laws:['3194 s. İmar Kanunu Md. 8','Planlı Alanlar İmar Yön. Md. 5','4982 s. Bilgi Edinme K. Md. 7','3071 s. Dilekçe Hakkı K. Md. 4'],
+      verdict:'Talep, imar durumu bilgisi kapsamındadır. 4982 s. Kanun uyarınca <b>15 iş günü</b> içinde yazılı olarak yanıtlanmalıdır; içerik imar planı verileriyle uyumludur.',
+      routeReason:'konu imar durumu ve parsel yapılaşma koşulları olduğundan',
+      extract:[['Belge Türü','Dilekçe (Bilgi Talebi)',96],['Sayı','B.10.4.2024/1287',99],['Tarih','18.06.2024',99],['Gönderen','Ahmet Yılmaz (Vatandaş)',95],['Taşınmaz','Merkez Mah. 214 ada 7 parsel',94],['Konu','Güncel imar durumu bilgisi',96],['Aciliyet','Normal',91],['Gizlilik','Tasnif Dışı',97]],
+      draft:'T.C.\nÖRNEK BELEDİYE BAŞKANLIĞI\nİmar ve Şehircilik Müdürlüğü\n\n<rh>Sayı</rh> : E-10.4.2024-115.01.03-{otomatik}\n<rh>Konu</rh> : İmar Durumu Bilgi Talebi Hk.\n\nSayın Ahmet Yılmaz,\n\n<rh>İlgi</rh> : 18.06.2024 tarihli ve B.10.4.2024/1287 sayılı dilekçeniz.\n\nİlgi dilekçenizde talep edilen, Merkez Mahallesi 214 ada 7 parselde kayıtlı taşınmaza ait güncel imar durumu Müdürlüğümüzce incelenmiştir. Söz konusu parsel, yürürlükteki 1/1000 ölçekli uygulama imar planında konut alanı kullanımında olup; yapılaşma koşulları TAKS 0,30, KAKS 1,05, azami bina yüksekliği 4 kat (12,50 m), ön bahçe çekme mesafesi 5,00 m ve yan bahçe 3,00 m olarak belirlenmiştir.\n\n3194 sayılı İmar Kanunu ve Planlı Alanlar İmar Yönetmeliği hükümleri saklı kalmak kaydıyla, yapı ruhsatı aşamasında güncel imar durum belgesinin alınması gerekmektedir.\n\nBilgilerinize rica ederim.\n\n{e-imzalıdır}\nBirim Amiri\nİmar ve Şehircilik Müdürlüğü'
+    },
+    resmi:{
+      title:'Personel görevlendirme talebi',queueType:'Resmî Yazı',qico:'fileCheck',
+      sayi:'47829301/903/1290',tarih:'20.06.2024',priority:'İvedi',
+      org:'İL AFET VE ACİL DURUM MÜDÜRLÜĞÜ',unitHeader:'Planlama ve Risk Azaltma Şubesi',
+      sender:'İl AFAD Müdürlüğü',konu:'Tatbikat için personel görevlendirilmesi',ilgi:'-',
+      ekler:'Tatbikat programı (2 sayfa)',dagitim:'İnsan Kaynakları Müdürlüğü',
+      body:'İlimizde 05.07.2024 tarihinde gerçekleştirilecek il düzeyindeki afet ve acil durum tatbikatında görevlendirilmek üzere, Müdürlüğünüz bünyesinden 2 (iki) teknik personelin isim ve unvan bilgilerinin en geç 28.06.2024 tarihine kadar Müdürlüğümüze bildirilmesi hususunda gereğini önemle rica ederim.',
+      cls:'Kurumlar Arası Görevlendirme Talebi',unit:'İnsan Kaynakları Müdürlüğü',conf:94,
+      summary:'İl AFAD Müdürlüğü, 05.07.2024 tarihli afet ve acil durum tatbikatı için 2 teknik personelin isim ve unvan bilgilerini 28.06.2024 son tarihine kadar talep etmektedir.',
+      points:['AFAD, 05.07.2024 tatbikatı için 2 teknik personel istiyor.','İsim ve unvan bilgileri 28.06.2024 son tarihine kadar bildirilecek.','İvedi statüsünde; süre takibi kritik.'],
+      hasMissing:false,missing:'',
+      laws:['657 s. Devlet Memurları Kanunu','7269 s. Umumi Hayata Müessir Afetler K.','5902 s. AFAD Teşkilat Kanunu'],
+      verdict:'Talep mevzuata uygun ve süre yönünden <b>ivedidir</b>. İnsan Kaynakları Müdürlüğü, uygun 2 teknik personeli belirleyip 28.06.2024 tarihinden önce bildirmelidir.',
+      routeReason:'talep personel görevlendirmesi içerdiğinden',
+      extract:[['Belge Türü','Resmî Yazı (Görevlendirme)',95],['Sayı','47829301/903/1290',99],['Tarih','20.06.2024',99],['Gönderen Kurum','İl AFAD Müdürlüğü',96],['Konu','Tatbikat personel görevlendirmesi',94],['Son Tarih','28.06.2024',97],['Aciliyet','İvedi',98],['Gizlilik','Tasnif Dışı',96]],
+      draft:'T.C.\nÖRNEK BELEDİYE BAŞKANLIĞI\nİnsan Kaynakları Müdürlüğü\n\n<rh>Sayı</rh> : E-10.4.2024-903.02-{otomatik}\n<rh>Konu</rh> : Tatbikat Personel Görevlendirmesi Hk.\n\nİL AFET VE ACİL DURUM MÜDÜRLÜĞÜNE\n\n<rh>İlgi</rh> : 20.06.2024 tarihli ve 47829301/903/1290 sayılı yazınız.\n\nİlgi yazınızda talep edilen, 05.07.2024 tarihinde gerçekleştirilecek il düzeyindeki afet ve acil durum tatbikatında görevlendirilmek üzere Müdürlüğümüz bünyesinden belirlenen 2 (iki) teknik personele ait isim ve unvan bilgileri aşağıda sunulmuştur:\n\n1. [Ad Soyad] - İnşaat Mühendisi\n2. [Ad Soyad] - Harita Teknikeri\n\nGereğini bilgilerinize arz ederim.\n\n{e-imzalıdır}\nBirim Amiri\nİnsan Kaynakları Müdürlüğü'
+    },
+    tutanak:{
+      title:'Muayene ve kabul tutanağı',queueType:'Tutanak',qico:'scale',
+      sayi:'2024/MK-56',tarih:'22.06.2024',priority:'Normal',
+      org:'ÖRNEK BELEDİYE BAŞKANLIĞI',unitHeader:'Muayene ve Kabul Komisyonu',
+      sender:'Muayene ve Kabul Komisyonu',konu:'Mal alımı muayene ve kabul işlemi',ilgi:'2024/İhale-19',
+      ekler:'Teknik şartname, sayım tutanağı',dagitim:'Mali Hizmetler Müdürlüğü',
+      body:'Müdürlüğümüzce 4734 sayılı Kamu İhale Kanunu kapsamında temin edilen 30 (otuz) adet masaüstü bilgisayarın teknik şartnameye uygunluğu komisyonumuzca incelenmiş; sayım, muayene ve fonksiyon testleri yapılarak teslim alınan malzemelerin kabulüne oy birliğiyle karar verilmiştir.',
+      cls:'Muayene ve Kabul Tutanağı',unit:'Mali Hizmetler Müdürlüğü',conf:93,
+      summary:'Komisyon, 4734 s. Kanun kapsamında alınan 30 adet masaüstü bilgisayarın teknik şartnameye uygun olduğunu tespit etmiş ve malın kabulüne oy birliğiyle karar vermiştir.',
+      points:['4734 s. Kanun kapsamında 30 adet masaüstü bilgisayar alındı.','Sayım, muayene ve fonksiyon testleri yapıldı; şartnameye uygun.','Malın kabulüne oy birliğiyle karar verildi.'],
+      hasMissing:true,missing:'Komisyon üyelerinin imzaları tamamlanmamış - tutanağın geçerliliği için "imzalar" alanı zorunludur.',
+      laws:['4734 s. Kamu İhale K. Md. 4','Mal Alımları Muayene ve Kabul İşl. Yön.','5018 s. Kamu Malî Yönetim K. Md. 33'],
+      verdict:'Muayene ve kabul işlemi 4734 s. Kanun ve ilgili Yönetmeliğe uygundur. Kabul sonrası ödeme süreci için tutanağın imzalı nüshası Mali Hizmetler Müdürlüğüne iletilmelidir.',
+      routeReason:'belge mal alımı muayene-kabul işlemi olduğundan',
+      extract:[['Belge Türü','Muayene ve Kabul Tutanağı',93],['Sayı','2024/MK-56',99],['Tarih','22.06.2024',99],['Komisyon','Muayene ve Kabul Komisyonu',95],['Konu','30 adet bilgisayar kabulü',94],['Karar','Oy birliğiyle kabul',96],['İlgili İhale','2024/İhale-19',92],['Aciliyet','Normal',90]],
+      draft:'T.C.\nÖRNEK BELEDİYE BAŞKANLIĞI\nMali Hizmetler Müdürlüğü\n\n<rh>Sayı</rh> : E-10.4.2024-869.01-{otomatik}\n<rh>Konu</rh> : Muayene ve Kabul Sonucu / Ödeme Hk.\n\nMUHASEBE (ÖDEME) BİRİMİNE\n\n<rh>İlgi</rh> : 22.06.2024 tarihli ve 2024/MK-56 sayılı Muayene ve Kabul Tutanağı.\n\nİlgi tutanak ile, 4734 sayılı Kamu İhale Kanunu kapsamında temin edilen 30 adet masaüstü bilgisayarın teknik şartnameye uygun olduğu tespit edilerek kabulü yapılmıştır. Söz konusu mal alımına ilişkin hakedişin ilgili yükleniciye ödenmesi hususunda;\n\nGereğini arz ederim.\n\n{e-imzalıdır}\nBirim Amiri\nMali Hizmetler Müdürlüğü'
+    }
+  };
+
+  var VTABS=[{k:'evrak',name:'Evrak',ico:'fileText'},{k:'ozet',name:'Özet',ico:'listChecks'},{k:'extract',name:'Bilgi Çıkarımı',ico:'eye'},{k:'mevzuat',name:'Mevzuat Denetimi',ico:'scale'},{k:'taslak',name:'Taslak Yazı',ico:'penTool'}];
+  var WORK={cur:'dilekce',vtab:'evrak',busy:false};
+  var chatTimers=[];
+  function clearChatTimers(){chatTimers.forEach(clearTimeout);chatTimers=[];}
+  function cat(ms,fn){chatTimers.push(setTimeout(fn,ms));}
+
+  function renderQueue(){
+    $('#queue').innerHTML=Object.keys(DOCS).map(function(k){
+      var d=DOCS[k];
+      return '<button class="qitem'+(k===WORK.cur?' on':'')+'" data-k="'+k+'"><div class="qhead"><div class="qico">'+svg(d.qico)+'</div><div class="qt">'+d.title+'</div></div>'
+        +'<div class="qm">'+d.queueType+' - '+d.sayi+'<span class="qb '+(d.priority==='İvedi'?'ivedi':'normal')+'">'+d.priority+'</span></div></button>';
+    }).join('');
+    $$('#queue .qitem').forEach(function(b){b.addEventListener('click',function(){if(WORK.busy)return;selectDoc(b.getAttribute('data-k'));});});
+  }
+
+  function selectDoc(k){
+    WORK.cur=k;WORK.vtab='evrak';
+    renderQueue();renderViewer();renderChatWelcome();
+  }
+
+  function renderViewer(){
+    var d=DOCS[WORK.cur];
+    $('#viewer').innerHTML=''
+      +'<div class="viewer-head"><div style="flex:1;min-width:0">'
+        +'<div class="vh-chips"><span class="vchip type">'+d.queueType+'</span><span class="vchip sec">Tasnif Dışı</span>'+(d.priority==='İvedi'?'<span class="vchip pri">İvedi</span>':'')+'</div>'
+        +'<h3>'+d.title+'</h3><div class="vmeta">'+d.sayi+'  |  '+d.tarih+'  |  '+d.sender+'</div>'
+      +'</div></div>'
+      +'<div class="vtabs" id="vtabs">'+VTABS.map(function(t){return '<button class="vtab" data-t="'+t.k+'">'+svg(t.ico)+' '+t.name+'</button>';}).join('')+'</div>'
+      +'<div class="vbody" id="vbody"></div>';
+    $$('#vtabs .vtab').forEach(function(b){b.addEventListener('click',function(){setVtab(b.getAttribute('data-t'),false);});});
+    setVtab('evrak',false);
+  }
+
+  function setVtab(tab,shimmer){
+    WORK.vtab=tab;
+    $$('#vtabs .vtab').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-t')===tab);});
+    var body=$('#vbody');if(!body)return;
+    var paint=function(){body.innerHTML=vbodyHtml(tab);if(tab==='taslak')wireCopy(applyOrg(DOCS[WORK.cur].draft));};
+    if(shimmer&&tab!=='evrak'){
+      body.innerHTML='<div class="skel"><i></i><i></i><i></i><i></i></div>';
+      cat(520,function(){if(WORK.vtab===tab)paint();});
+    }else{paint();}
+  }
+
+  function vbodyHtml(tab){
+    var d=DOCS[WORK.cur];
+    if(tab==='evrak'){
+      return '<div class="doc-view"><div class="dv-head"><b>T.C.</b><b>'+inst(d.org)+'</b><span>'+d.unitHeader+'</span></div>'
+        +'<div class="dv-table">'
+          +'<div class="dv-row"><div class="dk">Sayı</div><div class="dvv">'+d.sayi+'</div></div>'
+          +'<div class="dv-row"><div class="dk">Tarih</div><div class="dvv">'+d.tarih+'</div></div>'
+          +'<div class="dv-row"><div class="dk">Konu</div><div class="dvv">'+d.konu+'</div></div>'
+          +'<div class="dv-row"><div class="dk">İlgi</div><div class="dvv">'+d.ilgi+'</div></div>'
+        +'</div>'
+        +'<p class="dv-body">'+d.body+'</p>'
+        +'<div class="dv-sign">'+d.sender+'</div>'
+        +'<div class="dv-foot"><div>'+svg('paperclip')+'<span><b>Ekler:</b> '+d.ekler+'</span></div><div>'+svg('route')+'<span><b>Dağıtım:</b> '+d.dagitim+'</span></div></div>'
+        +'</div>';
+    }
+    if(tab==='ozet'){
+      return '<p class="dv-body" style="text-align:left">'+d.summary+'</p>'
+        +'<ul class="ozet-points">'+d.points.map(function(p,i){return '<li><span class="op">'+(i+1)+'</span><span>'+p+'</span></li>';}).join('')+'</ul>';
+    }
+        if(tab==='extract'){
+      var kn=SETTINGS.mask?'<div class="kaynak" style="margin-top:14px;color:var(--accent)">'+svg('shield')+'<span><b>KVKK:</b> Kişisel veriler (ad, TCKN) maskeleniyor.</span></div>':'<div class="callout" style="margin-top:14px">'+svg('shield')+'<span><b>KVKK maskeleme kapalı.</b> Ayarlar bölümünden açmanız önerilir.</span></div>';
+      return '<table class="ex-table"><tbody>'+d.extract.map(function(r){var val=r[1];if(SETTINGS.mask&&r[0]==='Gönderen'&&/\(Vatandaş\)/.test(val))val=maskPerson(val);return '<tr><td class="k">'+r[0]+'</td><td class="v">'+val+'<span class="conf-mini">%'+r[2]+'</span></td></tr>';}).join('')+'</tbody></table>'+kn;
+    }
+    if(tab==='mevzuat'){
+      var hitl=d.conf<SETTINGS.threshold?'<div class="hitl">'+svg('userCheck')+'<span>Güven skoru %'+d.conf+' - eşik altında olduğundan karar <b>insan onayı kuyruğuna</b> (HITL) gönderildi.</span></div>':'';
+      return '<p class="dv-body" style="text-align:left">'+d.verdict+'</p>'
+        +'<div class="mtags" style="margin-top:4px">'+d.laws.map(function(l){return '<span class="mtag">'+l+'</span>';}).join('')+'</div>'
+        +'<div class="kaynak">'+svg('database')+'<span><b>Kaynak:</b> RAG (BM25 + vektör)  |  isabet@3  |  '+d.laws.length+' madde</span></div>'
+        +hitl;
+    }
+    if(tab==='taslak'){
+      return '<div class="draft"><div class="draft-h">'+svg('fileText')+'<span class="dt">RESMÎ CEVAP TASLAĞI</span><span class="meta">DYS  |  '+nowStr()+'</span><button class="btn-copy" id="copyBtn">'+svg('copy')+' Kopyala</button></div>'
+        +'<div class="draft-body">'+applyOrg(d.draft).replace(/<rh>/g,'<span class="rh">').replace(/<\/rh>/g,'</span>')+'</div></div>';
+    }
+    return '';
+  }
+
+  /* ---- Sohbet ---- */
+  function chatUser(text){var m=$('#chatMsgs');var d=document.createElement('div');d.className='bubble user';d.textContent=text;m.appendChild(d);m.scrollTop=m.scrollHeight;}
+  function chatBot(tag,tone,ico,html){var m=$('#chatMsgs');var d=document.createElement('div');d.className='bubble bot';d.innerHTML='<span class="btag tone-'+tone+'">'+svg(ico)+' '+tag+'</span>'+html;m.appendChild(d);m.scrollTop=m.scrollHeight;return d;}
+  function typing(agent,delay,cb){var m=$('#chatMsgs');var d=document.createElement('div');d.className='typing';d.innerHTML='<span>'+agent+' çalışıyor</span><span class="dots"><i></i><i></i><i></i></span>';m.appendChild(d);m.scrollTop=m.scrollHeight;cat(delay,function(){if(d.parentNode)d.parentNode.removeChild(d);cb();});}
+  function setSend(on){var b=$('#chatSend');if(b)b.disabled=!on;}
+
+  function renderChatWelcome(){
+    clearChatTimers();WORK.busy=false;setSend(true);
+    $('#chatMsgs').innerHTML='';
+    chatBot('ORKESTRATÖR','brand','sparkles','Merhaba, ben <b>Orkestratör Ajan</b>. Seçili <b>'+DOCS[WORK.cur].title+'</b> evrakı üzerinde işlem yapmak için bir komut yazın ya da aşağıdaki önerilerden birini seçin.');
+    var chips=[
+      {t:'Bu evrakı özetle',i:'ozet',ico:'listChecks'},
+      {t:'Cevap taslağı yaz',i:'taslak',ico:'penTool'},
+      {t:'Mevzuata uygunluğunu denetle',i:'mevzuat',ico:'scale'},
+      {t:'İlgili birime havale et',i:'havale',ico:'route'},
+      {t:'Eksik bilgileri bul',i:'eksik',ico:'fileText'},
+      {t:'Tam analiz yap',i:'tam',ico:'sparkles',hero:true}
+    ];
+    $('#chatChips').innerHTML=chips.map(function(c){return '<button class="chip-cmd'+(c.hero?' hero':'')+'" data-i="'+c.i+'" data-t="'+c.t+'">'+svg(c.ico)+' '+c.t+'</button>';}).join('');
+    $$('#chatChips .chip-cmd').forEach(function(b){b.addEventListener('click',function(){if(WORK.busy)return;chatUser(b.getAttribute('data-t'));route(b.getAttribute('data-i'));});});
+  }
+
+  function detectIntent(t){
+    t=t.toLocaleLowerCase('tr');
+    var has=function(arr){return arr.some(function(w){return t.indexOf(w)>=0;});};
+    if(has(['tam analiz','tümü','tümün','tüm ajan','hepsi','komple','uçtan uca','full','tam çözüm'])) return 'tam';
+    if(has(['özet','ozet','kısalt','kisalt','summary'])) return 'ozet';
+    if(has(['taslak','cevap','yanıt','yanit','resmî cevap','dilekçeye cevap'])) return 'taslak';
+    if(has(['mevzuat','uygun','denetle','kanun','yasal','hukuk','madde'])) return 'mevzuat';
+    if(has(['havale','birim','yönlendir','yonlendir','sevk'])) return 'havale';
+    if(has(['eksik','zorunlu','tamamla'])) return 'eksik';
+    if(has(['çıkar','cikar','künye','kunye','alan','ner','kim gönder','tarih','sayı'])) return 'extract';
+    if(has(['sınıf','sinif','tür','tur','kategori'])) return 'sinif';
+    return 'yardim';
+  }
+
+  function route(intent){
+    if(WORK.busy)return;
+    var d=DOCS[WORK.cur];
+    if(intent==='tam'){tamAnaliz();return;}
+    if(intent==='yardim'){
+      WORK.busy=true;setSend(false);
+      typing('Orkestratör',500,function(){chatBot('ORKESTRATÖR','brand','sparkles','Şunları yapabilirim: <b>özetleme</b>, <b>bilgi çıkarımı</b>, <b>mevzuat denetimi</b>, <b>cevap taslağı</b>, <b>birime havale</b> ve <b>eksik bilgi tespiti</b>. Ya da "tam analiz" deyin, tüm ajanları sırayla çalıştırayım.');WORK.busy=false;setSend(true);});
+      return;
+    }
+    var map={
+      ozet:{agent:'Özetleme Ajanı',tone:'sky',ico:'listChecks',delay:800,tab:'ozet',msg:d.summary+'<br><span style="color:var(--ink-3);font-size:11.5px">Ana maddeleri <b>Özet</b> sekmesine ekledim.</span>'},
+      taslak:{agent:'Cevap Hazırlama Ajanı',tone:'brand',ico:'penTool',delay:950,tab:'taslak',msg:'Resmî Yazışma Yönetmeliği formatında cevap taslağı hazırlandı ve <b>Taslak Yazı</b> sekmesine eklendi. Kopyalayıp DYS\'ye aktarabilirsiniz.'},
+      mevzuat:{agent:'Mevzuat Analist Ajanı',tone:'violet',ico:'scale',delay:900,tab:'mevzuat',msg:d.verdict+'<div class="bmini">Kaynak: '+d.laws.join('  |  ')+'</div>'},
+      havale:{agent:'Yönlendirme Ajanı',tone:'accent',ico:'route',delay:750,tab:null,msg:'Evrak, içerik ve dosya planına göre <b>'+d.unit+'</b> birimine havale edildi.<br><span style="color:var(--ink-3);font-size:11.5px">Gerekçe: '+d.routeReason+' (güven %'+d.conf+').</span>'},
+      extract:{agent:'Bilgi Çıkarım Ajanı',tone:'sky',ico:'eye',delay:800,tab:'extract',msg:d.extract.length+' künye alanı çıkarıldı (sayı, tarih, taraflar, konu, aciliyet...). Ayrıntı <b>Bilgi Çıkarımı</b> sekmesinde.'},
+      eksik:{agent:'Eksik Bilgi Ajanı',tone:(d.hasMissing?'amber':'accent'),ico:'fileText',delay:800,tab:null,msg:(d.hasMissing?('<b>Eksik alan tespit edildi:</b> '+d.missing+'<br><span style="color:var(--ink-3);font-size:11.5px">İsterseniz otomatik <b>Eksik Bilgi Talep Yazısı</b> hazırlayabilirim.</span>'):'Zorunlu alanların tümü mevcut, eksik bilgi bulunmuyor. Evrak işleme hazır.')},
+      sinif:{agent:'Sınıflandırma Ajanı',tone:'brand',ico:'fileSearch',delay:700,tab:null,msg:'Bu evrak <b>'+d.cls+'</b> olarak sınıflandırıldı (güven %'+d.conf+'). Aciliyet: '+d.priority+', gizlilik: Tasnif Dışı.'}
+    };
+    var cfg=map[intent]||map.sinif;
+    WORK.busy=true;setSend(false);
+    typing(cfg.agent,cfg.delay,function(){
+      chatBot(cfg.agent.toLocaleUpperCase('tr'),cfg.tone,cfg.ico,cfg.msg);
+      if(cfg.tab)setVtab(cfg.tab,true);
+      WORK.busy=false;setSend(true);
+    });
+  }
+
+  function tamAnaliz(){
+    var d=DOCS[WORK.cur];
+    WORK.busy=true;setSend(false);
+    var steps=[
+      {agent:'Orkestratör',tone:'brand',ico:'sparkles',delay:650,tab:null,msg:'3 kapı denetimi geçti - Okunabilirlik, Dil (Türkçe), Güven eşiği. Uzman ajanlara görev dağıtılıyor.'},
+      {agent:'Sınıflandırma Ajanı',tone:'brand',ico:'fileSearch',delay:600,tab:null,msg:'Tür: <b>'+d.cls+'</b> (güven %'+d.conf+').'},
+      {agent:'Bilgi Çıkarım Ajanı',tone:'sky',ico:'eye',delay:700,tab:'extract',msg:d.extract.length+' künye alanı çıkarıldı.'},
+      {agent:'Mevzuat Analist Ajanı',tone:'violet',ico:'scale',delay:800,tab:'mevzuat',msg:d.laws.length+' ilgili madde eşleşti (isabet@3). '+d.verdict},
+      {agent:'Özetleme Ajanı',tone:'sky',ico:'listChecks',delay:700,tab:'ozet',msg:'Yönetici özeti ve ana maddeler üretildi.'},
+      {agent:'Cevap Hazırlama Ajanı',tone:'brand',ico:'penTool',delay:850,tab:'taslak',msg:'Resmî cevap taslağı DYS formatında hazır.'},
+      {agent:'Orkestratör',tone:'accent',ico:'sparkles',delay:600,tab:null,msg:'<b>Hat tamamlandı.</b> Tüm sekmeler dolduruldu; taslak onaya hazır.'+(d.hasMissing?' <br><span style="color:var(--warn);font-size:11.5px">Uyarı: '+d.missing+'</span>':'')}
+    ];
+    var i=0;
+    (function nxt(){
+      if(i>=steps.length){WORK.busy=false;setSend(true);return;}
+      var st=steps[i++];
+      typing(st.agent,st.delay,function(){
+        chatBot(st.agent.toLocaleUpperCase('tr'),st.tone,st.ico,st.msg);
+        if(st.tab)setVtab(st.tab,false);
+        nxt();
+      });
+    })();
+  }
+
+  function submitChat(){
+    if(WORK.busy)return;
+    var v=$('#chatInput').value.trim();if(!v)return;
+    $('#chatInput').value='';
+    chatUser(v);
+    route(detectIntent(v));
+  }
+  $('#chatSend').addEventListener('click',submitChat);
+  $('#chatInput').addEventListener('keydown',function(e){if(e.key==='Enter')submitChat();});
+  $('#pasteBtn').addEventListener('click',function(){
+    if(WORK.busy)return;
+    chatBot('ORKESTRATÖR','brand','upload','Demo sürümünde 3 örnek evrak yüklüdür. Gerçek sistemde PDF / DOCX / tarama yükleyince OCR + sınıflandırma otomatik çalışır; belge bu kuyruğa düşer.');
+  });
+
+  function wireCopy(rawDraft){
+    var btn=$('#copyBtn');if(!btn)return;
+    var plain=rawDraft.replace(/<rh>/g,'').replace(/<\/rh>/g,'');
+    btn.addEventListener('click',function(){
+      var ok=function(){btn.classList.add('done');btn.innerHTML=svg('check')+' Kopyalandı';setTimeout(function(){btn.classList.remove('done');btn.innerHTML=svg('copy')+' Kopyala';},2000);};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(plain).then(ok).catch(function(){fallbackCopy(plain);ok();});}
+      else{fallbackCopy(plain);ok();}
+    });
+  }
+  function fallbackCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);}
+
+  renderQueue();renderViewer();renderChatWelcome();
+
+  var agents=[
+    {ico:'fileSearch',name:'Sınıflandırma Ajanı',role:'Evrak türünü belirler, güven skoru üretir',on:true,task:'Dilekçe #1487 sınıflandırılıyor',stats:[['1.482','İşlenen'],['%96','Ort. güven']]},
+    {ico:'eye',name:'Bilgi Çıkarım Ajanı',role:'Tarih, sayı, taraf ve konu üstverisini çıkarır',on:true,task:'Üstveri alanları ayrıştırılıyor',stats:[['1.460','Çıkarım'],['18','Alan/evrak']]},
+    {ico:'fileText',name:'Eksik Bilgi Ajanı',role:'Zorunlu alan eksikliklerini denetler',on:false,task:'Beklemede - sıradaki evrak',stats:[['214','Uyarı'],['%98','Doğruluk']]},
+    {ico:'scale',name:'Mevzuat Analist Ajanı',role:'İlgili kanun ve yönetmelik maddelerini tarar (RAG)',on:true,task:'3194 s. Kanun eşleştiriliyor',stats:[['886','Madde'],['%94','İsabet@3']]},
+    {ico:'layers',name:'Özetleme Ajanı',role:'Yönetici özeti ve aksiyon maddeleri üretir',on:true,task:'Genelge #204 özetleniyor',stats:[['1.301','Özet'],['3,2sn','Ort. süre']]},
+    {ico:'fileCheck',name:'Resmî Yazışma Stil Ajanı',role:'Resmî yazışma kuralları uygunluğunu denetler',on:true,task:'Üst yazı #77 denetleniyor',stats:[['%97','Ort. skor'],['29','Kural']]},
+    {ico:'route',name:'Arşiv ve Yönlendirme Ajanı',role:'Evrakı doğru birime ve dosya planına yönlendirir',on:false,task:'Beklemede - kuyruk boş',stats:[['1.244','Sevk'],['24','Birim']]},
+    {ico:'penTool',name:'Cevap Hazırlama Ajanı',role:'Resmî cevap ve üst yazı taslağı üretir',on:true,task:'CİMER #8841 yanıtı yazılıyor',stats:[['968','Taslak'],['DYS','Format']]},
+    {ico:'scan',name:'OCR / Okunabilirlik Ajanı',role:'Taranmış belgeleri metne çevirir, kaliteyi ölçer',on:false,task:'Beklemede - tarama yok',stats:[['330','OCR'],['%99','Başarı']]}
+  ];
+  $('#agents').innerHTML=agents.map(function(a){
+    return '<div class="card agent"><div class="a-top"><div class="a-ico '+(a.on?'on':'idle')+'">'+svg(a.ico)+'</div>'
+      +'<div style="min-width:0"><div class="a-name">'+a.name+'</div><div class="a-role">'+a.role+'</div></div>'
+      +'<span class="status '+(a.on?'on':'idle')+'"><span class="sd"></span>'+(a.on?'Aktif':'Beklemede')+'</span></div>'
+      +'<div class="a-task">'+svg(a.on?'zap':'clock')+'<span>Şu an: <b>'+a.task+'</b></span></div>'
+      +'<div class="a-foot">'+a.stats.map(function(st){return '<div class="a-stat"><div class="n">'+st[0]+'</div><div class="l">'+st[1]+'</div></div>';}).join('')+'</div></div>';
+  }).join('');
+
+  var netBuilt=false;
+  function buildNetwork(){
+    if(netBuilt)return;netBuilt=true;
+    var svgEl=$('#netSvg'),W=760,H=340,cx=W/2,cy=H/2,r=125;
+    var nodes=['Sınıflandırma','Bilgi Çıkarım','Mevzuat','Özetleme','Yazışma Stil','Yönlendirme','Cevap','OCR','Eksik Bilgi'];
+    var onSet={0:1,1:1,2:1,3:1,4:1,6:1};
+    var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    var linksHtml='',nodesHtml='',pktHtml='';
+    var pos=nodes.map(function(_,i){var ang=(-90+i*(360/nodes.length))*Math.PI/180;return {x:cx+r*Math.cos(ang),y:cy+r*Math.sin(ang)};});
+    pos.forEach(function(p,i){
+      linksHtml+='<path class="net-link" d="M'+cx+' '+cy+' L'+p.x.toFixed(1)+' '+p.y.toFixed(1)+'" style="animation-delay:'+(i*0.24)+'s"/>';
+      if(!reduce&&onSet[i]){var d='M'+cx+' '+cy+' L'+p.x.toFixed(1)+' '+p.y.toFixed(1);pktHtml+='<circle class="packet" r="2.6"><animateMotion dur="'+(2.4+i*0.3)+'s" repeatCount="indefinite" path="'+d+'"/></circle>';}
+    });
+    pos.forEach(function(p,i){nodesHtml+='<g class="net-node '+(onSet[i]?'on':'')+'" transform="translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')"><circle class="halo" r="26"/><circle class="core" r="15"/><text text-anchor="middle" y="34">'+nodes[i]+'</text></g>';});
+    var hub='<g class="net-node hub" transform="translate('+cx+','+cy+')"><circle class="halo" r="40" style="fill:var(--brand-2);opacity:.12"/><circle class="core" r="28"/><text text-anchor="middle" y="1" style="fill:#fff;font-size:10px">ORKESTRA-</text><text text-anchor="middle" y="13" style="fill:#cdd9f7;font-size:10px">TÖR</text></g>';
+    svgEl.innerHTML=linksHtml+pktHtml+hub+nodesHtml;
+  }
+
+  var laws=[
+    {no:'3194',ad:'İmar Kanunu',tur:'Kanun',madde:44,cls:''},
+    {no:'657',ad:'Devlet Memurları Kanunu',tur:'Kanun',madde:241,cls:''},
+    {no:'4982',ad:'Bilgi Edinme Hakkı Kanunu',tur:'Kanun',madde:32,cls:''},
+    {no:'5326',ad:'Kabahatler Kanunu',tur:'Kanun',madde:45,cls:''},
+    {no:'6698',ad:'Kişisel Verilerin Korunması Kanunu (KVKK)',tur:'Kanun',madde:32,cls:''},
+    {no:'5018',ad:'Kamu Malî Yönetimi ve Kontrol Kanunu',tur:'Kanun',madde:81,cls:''},
+    {no:'4734',ad:'Kamu İhale Kanunu',tur:'Kanun',madde:68,cls:''},
+    {no:'2577',ad:'İdari Yargılama Usulü Kanunu',tur:'Kanun',madde:64,cls:''},
+    {no:'5070',ad:'Elektronik İmza Kanunu',tur:'Kanun',madde:25,cls:''},
+    {no:'3071',ad:'Dilekçe Hakkının Kullanılmasına Dair Kanun',tur:'Kanun',madde:12,cls:''},
+    {no:'5393',ad:'Belediye Kanunu',tur:'Kanun',madde:85,cls:''},
+    {no:'-',ad:'Resmî Yazışmalarda Uygulanacak Usul ve Esaslar Hakkında Yönetmelik',tur:'Yönetmelik',madde:29,cls:'ynt'},
+    {no:'-',ad:'Devlet Arşiv Hizmetleri Hakkında Yönetmelik',tur:'Yönetmelik',madde:47,cls:'ynt'},
+    {no:'-',ad:'e-Yazışma Teknik Rehberi',tur:'Rehber',madde:0,cls:'reh'},
+    {no:'-',ad:'CİMER Vatandaş Başvuruları Bilgi Notu',tur:'Bilgi Notu',madde:0,cls:'reh'}
+  ];
+  function renderLaws(list){
+    if(!list.length){$('#lawList').innerHTML='<div class="law-empty">Aramanızla eşleşen mevzuat bulunamadı.</div>';$('#libShown').textContent='0 kaynak listeleniyor';return;}
+    $('#lawList').innerHTML=list.map(function(l){
+      var mad=l.madde?l.madde+' madde':'referans metni';
+      return '<div class="law"><div class="law-ico '+l.cls+'">'+svg(l.cls==='reh'?'book':(l.cls==='ynt'?'layers':'scale'))+'</div>'
+        +'<div class="law-b"><div class="ln">'+(l.no!=='-'?'<b>'+l.no+' sayılı</b> ':'')+l.ad+'</div>'
+        +'<div class="lm"><span>'+svg('inbox')+l.tur+'</span><span>'+svg('layers')+mad+'</span><span>'+svg('clock')+'güncel</span></div></div>'
+        +'<div class="law-r"><span class="idx">'+svg('check')+' Endeksli</span></div></div>';
+    }).join('');
+    $('#libShown').textContent=list.length+' kaynak listeleniyor';
+  }
+  renderLaws(laws);
+  $('#libSearch').addEventListener('input',function(){
+    var q=this.value.toLocaleLowerCase('tr');
+    renderLaws(laws.filter(function(l){return (l.no+' '+l.ad+' '+l.tur).toLocaleLowerCase('tr').indexOf(q)>=0;}));
+  });
+  $('#globalSearch').addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&this.value.trim()){
+      $$('#nav .nav-item').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-tab')==='lib');});
+      $$('.panel').forEach(function(p){p.classList.remove('active');});
+      $('#panel-lib').classList.add('active');$('#crumb-title').textContent='Mevzuat ve RAG';
+      $('#libSearch').value=this.value;$('#libSearch').dispatchEvent(new Event('input'));
+    }
+  });
+
+  var ragBusy=false;
+  $('#ragDrop').addEventListener('click',function(){
+    if(ragBusy)return;ragBusy=true;
+    var prog=$('#ragProg');prog.classList.add('show');
+    var bar=$('#ragBar'),pct=$('#ragPct'),lbl=$('#ragLabel'),stepEls=$$('#ragSteps li');
+    stepEls.forEach(function(li){li.classList.remove('done','active');});
+    var labels=['Metin çıkarımı yapılıyor...','Parçalara bölünüyor...','Endekse işleniyor...','Doğrulanıyor...','Yayına alındı'];
+    var v=0;
+    var iv=setInterval(function(){
+      v=Math.min(100,v+Math.round(4+Math.random()*7));
+      bar.style.width=v+'%';pct.textContent=v+'%';
+      var si=Math.min(3,Math.floor(v/26));
+      stepEls.forEach(function(li,i){li.classList.toggle('done',i<si);li.classList.toggle('active',i===si);});
+      lbl.textContent=labels[si];
+      if(v>=100){
+        clearInterval(iv);
+        stepEls.forEach(function(li){li.classList.add('done');li.classList.remove('active');});
+        lbl.textContent=labels[4];
+        setTimeout(function(){
+          laws.unshift({no:'-',ad:'2026/12 sayılı Resmî Gazete - Yeni Yönetmelik',tur:'Yönetmelik',madde:31,cls:'ynt'});
+          $('#libTotal').textContent=laws.length;renderLaws(laws);ragBusy=false;
+        },700);
+      }
+    },130);
+  });
+
+  /* ===== AYARLAR ===== */
+  function inst(name){return name==='ÖRNEK BELEDİYE BAŞKANLIĞI'?SETTINGS.org:name;}
+  function applyOrg(s){return s.replace('ÖRNEK BELEDİYE BAŞKANLIĞI',SETTINGS.org);}
+  function maskPerson(v){var m=v.match(/^(.*?)(\s*\(.*\))?$/);var name=(m&&m[1]?m[1]:v).replace(/([A-ZÇĞİÖŞÜ])[a-zçğıöşü]+/g,'$1****');return name+((m&&m[2])?m[2]:'');}
+
+  function applyTheme(mode){
+    SETTINGS.theme=mode;
+    if(mode==='sistem')document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme',mode==='koyu'?'dark':'light');
+    var dark=mode==='koyu'||(mode==='sistem'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches);
+    var ib=$('#themeBtn .ic');if(ib)ib.outerHTML=svg(dark?'sun':'moon');
+  }
+
+  function scard(ico,title,desc,ctl){return '<div class="card set-card"><div class="set-ico">'+svg(ico)+'</div><div class="set-b"><b>'+title+'</b><span>'+desc+'</span><div class="set-ctl">'+ctl+'</div></div></div>';}
+  function stoggle(id,on){return '<button class="switch'+(on?' on':'')+'" id="'+id+'" role="switch" aria-checked="'+on+'"><span class="knob"></span></button>';}
+
+  function renderSettings(){
+    var g=$('#ayarlarGrid');if(!g)return;
+    var themes=[['sistem','Sistem'],['acik','Açık'],['koyu','Koyu']];
+    g.innerHTML=
+      scard('sun','Görünüm','Panelin açık/koyu temasını seçin','<div class="seg" id="segTheme">'+themes.map(function(x){return '<button data-v="'+x[0]+'"'+(SETTINGS.theme===x[0]?' class="on"':'')+'>'+x[1]+'</button>';}).join('')+'</div>')
+      +scard('building2','Kurum Adı','Resmî yazı başlıklarında ve taslaklarda görünür','<div class="field"><input id="setOrg" value="'+SETTINGS.org.replace(/"/g,'&quot;')+'"/><button class="btn btn-primary" id="setOrgApply" style="padding:9px 16px">Uygula</button></div>')
+      +scard('cpu','LLM Köprüsü','Yerel/çevrimdışı ya da harici model bağlantısı','<select id="setLlm" class="sel"><option'+(SETTINGS.llm==='Offline'?' selected':'')+'>Offline (kural tabanlı)</option><option'+(SETTINGS.llm==='Ollama'?' selected':'')+'>Ollama (yerel)</option><option'+(SETTINGS.llm==='OpenAI'?' selected':'')+'>OpenAI-uyumlu API</option></select>')
+      +scard('shield','Güven Eşiği (HITL)','Bu skorun altındaki kararlar insan onayına gider','<div class="range-row"><input type="range" id="setThr" min="70" max="99" value="'+SETTINGS.threshold+'"/><b id="setThrV">%'+SETTINGS.threshold+'</b></div>')
+      +scard('userCheck','KVKK Otomatik Maskeleme','Kişisel verileri ekran ve çıktılarda maskele',stoggle('setMask',SETTINGS.mask))
+      +scard('bell','Bildirimler','Yeni evrak ve onay bildirimlerini göster',stoggle('setNotify',SETTINGS.notify));
+
+    $$('#segTheme button').forEach(function(b){b.addEventListener('click',function(){applyTheme(b.getAttribute('data-v'));$$('#segTheme button').forEach(function(x){x.classList.toggle('on',x===b);});});});
+    $('#setOrgApply').addEventListener('click',function(){
+      var v=$('#setOrg').value.trim();if(!v)return;SETTINGS.org=v;
+      var k1=$('#kvkkOrg');if(k1)k1.textContent=v;var k2=$('#kvkkOrg2');if(k2)k2.textContent=v;
+      if($('#vbody'))renderViewer();
+    });
+    $('#setLlm').addEventListener('change',function(){
+      var t=this.value;SETTINGS.llm=t.indexOf('Offline')>=0?'Offline':(t.indexOf('OpenAI')>=0?'OpenAI':'Ollama');
+      var s=$('#sysLlm');if(s)s.textContent=(SETTINGS.llm==='Offline'?'Offline':(SETTINGS.llm==='OpenAI'?'OpenAI API':'Ollama'));
+    });
+    $('#setThr').addEventListener('input',function(){SETTINGS.threshold=parseInt(this.value,10);$('#setThrV').textContent='%'+SETTINGS.threshold;if(WORK.vtab==='mevzuat')setVtab('mevzuat',false);});
+    $('#setMask').addEventListener('click',function(){SETTINGS.mask=!SETTINGS.mask;this.classList.toggle('on',SETTINGS.mask);this.setAttribute('aria-checked',SETTINGS.mask);if(WORK.vtab==='extract')setVtab('extract',false);});
+    $('#setNotify').addEventListener('click',function(){SETTINGS.notify=!SETTINGS.notify;this.classList.toggle('on',SETTINGS.notify);this.setAttribute('aria-checked',SETTINGS.notify);var dt=document.querySelector('.tb-btn .dot');if(dt)dt.style.display=SETTINGS.notify?'block':'none';});
+  }
+  renderSettings();
+
+  animateBars();
+})();
+</script>
