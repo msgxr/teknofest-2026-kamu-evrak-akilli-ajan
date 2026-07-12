@@ -271,8 +271,12 @@ def taslak_puanla(
         llm_puan = _llm_rubrik(taslak, llm)
         if llm_puan is not None:
             yontem = "llm_hakem"
+            # Format (biçim) skoru LLM yolunda da HESABA KATILIR: yapısal olarak
+            # bozuk bir taslak (düşük biçim), LLM öznel yüksek verse bile yüksek
+            # puan alamaz — deterministik madde-referanslı biçim güvencesi korunur.
+            kalan = 1.0 - AGIRLIK_LLM
             puan = _sinirla(
-                AGIRLIK_LLM * llm_puan + (1.0 - AGIRLIK_LLM) * temellilik
+                AGIRLIK_LLM * llm_puan + kalan * 0.5 * bicim + kalan * 0.5 * temellilik
             )
             return {
                 "puan": puan,
