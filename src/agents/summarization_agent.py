@@ -305,9 +305,14 @@ Kurallar:
             key=lambda x: x[1],
         )
 
+        from src.utils.ozet_kalite import sadelestir_guvenli
+
         parcalar = []
         for _, _, sentence in secilenler:
             temiz = re.sub(r"\s+", " ", sentence).strip()
+            # Extract-then-compress: muhafazakâr cümle sıkıştırma (sayı/tarih
+            # olgusu düşerse orijinal korunur — sadakat garantisi).
+            temiz = sadelestir_guvenli(temiz)
             # Bağlanma bildiren son noktalama (';', ':', ',') özet
             # cümlesinde bırakılmaz; cümle nokta ile kapatılır.
             temiz = temiz.rstrip(" ;:,-")

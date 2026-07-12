@@ -27,7 +27,12 @@ from src.agents.legislation_agent import (
     madde_referanslari,
 )
 from src.agents.orchestrator import AgentState
-from src.utils.semantik_arama import SemantikArama, YenidenSiralayici, puan_birlestir
+from src.utils.semantik_arama import (
+    SemantikArama,
+    YenidenSiralayici,
+    puan_birlestir,
+    rrf_birlestir,
+)
 
 # Testlerde kullanılan örnek dilekçe metni (kurgu; zengin mevzuat dağarcığı)
 DILEKCE_METNI = """
@@ -226,6 +231,30 @@ class TestPuanBirlestir:
         assert sonuc[1] == pytest.approx(0.6)
         assert sonuc[2] == pytest.approx(0.5 * 0.6 + 1.0 * 0.4)
         assert sonuc[3] == pytest.approx(0.8 * 0.4)
+
+
+class TestRRF:
+    """rrf_birlestir (Reciprocal Rank Fusion) birim testleri."""
+
+    def test_iki_listede_ust_sirada_olan_kazanir(self):
+        r = rrf_birlestir([{1: 0.9, 2: 0.5, 3: 0.1}, {1: 0.8, 3: 0.7, 2: 0.2}])
+        sirali = sorted(r, key=r.get, reverse=True)
+        assert sirali[0] == 1
+
+    def test_tek_liste_sirayi_korur(self):
+        # Tek liste → RRF o listenin sırasını korur (offline çekirdek davranışı)
+        r = rrf_birlestir([{5: 0.9, 6: 0.3, 7: 0.6}])
+        assert sorted(r, key=r.get, reverse=True) == [5, 7, 6]
+
+    def test_bos_liste(self):
+        assert rrf_birlestir([]) == {}
+        assert rrf_birlestir([{}, {}]) == {}
+
+    def test_k_yumusatma(self):
+        # Küçük k sıra farklarını büyütür
+        r_kucuk = rrf_birlestir([{1: 0.9, 2: 0.1}], k=1)
+        r_buyuk = rrf_birlestir([{1: 0.9, 2: 0.1}], k=1000)
+        assert (r_kucuk[1] - r_kucuk[2]) > (r_buyuk[1] - r_buyuk[2])
 
 
 class TestOpsiyonelKatmanZarifDusus:

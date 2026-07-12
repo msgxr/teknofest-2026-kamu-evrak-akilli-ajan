@@ -72,6 +72,44 @@ def puan_birlestir(
     }
 
 
+def rrf_birlestir(
+    siralamalar: Sequence[Dict[int, float]],
+    k: int = 60,
+) -> Dict[int, float]:
+    """Birden çok puanlama listesini Reciprocal Rank Fusion (RRF) ile birleştirir.
+
+    Her liste {chunk_indeksi: puan}; her liste kendi içinde puana göre azalan
+    sıralanıp her belgeye 1/(k + sıra) katkısı verilir (sıra 1'den başlar) ve
+    katkılar toplanır. RRF **ölçek-bağımsızdır**: farklı dağılımlı BM25-mutlak
+    ile dense-kosinüs skorlarını doğrudan toplamanın (puan_birlestir) yol açtığı
+    ölçek uyumsuzluğunu çözer; yalnızca SIRALAMA bilgisini kullanır. Böylece
+    mutlak benzerlik değerleri etik/atıf doğrulaması için ayrıca korunabilir.
+
+    Tek liste (ör. yalnızca BM25) verilirse o listenin sırasını birebir korur —
+    offline çekirdek davranışı bozulmaz.
+
+    Literatür: Cormack, Clarke, Büttcher (2009) "Reciprocal Rank Fusion
+    outperforms Condorcet and individual Rank Learning Methods" (SIGIR);
+    k=60 alan standardı varsayılandır (Elasticsearch/Vespa/Weaviate).
+
+    Args:
+        siralamalar: {chunk_indeksi: puan} sözlüklerinin listesi (boş olanlar atlanır)
+        k: RRF yumuşatma sabiti (yüksek k → sıra farklarını yumuşatır)
+
+    Returns:
+        {chunk_indeksi: rrf_skoru} — yüksek skor daha ilgili
+    """
+    dolu = [s for s in siralamalar if s]
+    if not dolu:
+        return {}
+    birlesik: Dict[int, float] = {}
+    for puanlar in dolu:
+        sirali = sorted(puanlar.items(), key=lambda kv: kv[1], reverse=True)
+        for sira, (idx, _) in enumerate(sirali, start=1):
+            birlesik[idx] = birlesik.get(idx, 0.0) + 1.0 / (k + sira)
+    return birlesik
+
+
 def _ayarlar():
     """Ayar nesnesini hata toleranslı döndürür (import döngüsünden kaçınır)."""
     try:

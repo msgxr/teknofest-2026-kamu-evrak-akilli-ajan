@@ -38,7 +38,12 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from src.utils.bm25 import BM25Okapi, tokenize
-from src.utils.semantik_arama import SemantikArama, YenidenSiralayici, puan_birlestir
+from src.utils.semantik_arama import (
+    SemantikArama,
+    YenidenSiralayici,
+    puan_birlestir,
+    rrf_birlestir,
+)
 from src.utils.turkish_nlp import turkish_lower
 
 if TYPE_CHECKING:
@@ -252,6 +257,16 @@ TUR_SORGU_GENISLETME: Dict[str, List[str]] = {
 # Birleşim mutlak ölçekte yapılır: BM25 tarafı doygunluk-oranlı benzerlik,
 # semantik taraf kosinüs benzerliği (ikisi de [0-1]).
 HIBRIT_BM25_AGIRLIK = 0.6
+
+# Hibrit SIRALAMA: BM25 + opsiyonel dense listeleri rank-tabanlı Reciprocal
+# Rank Fusion (RRF, Cormack vd. 2009) ile birleştirilir. RRF ölçek-bağımsızdır
+# ve farklı dağılımlı (BM25-mutlak vs. dense-kosinüs) skorları doğrudan toplamanın
+# (dışbükey puan_birlestir) ölçek uyumsuzluğunu giderir. Rapor edilen `benzerlik`
+# alanı DAİMA mutlak BM25 doygunluk ölçeğinde kalır (etik/atıf/zayıf-eşleşme
+# doğrulaması bununla yapılır); RRF yalnızca sırayı belirler. Kapatılırsa eski
+# dışbükey birleşime düşülür. Salt-BM25 (offline çekirdek) yolunda RRF/dışbükey
+# fark etmez — davranış birebir korunur.
+HIBRIT_RRF_AKTIF = True
 
 # Opsiyonel katmanlara (semantik aday havuzu, rerank) verilen aday sayısı
 ADAY_HAVUZU = 10
@@ -634,45 +649,58 @@ class LegislationAgent:
                 dense_benzerlik = {i: max(0.0, s) for i, s in adaylar}
                 yontem = "bm25+semantik"
 
-        fused = puan_birlestir(bm25_benzerlik, dense_benzerlik, HIBRIT_BM25_AGIRLIK)
-        if not fused:
+        # Sıralama puanı: BM25 (+ opsiyonel dense) rank-tabanlı RRF ile
+        # ölçek-bağımsız birleştirilir. Salt-BM25 (dense kapalı) yolunda
+        # davranış BİREBİR korunur. Mutlak BM25 benzerliği (bm25_benzerlik)
+        # aşağıda `benzerlik` alanı olarak ayrıca korunur.
+        if dense_benzerlik and HIBRIT_RRF_AKTIF:
+            siralama_puani = rrf_birlestir([bm25_benzerlik, dense_benzerlik])
+        elif dense_benzerlik:
+            siralama_puani = puan_birlestir(
+                bm25_benzerlik, dense_benzerlik, HIBRIT_BM25_AGIRLIK
+            )
+        else:
+            siralama_puani = dict(bm25_benzerlik)  # yalnız BM25 — offline çekirdek
+        if not siralama_puani:
             return [], yontem
 
-        # Opsiyonel yeniden sıralama: en iyi ADAY_HAVUZU aday yeniden puanlanır
-        # (çapraz kodlayıcının sigmoid çıktısı da [0-1] mutlak ölçektedir)
+        # Opsiyonel yeniden sıralama: en iyi ADAY_HAVUZU aday çapraz kodlayıcıyla
+        # yeniden SIRALANIR (skoru yalnızca sıralama için kullanılır)
         rerank = self._ensure_rerank()
         if rerank is not None:
             aday_idx = [
                 i for i, _ in sorted(
-                    fused.items(), key=lambda kv: kv[1], reverse=True
+                    siralama_puani.items(), key=lambda kv: kv[1], reverse=True
                 )[:ADAY_HAVUZU]
             ]
             rerank_puanlari = rerank.sirala(
                 query_text, [chunks[i]["icerik"] for i in aday_idx]
             )
             if rerank_puanlari:
-                fused = dict(zip(aday_idx, rerank_puanlari))
+                siralama_puani = dict(zip(aday_idx, rerank_puanlari))
                 yontem += "+rerank"
 
-        # Mevzuat (doc_id) başına en iyi chunk
-        ranked = sorted(fused.items(), key=lambda kv: kv[1], reverse=True)
+        # Mevzuat (doc_id) başına en iyi chunk: SIRALAMA puanına göre seçilir,
+        # ancak rapor edilen benzerlik MUTLAK BM25 doygunluk ölçeğindedir
+        # (etik/atıf/zayıf-eşleşme dürüstlüğü — RRF/rerank yalnızca sırayı belirler).
+        ranked = sorted(siralama_puani.items(), key=lambda kv: kv[1], reverse=True)
         best_per_doc: Dict[str, Tuple[int, float]] = {}
-        for i, puan in ranked:
-            if puan <= 0:
+        for i, s_puan in ranked:
+            if s_puan <= 0:
                 break
             doc_id = chunks[i]["doc_id"]
             if doc_id not in best_per_doc:
-                best_per_doc[doc_id] = (i, puan)
+                best_per_doc[doc_id] = (i, bm25_benzerlik.get(i, 0.0))
                 if len(best_per_doc) >= top_n:
                     break
 
         matches: List[dict] = []
-        for i, puan in best_per_doc.values():
+        for i, benzerlik in best_per_doc.values():
             chunk = chunks[i]
             gerekce = self._gerekce_uret(
                 chunk, query_tokens, aktif_temalar, evrak_turu, duzeltilmis
             )
-            matches.append(self._match_olustur(chunk, round(puan, 3), gerekce))
+            matches.append(self._match_olustur(chunk, round(benzerlik, 3), gerekce))
         # Benzerlik mutlak ölçekte tekdüzedir; nihai benzerliğe göre sırala
         matches.sort(key=lambda m: m["benzerlik"], reverse=True)
 

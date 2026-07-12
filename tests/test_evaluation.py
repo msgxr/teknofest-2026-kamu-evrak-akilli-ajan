@@ -29,9 +29,43 @@ from scripts.evaluate import (
     hesapla_isabet_kacaklari,
     hesapla_medyan,
     hesapla_set_metrikleri,
+    hesapla_siralama_metrikleri,
     hesapla_sinif_metrikleri,
     hesapla_yanlis_listesi,
 )
+
+
+class TestSiralamaMetrikleri:
+    """hesapla_siralama_metrikleri (MRR/nDCG/context precision-recall)."""
+
+    def test_ilk_sirada_mrr_ndcg_bir(self):
+        r = hesapla_siralama_metrikleri([({"A"}, ["A", "B", "C"])], k=3)
+        assert r["mrr"] == 1.0
+        assert r["ndcg"] == 1.0
+
+    def test_ikinci_sirada_mrr_yarim(self):
+        r = hesapla_siralama_metrikleri([({"A"}, ["X", "A", "C"])], k=3)
+        assert r["mrr"] == 0.5
+
+    def test_bulunamazsa_sifir(self):
+        r = hesapla_siralama_metrikleri([({"A"}, ["X", "Y", "Z"])], k=3)
+        assert r["mrr"] == 0.0
+        assert r["ndcg"] == 0.0
+
+    def test_context_recall_precision(self):
+        r = hesapla_siralama_metrikleri([({"A", "B"}, ["A", "X", "Y"])], k=3)
+        assert r["context_recall"] == 0.5  # 2 beklenen, 1 getirildi
+        assert abs(r["context_precision"] - 1 / 3) < 1e-3
+
+    def test_etiketsiz_none(self):
+        r = hesapla_siralama_metrikleri([(set(), ["A"])], k=3)
+        assert r["mrr"] is None
+        assert r["etiketli_evrak"] == 0
+
+    def test_k_siniri_disinda_bulunmaz(self):
+        # Doğru mevzuat 4. sırada ama k=3 → isabet yok
+        r = hesapla_siralama_metrikleri([({"A"}, ["X", "Y", "Z", "A"])], k=3)
+        assert r["mrr"] == 0.0
 
 
 class TestAccuracy:

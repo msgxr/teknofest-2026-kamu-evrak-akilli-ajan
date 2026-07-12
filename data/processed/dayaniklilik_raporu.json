@@ -1,0 +1,59 @@
+{
+  "zaman_damgasi": "2026-07-12T15:43:24",
+  "veri_dizini": "data/raw/kurgu_evraklar",
+  "tohum": 1234,
+  "degerlendirilen_evrak": 52,
+  "uygulanan_bozulmalar": [
+    "diyakritik",
+    "bosluk",
+    "yazim",
+    "ocr",
+    "noktalama"
+  ],
+  "toplam_varyant": 260,
+  "tur_invaryans": 0.9923,
+  "birim_invaryans": 0.9692,
+  "gurbuz_dogruluk": 0.9923,
+  "bozulma_bazinda": {
+    "diyakritik": {
+      "toplam": 52,
+      "tur_invaryans": 0.9615,
+      "birim_invaryans": 0.8462
+    },
+    "bosluk": {
+      "toplam": 52,
+      "tur_invaryans": 1.0,
+      "birim_invaryans": 1.0
+    },
+    "yazim": {
+      "toplam": 52,
+      "tur_invaryans": 1.0,
+      "birim_invaryans": 1.0
+    },
+    "ocr": {
+      "toplam": 52,
+      "tur_invaryans": 1.0,
+      "birim_invaryans": 1.0
+    },
+    "noktalama": {
+      "toplam": 52,
+      "tur_invaryans": 1.0,
+      "birim_invaryans": 1.0
+    }
+  },
+  "en_kirilgan_bozulma": "diyakritik",
+  "degisim_ornekleri": [
+    {
+      "dosya": "cevap_yazisi_05.txt",
+      "bozulma": "diyakritik",
+      "orijinal_tur": "cevap_yazisi",
+      "bozulmus_tur": "ust_yazi"
+    },
+    {
+      "dosya": "cevap_yazisi_06.txt",
+      "bozulma": "diyakritik",
+      "orijinal_tur": "cevap_yazisi",
+      "bozulmus_tur": "ust_yazi"
+    }
+  ]
+}

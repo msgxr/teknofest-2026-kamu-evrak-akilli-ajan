@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-12T14:31:54",
+  "zaman_damgasi": "2026-07-12T15:52:01",
   "veri_dizini": "data/raw/kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "llm": {
@@ -195,6 +195,14 @@
       "isabet": 47,
       "isabet_orani": 0.9038
     },
+    "siralama": {
+      "k": 3,
+      "etiketli_evrak": 52,
+      "mrr": 0.9263,
+      "ndcg": 0.7965,
+      "context_precision": 0.5321,
+      "context_recall": 0.7756
+    },
     "isabetsizler": [
       {
         "dosya": "tutanak_02.txt",
@@ -228,16 +236,123 @@
       "kural_hakem": 52
     }
   },
+  "kalibrasyon": {
+    "n": 52,
+    "ece": 0.1882,
+    "mce": 0.703,
+    "brier": 0.0623,
+    "aurc": 0.0,
+    "reliability_kutulari": [
+      {
+        "aralik": [
+          0.0,
+          0.1
+        ],
+        "sayi": 0,
+        "ortalama_guven": null,
+        "dogruluk": null
+      },
+      {
+        "aralik": [
+          0.1,
+          0.2
+        ],
+        "sayi": 0,
+        "ortalama_guven": null,
+        "dogruluk": null
+      },
+      {
+        "aralik": [
+          0.2,
+          0.3
+        ],
+        "sayi": 1,
+        "ortalama_guven": 0.297,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.3,
+          0.4
+        ],
+        "sayi": 1,
+        "ortalama_guven": 0.371,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.4,
+          0.5
+        ],
+        "sayi": 1,
+        "ortalama_guven": 0.436,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.5,
+          0.6
+        ],
+        "sayi": 2,
+        "ortalama_guven": 0.5805,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.6,
+          0.7
+        ],
+        "sayi": 6,
+        "ortalama_guven": 0.6482,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.7,
+          0.8
+        ],
+        "sayi": 10,
+        "ortalama_guven": 0.7425,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.8,
+          0.9
+        ],
+        "sayi": 9,
+        "ortalama_guven": 0.8561,
+        "dogruluk": 1.0
+      },
+      {
+        "aralik": [
+          0.9,
+          1.0
+        ],
+        "sayi": 22,
+        "ortalama_guven": 0.9513,
+        "dogruluk": 1.0
+      }
+    ],
+    "ogrenilen_sicaklik": 0.25,
+    "ece_kalibrasyon_sonrasi": 0.0081
+  },
+  "ozet_kalitesi": {
+    "n": 52,
+    "sadakat": 1.0,
+    "kaynak_kapsama": 0.2984,
+    "sikistirma_orani": 0.3941
+  },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0131,
-    "evrak_basina_medyan_sure_saniye": 0.011,
+    "evrak_basina_ortalama_sure_saniye": 0.0124,
+    "evrak_basina_medyan_sure_saniye": 0.01,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
-      "classification": 0.002,
-      "info_extraction": 0.0036,
+      "classification": 0.0018,
+      "info_extraction": 0.003,
       "missing_info": 0.0001,
       "legislation": 0.0013,
-      "triage": 0.0001,
+      "triage": 0.0,
       "summarization": 0.001,
       "anonimlestirme": 0.0008,
       "draft_writer": 0.001,

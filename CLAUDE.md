@@ -39,6 +39,8 @@ python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout --rapor
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v2 --rapor-dosyasi data/processed/eval_report_heldout_v2.json
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v3 --rapor-dosyasi data/processed/eval_report_heldout_v3.json
 
+python scripts/dayaniklilik_testi.py                 # metamorfik dayanıklılık (CheckList-INV; tür/birim invaryansı)
+
 streamlit run src/app.py                             # web arayüzü
 python demo/demo_scenario.py                         # konsol demo senaryosu
 python -m src.main --input data/raw/kurgu_evraklar/dilekce_01.txt   # tek evrak CLI

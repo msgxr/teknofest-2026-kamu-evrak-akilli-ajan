@@ -52,6 +52,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import math
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -235,6 +236,62 @@ def hesapla_isabet_at_k(
         "isabet_orani": (
             round(isabet / len(etiketli), 4) if etiketli else None
         ),
+    }
+
+
+def hesapla_siralama_metrikleri(
+    ciftler: Sequence[Tuple[Set[str], Sequence[str]]], k: int = 3
+) -> Dict[str, Any]:
+    """RAGAS-tarzı getirim sıralama metrikleri: MRR@k, nDCG@k, context
+    precision@k, context recall@k (saf Python).
+
+    isabet@k yalnızca "ilk k'da var mı" der; bu metrikler doğru mevzuatın
+    KAÇINCI sırada olduğunu (MRR/nDCG) ve getirilen bağlamın tamlığını
+    (precision/recall) ölçer — getirim kalitesinin sıralama-duyarlı görünümü.
+
+    Literatür: Järvelin & Kekäläinen (2002) nDCG; Mean Reciprocal Rank
+    (klasik IR); RAGAS (Es vd. 2023) context precision/recall.
+
+    Beklenen kümesi boş olan evraklar metriğe katılmaz (isabet@k ile aynı).
+    """
+    etiketli = [
+        (set(beklenen), list(tahmin)) for beklenen, tahmin in ciftler if beklenen
+    ]
+    if not etiketli:
+        return {
+            "k": k, "etiketli_evrak": 0, "mrr": None, "ndcg": None,
+            "context_precision": None, "context_recall": None,
+        }
+    mrr_top = ndcg_top = cp_top = cr_top = 0.0
+    for beklenen, tahmin in etiketli:
+        ilk_k = tahmin[:k]
+        # MRR: ilk ilgili önerinin ters sırası (1/rank)
+        rr = 0.0
+        for i, doc in enumerate(ilk_k):
+            if doc in beklenen:
+                rr = 1.0 / (i + 1)
+                break
+        mrr_top += rr
+        # nDCG: ikili ilgililik, konum indirimli
+        dcg = sum(
+            1.0 / math.log2(i + 2) for i, doc in enumerate(ilk_k) if doc in beklenen
+        )
+        ideal_n = min(len(beklenen), k)
+        idcg = sum(1.0 / math.log2(i + 2) for i in range(ideal_n))
+        ndcg_top += (dcg / idcg) if idcg > 0 else 0.0
+        # Bağlam precision@k (getirilenin ne kadarı ilgili) / recall@k
+        # (ilgililerin ne kadarı getirildi)
+        ilgili_getirilen = sum(1 for doc in ilk_k if doc in beklenen)
+        cp_top += (ilgili_getirilen / len(ilk_k)) if ilk_k else 0.0
+        cr_top += ilgili_getirilen / len(beklenen)
+    n = len(etiketli)
+    return {
+        "k": k,
+        "etiketli_evrak": n,
+        "mrr": round(mrr_top / n, 4),
+        "ndcg": round(ndcg_top / n, 4),
+        "context_precision": round(cp_top / n, 4),
+        "context_recall": round(cr_top / n, 4),
     }
 
 
@@ -495,10 +552,13 @@ def evraklari_isle(
         adimlar = result.get("islem_adimlari", []) or []
         toplam_sure = sum(float(a.get("sure_saniye", 0.0)) for a in adimlar)
 
+        siniflandirma = result.get("siniflandirma") or {}
         sonuclar.append({
             "dosya": dosya_adi,
             "etiket": etiketler[dosya_adi],
-            "tahmin_tur": (result.get("siniflandirma") or {}).get("tur", "diger"),
+            "tahmin_tur": siniflandirma.get("tur", "diger"),
+            "tahmin_guven": float(siniflandirma.get("guven", 0.0)),
+            "tahmin_olasiliklar": siniflandirma.get("tum_skorlar") or {},
             "tahmin_birim": (result.get("yonlendirme") or {}).get("birim_kodu", ""),
             "tahmin_eksik": {
                 e.get("alan", "")
@@ -512,6 +572,11 @@ def evraklari_isle(
             ],
             "taslak_puan": (result.get("taslak_kalitesi") or {}).get("puan"),
             "taslak_yontem": (result.get("taslak_kalitesi") or {}).get("yontem", ""),
+            "tahmin_ozet": result.get("ozet", "") or "",
+            "kaynak_metin": (
+                dosya_yolu.read_text(encoding="utf-8", errors="ignore")
+                if dosya_yolu.suffix.lower() == ".txt" else ""
+            ),
             "adimlar": adimlar,
             "toplam_sure": round(toplam_sure, 4),
         })
@@ -565,6 +630,48 @@ def metrikleri_hesapla(
     sureler = [s["toplam_sure"] for s in sonuclar]
     ortalama_sure = round(sum(sureler) / len(sureler), 4) if sureler else 0.0
 
+    # 6. Güven kalibrasyonu (ECE / MCE / Brier / reliability / risk-coverage)
+    from src.utils.kalibrasyon import kalibrasyon_raporu
+    set_adi = Path(veri_dizini).name
+    kalibre_guvenler = [float(s.get("tahmin_guven", 0.0)) for s in sonuclar]
+    kalibre_dogrular = [t == g for t, g in zip(tahmin_tur, gercek_tur)]
+    kalibre_olasiliklar = [s.get("tahmin_olasiliklar") or {} for s in sonuclar]
+    # Sıcaklık öğrenimi YALNIZCA geliştirme setinde; held-out setlerde yalnızca
+    # ölçüm yapılır (değerlendirme bütünlüğü — teknik_rapor §5 kuralı).
+    kalibrasyon = kalibrasyon_raporu(
+        kalibre_guvenler,
+        kalibre_dogrular,
+        olasilik_listesi=kalibre_olasiliklar,
+        dogru_siniflar=gercek_tur,
+        sicaklik_ogren_izinli=(set_adi == "kurgu_evraklar"),
+    )
+
+    # 7. Özet kalitesi (referanssız: sadakat / kaynak-kapsama / sıkıştırma)
+    from src.utils.ozet_kalite import kaynak_kapsama, sadakat, sikistirma_orani
+    sad_l: List[float] = []
+    kap_l: List[float] = []
+    sik_l: List[float] = []
+    for s in sonuclar:
+        kaynak = s.get("kaynak_metin", "")
+        ozet = s.get("tahmin_ozet", "")
+        if not kaynak:
+            continue
+        sad_l.append(sadakat(ozet, kaynak))
+        kap = kaynak_kapsama(ozet, kaynak)
+        if kap is not None:
+            kap_l.append(kap)
+        sik_l.append(sikistirma_orani(ozet, kaynak))
+
+    def _ort(xs: List[float]) -> Optional[float]:
+        return round(sum(xs) / len(xs), 4) if xs else None
+
+    ozet_kalitesi = {
+        "n": len(sad_l),
+        "sadakat": _ort(sad_l),
+        "kaynak_kapsama": _ort(kap_l),
+        "sikistirma_orani": _ort(sik_l),
+    }
+
     return {
         "zaman_damgasi": datetime.now().isoformat(timespec="seconds"),
         "veri_dizini": goreli_yol(veri_dizini),
@@ -592,11 +699,14 @@ def metrikleri_hesapla(
         "mevzuat_onerisi": {
             "isabet_at_3": hesapla_isabet_at_k(mevzuat_ciftler, k=3),
             "isabet_at_1": hesapla_isabet_at_k(mevzuat_ciftler, k=1),
+            "siralama": hesapla_siralama_metrikleri(mevzuat_ciftler, k=3),
             "isabetsizler": hesapla_isabet_kacaklari(
                 dosyalar, beklenen_mevzuat, tahmin_mevzuat, k=3
             ),
         },
         "taslak_kalitesi": hesapla_taslak_kalitesi(sonuclar),
+        "kalibrasyon": kalibrasyon,
+        "ozet_kalitesi": ozet_kalitesi,
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,
             "evrak_basina_medyan_sure_saniye": round(hesapla_medyan(sureler), 4),
