@@ -1,7 +1,15 @@
 {
-  "zaman_damgasi": "2026-07-12T16:33:01",
+  "zaman_damgasi": "2026-07-12T17:11:11",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout",
   "set_adi": "kurgu_evraklar_heldout",
+  "tekrarlanabilirlik": {
+    "git_commit": "4e64ad7fa3b9d27ca5d011e4ff6f7e03c373f60f",
+    "calisma_agaci_kirli": true,
+    "python": "3.9.6",
+    "platform": "macOS-14.6-arm64-arm-64bit",
+    "requirements_sha256": "bfeabd877ae1ea42",
+    "set_icerik_hash": "bf94556c887e4629"
+  },
   "llm": {
     "backend": "offline",
     "model": "gpt-4o-mini",
@@ -348,6 +356,34 @@
     "sizintili_evrak": 0,
     "sizintisiz_oran": 1.0
   },
+  "guven_araliklari": {
+    "siniflandirma": {
+      "nokta": 1.0,
+      "basari": 16,
+      "toplam": 16,
+      "wilson_95": [
+        0.8064,
+        1.0
+      ],
+      "bootstrap_95": [
+        1.0,
+        1.0
+      ]
+    },
+    "yonlendirme": {
+      "nokta": 1.0,
+      "basari": 16,
+      "toplam": 16,
+      "wilson_95": [
+        0.8064,
+        1.0
+      ],
+      "bootstrap_95": [
+        1.0,
+        1.0
+      ]
+    }
+  },
   "ozet_kalitesi": {
     "n": 16,
     "sadakat": 1.0,
@@ -355,19 +391,19 @@
     "sikistirma_orani": 0.5057
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0178,
-    "evrak_basina_medyan_sure_saniye": 0.0115,
+    "evrak_basina_ortalama_sure_saniye": 0.0301,
+    "evrak_basina_medyan_sure_saniye": 0.0205,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0001,
-      "classification": 0.0021,
-      "info_extraction": 0.0059,
-      "missing_info": 0.0004,
-      "legislation": 0.0018,
-      "triage": 0.0001,
-      "summarization": 0.0011,
-      "anonimlestirme": 0.0009,
-      "draft_writer": 0.0011,
-      "routing": 0.0043,
+      "ocr": 0.0,
+      "classification": 0.0035,
+      "info_extraction": 0.0096,
+      "missing_info": 0.0013,
+      "legislation": 0.0031,
+      "triage": 0.001,
+      "summarization": 0.0021,
+      "anonimlestirme": 0.0011,
+      "draft_writer": 0.0014,
+      "routing": 0.007,
       "user_info": 0.0
     }
   },

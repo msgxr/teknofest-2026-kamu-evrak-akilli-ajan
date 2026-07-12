@@ -713,10 +713,25 @@ def metrikleri_hesapla(
         ),
     }
 
+    # 9. İstatistiksel anlamlılık: sınıflandırma + yönlendirme için %95 GA
+    #    (Wilson skor + bootstrap). Küçük n'de nokta tahminine dürüstlük katar.
+    from src.utils.istatistik import oran_ozeti
+    guven_araliklari = {
+        "siniflandirma": oran_ozeti([t == g for t, g in zip(tahmin_tur, gercek_tur)]),
+        "yonlendirme": oran_ozeti(
+            [t == g for t, g in zip(tahmin_birim, gercek_birim)]
+        ),
+    }
+
+    # 10. Tekrarlanabilirlik mührü: git commit + platform + veri seti içerik hash'i
+    from src.utils.kosum_muhru import kosum_muhru
+    tekrarlanabilirlik = kosum_muhru(PROJE_KOKU, veri_dizini)
+
     return {
         "zaman_damgasi": datetime.now().isoformat(timespec="seconds"),
         "veri_dizini": goreli_yol(veri_dizini),
         "set_adi": Path(veri_dizini).name,
+        "tekrarlanabilirlik": tekrarlanabilirlik,
         "llm": llm_bilgisi_al(),
         "degerlendirilen_dosya_sayisi": len(sonuclar),
         "siniflandirma": {
@@ -750,6 +765,7 @@ def metrikleri_hesapla(
         "secici_tahmin": secici_tahmin,
         "konformal": konformal,
         "kvkk": kvkk,
+        "guven_araliklari": guven_araliklari,
         "ozet_kalitesi": ozet_kalitesi,
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,

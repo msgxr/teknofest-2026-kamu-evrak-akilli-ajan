@@ -183,17 +183,24 @@ class LLMWrapper:
     # Metin üretimi
     # ------------------------------------------------------------------
 
-    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    def generate(
+        self, prompt: str, system_prompt: Optional[str] = None, json_mode: bool = False
+    ) -> str:
         """
         Verilen prompt için metin üretir.
+
+        `json_mode=True` ise backend'e ŞEMA-KISITLI çözümleme (constrained decoding)
+        talimatı verilir: OpenAI-uyumlu yolda `response_format={"type":"json_object"}`,
+        Ollama'da `format="json"`. Bu, token düzeyinde GEÇERLİ JSON garantisi sağlar
+        (yalnızca prompt talimatı + regex onarımına göre çok daha güvenilir).
 
         Raises:
             LLMUnavailableError: Kullanılabilir backend yoksa.
         """
         if self.backend == "openai":
-            return self._generate_openai_compatible(prompt, system_prompt)
+            return self._generate_openai_compatible(prompt, system_prompt, json_mode)
         if self.backend == "ollama":
-            return self._generate_ollama(prompt, system_prompt)
+            return self._generate_ollama(prompt, system_prompt, json_mode)
         raise LLMUnavailableError(
             "Kullanılabilir LLM backend'i yok (offline mod). "
             "OPENAI_API_KEY / LLM_BASE_URL tanımlayın veya Ollama başlatın."
@@ -231,7 +238,7 @@ class LLMWrapper:
 
         last_error: Optional[Exception] = None
         for attempt in range(1, retries + 1):
-            response = self.generate(json_instruction, system_prompt)
+            response = self.generate(json_instruction, system_prompt, json_mode=True)
             try:
                 return self._parse_json_response(response)
             except ValueError as exc:
@@ -271,7 +278,9 @@ class LLMWrapper:
     # Backend implementasyonları
     # ------------------------------------------------------------------
 
-    def _generate_openai_compatible(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    def _generate_openai_compatible(
+        self, prompt: str, system_prompt: Optional[str] = None, json_mode: bool = False
+    ) -> str:
         """OpenAI-uyumlu bir chat/completions endpoint'i ile metin üretir."""
         base_url = (self.settings.base_url or "https://api.openai.com/v1").rstrip("/")
         url = base_url + "/chat/completions"
@@ -287,6 +296,9 @@ class LLMWrapper:
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
         }
+        if json_mode:
+            # Şema-kısıtlı çözümleme: geçerli JSON garantisi (prompt "json" içerir)
+            payload["response_format"] = {"type": "json_object"}
         headers = {}
         if self.settings.openai_api_key:
             headers["Authorization"] = f"Bearer {self.settings.openai_api_key}"
@@ -302,7 +314,9 @@ class LLMWrapper:
             logger.error(f"OpenAI-uyumlu API hatası: {exc}")
             raise
 
-    def _generate_ollama(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    def _generate_ollama(
+        self, prompt: str, system_prompt: Optional[str] = None, json_mode: bool = False
+    ) -> str:
         """Yerel Ollama sunucusu ile metin üretir."""
         url = self.settings.ollama_base_url.rstrip("/") + "/api/chat"
 
@@ -320,6 +334,8 @@ class LLMWrapper:
                 "num_predict": self.max_tokens,
             },
         }
+        if json_mode:
+            payload["format"] = "json"  # Ollama: çıktıyı geçerli JSON'a kısıtla
 
         try:
             result = _http_post_json(url, payload, {}, timeout=self.settings.timeout_seconds)
