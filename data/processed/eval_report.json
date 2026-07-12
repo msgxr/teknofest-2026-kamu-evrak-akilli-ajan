@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-12T16:19:05",
+  "zaman_damgasi": "2026-07-12T16:24:13",
   "veri_dizini": "data/raw/kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "llm": {
@@ -344,6 +344,15 @@
     "reddedilen": 5,
     "ortalama_belirsizlik": 0.1676
   },
+  "konformal": {
+    "alfa": 0.1,
+    "hedef_kapsama": 0.9,
+    "esik": 0.408,
+    "ampirik_kapsama": 1.0,
+    "ortalama_kume_boyutu": 1.0,
+    "tekil_kume_orani": 1.0,
+    "n": 52
+  },
   "ozet_kalitesi": {
     "n": 52,
     "sadakat": 1.0,
@@ -351,15 +360,15 @@
     "sikistirma_orani": 0.3941
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0123,
-    "evrak_basina_medyan_sure_saniye": 0.01,
+    "evrak_basina_ortalama_sure_saniye": 0.0124,
+    "evrak_basina_medyan_sure_saniye": 0.0105,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0,
       "classification": 0.0018,
       "info_extraction": 0.003,
       "missing_info": 0.0001,
       "legislation": 0.0012,
-      "triage": 0.0,
+      "triage": 0.0001,
       "summarization": 0.001,
       "anonimlestirme": 0.0008,
       "draft_writer": 0.001,

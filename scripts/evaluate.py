@@ -658,6 +658,11 @@ def metrikleri_hesapla(
         if _belirsizlikler else None
     )
 
+    # 6c. Split conformal prediction: kapsama-garantili tahmin kümeleri
+    #     (held-out'ta yalnızca raporlama; kural/kod tuning yapılmaz).
+    from src.utils.konformal import konformal_degerlendirme
+    konformal = konformal_degerlendirme(kalibre_olasiliklar, gercek_tur, alfa=0.1)
+
     # 7. Özet kalitesi (referanssız: sadakat / kaynak-kapsama / sıkıştırma)
     from src.utils.ozet_kalite import kaynak_kapsama, sadakat, sikistirma_orani
     sad_l: List[float] = []
@@ -719,6 +724,7 @@ def metrikleri_hesapla(
         "taslak_kalitesi": hesapla_taslak_kalitesi(sonuclar),
         "kalibrasyon": kalibrasyon,
         "secici_tahmin": secici_tahmin,
+        "konformal": konformal,
         "ozet_kalitesi": ozet_kalitesi,
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,
