@@ -727,6 +727,26 @@ def metrikleri_hesapla(
     from src.utils.kosum_muhru import kosum_muhru
     tekrarlanabilirlik = kosum_muhru(PROJE_KOKU, veri_dizini)
 
+    # 11. Ablasyon: tam sistem vs saf-keyword baseline (McNemar ile anlamlılık).
+    #     Tam sistemin güvence katmanlarının kattığı değerin nicel kanıtı.
+    from src.utils.baseline import baseline_siniflandir
+    from src.utils.istatistik import mcnemar
+    _baseline_tahmin = [
+        baseline_siniflandir(s.get("kaynak_metin", ""))[0] for s in sonuclar
+    ]
+    _tam_dogru = [t == g for t, g in zip(tahmin_tur, gercek_tur)]
+    _baseline_dogru = [t == g for t, g in zip(_baseline_tahmin, gercek_tur)]
+    ablasyon = {
+        "tam_sistem_accuracy": (
+            round(sum(_tam_dogru) / len(_tam_dogru), 4) if _tam_dogru else None
+        ),
+        "baseline_accuracy": (
+            round(sum(_baseline_dogru) / len(_baseline_dogru), 4)
+            if _baseline_dogru else None
+        ),
+        "mcnemar_tam_vs_baseline": mcnemar(_tam_dogru, _baseline_dogru),
+    }
+
     return {
         "zaman_damgasi": datetime.now().isoformat(timespec="seconds"),
         "veri_dizini": goreli_yol(veri_dizini),
@@ -766,6 +786,7 @@ def metrikleri_hesapla(
         "konformal": konformal,
         "kvkk": kvkk,
         "guven_araliklari": guven_araliklari,
+        "ablasyon": ablasyon,
         "ozet_kalitesi": ozet_kalitesi,
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,

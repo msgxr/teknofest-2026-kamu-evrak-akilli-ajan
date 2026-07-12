@@ -1,9 +1,9 @@
 {
-  "zaman_damgasi": "2026-07-12T17:11:12",
+  "zaman_damgasi": "2026-07-12T17:18:08",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v3",
   "set_adi": "kurgu_evraklar_heldout_v3",
   "tekrarlanabilirlik": {
-    "git_commit": "4e64ad7fa3b9d27ca5d011e4ff6f7e03c373f60f",
+    "git_commit": "eaa905f21a280ae1715c4e7e1d50f8441ace979f",
     "calisma_agaci_kirli": true,
     "python": "3.9.6",
     "platform": "macOS-14.6-arm64-arm-64bit",
@@ -389,6 +389,17 @@
       ]
     }
   },
+  "ablasyon": {
+    "tam_sistem_accuracy": 0.9375,
+    "baseline_accuracy": 0.375,
+    "mcnemar_tam_vs_baseline": {
+      "b": 9,
+      "c": 0,
+      "istatistik": 7.1111,
+      "p_deger": 0.0077,
+      "anlamli_0_05": true
+    }
+  },
   "ozet_kalitesi": {
     "n": 16,
     "sadakat": 1.0,
@@ -396,19 +407,19 @@
     "sikistirma_orani": 0.4731
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0279,
-    "evrak_basina_medyan_sure_saniye": 0.0185,
+    "evrak_basina_ortalama_sure_saniye": 0.027,
+    "evrak_basina_medyan_sure_saniye": 0.019,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0,
-      "classification": 0.0099,
+      "ocr": 0.0001,
+      "classification": 0.0094,
       "info_extraction": 0.0026,
-      "missing_info": 0.0012,
+      "missing_info": 0.0011,
       "legislation": 0.0026,
       "triage": 0.0009,
       "summarization": 0.0019,
       "anonimlestirme": 0.0011,
       "draft_writer": 0.0013,
-      "routing": 0.0064,
+      "routing": 0.0062,
       "user_info": 0.0
     }
   },
