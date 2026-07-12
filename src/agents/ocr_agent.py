@@ -84,6 +84,10 @@ class OCRAgent:
             "word_count": len(text.split()),
             "engine_used": self.engine if ext in self.SUPPORTED_IMAGE_EXTENSIONS else "direct",
         }
+        # Görüntü ise OCR kalite telemetrisini rapora ekle (4. kapı sinyali)
+        _kalite = getattr(self, "_son_ocr_kalite", None)
+        if ext in self.SUPPORTED_IMAGE_EXTENSIONS and _kalite:
+            state.ocr_result["ocr_kalite"] = _kalite
 
         logger.info(
             f"Metin çıkarıldı: {state.ocr_result['word_count']} kelime, "
@@ -167,6 +171,11 @@ class OCRAgent:
                 f"Görüntü boyutu sınırı aşıldı ({genislik}x{yukseklik}); "
                 f"en fazla {MAX_GORUNTU_PIKSEL} piksel işlenir."
             )
+        # Adaptif ön-işleme (multimodal): deskew + ölçek + adaptif eşik. Bağımlılık
+        # yoksa veya hata olursa görüntü OLDUĞU GİBİ döner (çekirdeği bozmaz).
+        from src.utils.goruntu_onisleme import on_isle
+
+        image = on_isle(image)
         return self._ocr_image(image)
 
     def _ocr_image(self, image) -> str:
@@ -194,6 +203,19 @@ class OCRAgent:
 
             pytesseract.pytesseract.tesseract_cmd = settings.ocr.tesseract_cmd
             text = pytesseract.image_to_string(image, lang=settings.ocr.tesseract_lang)
+            # OCR kalite telemetrisi (4. kapı sinyali): kelime-düzeyi güven
+            try:
+                from src.utils.goruntu_onisleme import ocr_kalite
+
+                veri = pytesseract.image_to_data(
+                    image, lang=settings.ocr.tesseract_lang,
+                    output_type=pytesseract.Output.DICT,
+                )
+                self._son_ocr_kalite = ocr_kalite(
+                    [float(c) for c in veri.get("conf", [])]
+                )
+            except Exception:
+                self._son_ocr_kalite = None
             return text.strip()
 
         except ImportError:
