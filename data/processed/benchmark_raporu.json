@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-11T12:57:40",
+  "zaman_damgasi": "2026-07-12T12:59:48",
   "makine": {
     "isletim_sistemi": "Darwin",
     "surum": "23.6.0",
@@ -10,8 +10,8 @@
   },
   "llm_backend": "offline",
   "yapilandirma": {
-    "tekrar": 3,
-    "evrak_sayisi": 67,
+    "tekrar": 5,
+    "evrak_sayisi": 84,
     "setler": [
       "data/raw/kurgu_evraklar",
       "data/raw/kurgu_evraklar_heldout",
@@ -24,115 +24,115 @@
     ]
   },
   "soguk_baslangic": {
-    "pipeline_kurulum_saniye": 0.02,
-    "ilk_evrak_isinma_saniye": 0.042
+    "pipeline_kurulum_saniye": 0.018,
+    "ilk_evrak_isinma_saniye": 0.038
   },
   "gecikme_ms": {
-    "ortalama": 10.89,
-    "medyan": 10.67,
-    "p95": 14.08,
-    "p99": 15.27,
-    "min": 6.62,
-    "max": 16.46,
-    "olcum_sayisi": 201
+    "ortalama": 11.36,
+    "medyan": 11.28,
+    "p95": 14.19,
+    "p99": 15.73,
+    "min": 7.02,
+    "max": 16.92,
+    "olcum_sayisi": 420
   },
   "throughput": {
-    "evrak_bolu_saniye": 91.8,
-    "toplam_evrak": 201,
-    "toplam_sure_saniye": 2.188
+    "evrak_bolu_saniye": 88.1,
+    "toplam_evrak": 420,
+    "toplam_sure_saniye": 4.77
   },
   "adim_dagilimi": [
     {
       "agent": "ocr",
-      "calisma_sayisi": 201,
+      "calisma_sayisi": 420,
       "ortalama_ms": 0.0,
       "pay_yuzde": 0.0
     },
     {
       "agent": "classification",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 1.81,
-      "pay_yuzde": 19.0
+      "calisma_sayisi": 420,
+      "ortalama_ms": 1.8,
+      "pay_yuzde": 17.0
     },
     {
       "agent": "info_extraction",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 1.75,
-      "pay_yuzde": 18.3
+      "calisma_sayisi": 420,
+      "ortalama_ms": 1.73,
+      "pay_yuzde": 16.4
     },
     {
       "agent": "missing_info",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 0.13,
-      "pay_yuzde": 1.4
+      "calisma_sayisi": 420,
+      "ortalama_ms": 0.09,
+      "pay_yuzde": 0.9
     },
     {
       "agent": "legislation",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 1.03,
-      "pay_yuzde": 10.8
+      "calisma_sayisi": 420,
+      "ortalama_ms": 1.23,
+      "pay_yuzde": 11.7
     },
     {
       "agent": "triage",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 0.03,
-      "pay_yuzde": 0.3
-    },
-    {
-      "agent": "summarization",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 0.97,
-      "pay_yuzde": 10.2
-    },
-    {
-      "agent": "anonimlestirme",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 0.67,
-      "pay_yuzde": 7.0
-    },
-    {
-      "agent": "draft_writer",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 0.01,
+      "calisma_sayisi": 420,
+      "ortalama_ms": 0.02,
       "pay_yuzde": 0.2
     },
     {
+      "agent": "summarization",
+      "calisma_sayisi": 420,
+      "ortalama_ms": 1.0,
+      "pay_yuzde": 9.4
+    },
+    {
+      "agent": "anonimlestirme",
+      "calisma_sayisi": 420,
+      "ortalama_ms": 0.71,
+      "pay_yuzde": 6.7
+    },
+    {
+      "agent": "draft_writer",
+      "calisma_sayisi": 420,
+      "ortalama_ms": 0.92,
+      "pay_yuzde": 8.7
+    },
+    {
       "agent": "routing",
-      "calisma_sayisi": 201,
-      "ortalama_ms": 3.15,
-      "pay_yuzde": 33.0
+      "calisma_sayisi": 420,
+      "ortalama_ms": 3.09,
+      "pay_yuzde": 29.1
     },
     {
       "agent": "user_info",
-      "calisma_sayisi": 201,
+      "calisma_sayisi": 420,
       "ortalama_ms": 0.0,
       "pay_yuzde": 0.0
     }
   ],
   "bellek": {
-    "tepe_mb": 0.2,
+    "tepe_mb": 0.21,
     "yontem": "tracemalloc (Python tahsisleri, ayrı turda ölçüldü)"
   },
   "olcekleme": [
     {
       "olcek": 1,
-      "evrak_sayisi": 67,
-      "toplam_sure_saniye": 0.72,
-      "evrak_basina_ms": 10.75,
+      "evrak_sayisi": 84,
+      "toplam_sure_saniye": 0.945,
+      "evrak_basina_ms": 11.25,
       "dogrusallik_orani": 1.0
     },
     {
       "olcek": 5,
-      "evrak_sayisi": 335,
-      "toplam_sure_saniye": 3.616,
-      "evrak_basina_ms": 10.79,
+      "evrak_sayisi": 420,
+      "toplam_sure_saniye": 4.719,
+      "evrak_basina_ms": 11.24,
       "dogrusallik_orani": 1.0
     },
     {
       "olcek": 10,
-      "evrak_sayisi": 670,
-      "toplam_sure_saniye": 7.216,
-      "evrak_basina_ms": 10.77,
+      "evrak_sayisi": 840,
+      "toplam_sure_saniye": 9.457,
+      "evrak_basina_ms": 11.26,
       "dogrusallik_orani": 1.0
     }
   ]

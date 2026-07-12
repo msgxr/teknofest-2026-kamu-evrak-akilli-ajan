@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-12T00:22:06",
+  "zaman_damgasi": "2026-07-12T12:58:53",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout",
   "set_adi": "kurgu_evraklar_heldout",
   "llm": {
@@ -61,6 +61,100 @@
         "recall": 1.0,
         "f1": 1.0,
         "destek": 2
+      }
+    },
+    "confusion_matrix": {
+      "siniflar": [
+        "bilgilendirme",
+        "cevap_yazisi",
+        "dilekce",
+        "genelge",
+        "onayli_belge",
+        "rapor",
+        "tutanak",
+        "ust_yazi"
+      ],
+      "matris": {
+        "bilgilendirme": {
+          "bilgilendirme": 2,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "cevap_yazisi": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 2,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "dilekce": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 2,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "genelge": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 2,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "onayli_belge": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 2,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "rapor": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 2,
+          "tutanak": 0,
+          "ust_yazi": 0
+        },
+        "tutanak": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 2,
+          "ust_yazi": 0
+        },
+        "ust_yazi": {
+          "bilgilendirme": 0,
+          "cevap_yazisi": 0,
+          "dilekce": 0,
+          "genelge": 0,
+          "onayli_belge": 0,
+          "rapor": 0,
+          "tutanak": 0,
+          "ust_yazi": 2
+        }
       }
     },
     "yanlis_siniflananlar": []
@@ -126,19 +220,19 @@
     }
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.3036,
-    "evrak_basina_medyan_sure_saniye": 0.0285,
+    "evrak_basina_ortalama_sure_saniye": 0.0201,
+    "evrak_basina_medyan_sure_saniye": 0.012,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0014,
-      "classification": 0.0045,
-      "info_extraction": 0.2747,
-      "missing_info": 0.0023,
-      "legislation": 0.0044,
-      "triage": 0.0011,
-      "summarization": 0.0027,
-      "anonimlestirme": 0.0014,
-      "draft_writer": 0.0022,
-      "routing": 0.009,
+      "ocr": 0.0,
+      "classification": 0.0022,
+      "info_extraction": 0.0079,
+      "missing_info": 0.0004,
+      "legislation": 0.002,
+      "triage": 0.0001,
+      "summarization": 0.0011,
+      "anonimlestirme": 0.0009,
+      "draft_writer": 0.0011,
+      "routing": 0.0044,
       "user_info": 0.0
     }
   },
