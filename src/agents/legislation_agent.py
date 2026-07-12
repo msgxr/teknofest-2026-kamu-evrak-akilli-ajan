@@ -216,7 +216,8 @@ ZAYIF_ESLESME_ESIGI = 0.5
 # sorgu söz dağarcığı korpusla GERÇEKTEN örtüşmediğinde (ör. korpus dışı
 # terminoloji, bozuk OCR çıktısı) devreye giren güvenlik ağıdır. Eşik
 # geliştirme seti gözlemiyle kalibre edilmiştir (held-out kullanılmadı):
-# 35 geliştirme evrakında ilk-en-iyi benzerlik min 0.107 / medyan 0.245
+# 35 evraklık ilk geliştirme setinde (52'ye genişletme öncesi kalibrasyon)
+# ilk-en-iyi benzerlik min 0.107 / medyan 0.245
 # ölçülmüş; tetik 0.5'te döngü 33/35 evrakta ateşlenip usul terimleriyle
 # alan mevzuatını ilk üçten itebildiğinden isabet@3 0.943→0.914 düşmüş,
 # 0.15'te ise isabet 0.943'te kalarak döngü yalnızca 2 sınır evrakta

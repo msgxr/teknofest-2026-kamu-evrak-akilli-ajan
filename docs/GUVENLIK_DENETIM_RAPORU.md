@@ -81,7 +81,7 @@ gözden geçirildikten sonra **public'e çıkışa hazırdır**.
 ## 2. Tehdit Modeli
 
 Sistem güvenilmeyen girdi işler: kullanıcının yüklediği/yapıştırdığı evrak
-ayrıştırma → 9 ajan → LLM (opsiyonel) → taslak/yönlendirme akışına girer.
+ayrıştırma → 11 ajan → LLM (opsiyonel) → taslak/yönlendirme akışına girer.
 Başlıca tehdit aktörleri:
 
 1. **Kötü niyetli evrak yükleyen kullanıcı** — (a) ayrıştırıcıyı DoS'a sokan özel

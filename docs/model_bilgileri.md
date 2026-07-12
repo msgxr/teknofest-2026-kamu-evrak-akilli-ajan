@@ -51,8 +51,14 @@ Güvenli yükleme ilkeleri:
 > **Not (ChromaDB gömme modeli):** ChromaDB araması hibritleşmeyle birlikte
 > YEDEK yoldur: yalnızca BM25 indeksi kurulamadığında (`chromadb` kuruluysa)
 > denenir. Bu yolda `LegislationAgent` koleksiyona açık bir embedding fonksiyonu
-> geçirmez; ChromaDB **kendi varsayılan modelini** (`all-MiniLM-L6-v2`,
-> ONNX) ilk kullanımda ağdan indirir. Yukarıda belgelenen
+> geçirmez; ChromaDB **kendi varsayılan gömme modelini** ilk kullanımda ağdan
+> indirir — üçüncü taraf model olarak şartname m.7 gereği belgelenmiştir:
+>   - **Model:** `all-MiniLM-L6-v2` (ChromaDB varsayılanı, ONNX quantize)
+>   - **Erişim:** https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+>   - **Sürüm:** ChromaDB `ONNXMiniLM_L6_V2` gömülü varsayılanı (`chromadb>=0.5.0`)
+>   - **Lisans:** Apache 2.0 (model kartı `license` alanından doğrulandı)
+>
+> Yukarıda belgelenen
 > `paraphrase-multilingual-MiniLM-L12-v2` yalnızca `EMBEDDING_MODEL_NAME` ile açık
 > bir embedding fonksiyonu tanımlanırsa kullanılır. Her iki modelin de indirilmesi
 > başarısız olursa sistem BM25'e düşer ve tam işlevli kalır.

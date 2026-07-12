@@ -4,7 +4,7 @@
 > üretilmiştir; tüm sayılar `data/processed/benchmark_raporu.json`
 > dosyasındaki değerlerle birebir aynıdır.
 >
-> Ölçüm tarihi: 2026-07-11T12:57:40 · LLM backend: `offline`
+> Ölçüm tarihi: 2026-07-12T12:59:48 · LLM backend: `offline`
 > (kural-tabanlı/offline mod)
 
 ## 1. Amaç
@@ -22,8 +22,8 @@ adım bazında süre dağılımı, tepe bellek ve soğuk başlangıç süresi.
 | Çekirdek sayısı | 8 (ölçüm **tek süreç/tek çekirdek** üzerinde) |
 | Python | 3.9.6 |
 | LLM backend | `offline` — ölçüm kural-tabanlı mod içindir |
-| Evrak kümesi | 67 evrak (`data/raw/kurgu_evraklar`, `data/raw/kurgu_evraklar_heldout`, `data/raw/kurgu_evraklar_heldout_v2`) |
-| Tekrar sayısı | 3 (her evrak 3 kez işlendi) |
+| Evrak kümesi | 84 evrak (`data/raw/kurgu_evraklar`, `data/raw/kurgu_evraklar_heldout`, `data/raw/kurgu_evraklar_heldout_v2`) |
+| Tekrar sayısı | 5 (her evrak 5 kez işlendi) |
 
 Yöntem (ayrıntı: `scripts/benchmark.py` modül docstring'i):
 
@@ -46,70 +46,70 @@ Yöntem (ayrıntı: `scripts/benchmark.py` modül docstring'i):
 
 | Metrik | Değer |
 |---|---|
-| Soğuk başlangıç (pipeline kurulumu) | 0.02 sn |
-| Isınma (ilk evrak) | 0.042 sn |
-| **Throughput** | **91.8 evrak/sn** (201 evrak / 2.188 sn) |
-| Gecikme — ortalama | 10.89 ms |
-| Gecikme — medyan | 10.67 ms |
-| Gecikme — p95 | 14.08 ms |
-| Gecikme — p99 | 15.27 ms |
-| Gecikme — min–maks | 6.62–16.46 ms |
-| Tepe bellek (tracemalloc) | 0.2 MB |
+| Soğuk başlangıç (pipeline kurulumu) | 0.018 sn |
+| Isınma (ilk evrak) | 0.038 sn |
+| **Throughput** | **88.1 evrak/sn** (420 evrak / 4.77 sn) |
+| Gecikme — ortalama | 11.36 ms |
+| Gecikme — medyan | 11.28 ms |
+| Gecikme — p95 | 14.19 ms |
+| Gecikme — p99 | 15.73 ms |
+| Gecikme — min–maks | 7.02–16.92 ms |
+| Tepe bellek (tracemalloc) | 0.21 MB |
 
 ### 3.2 Adım bazında ortalama süre
 
 | Agent | Çalışma sayısı | Ortalama (ms) | Pay (%) |
 |---|---|---|---|
-| ocr | 201 | 0.0 | 0.0 |
-| classification | 201 | 1.81 | 19.0 |
-| info_extraction | 201 | 1.75 | 18.3 |
-| missing_info | 201 | 0.13 | 1.4 |
-| legislation | 201 | 1.03 | 10.8 |
-| triage | 201 | 0.03 | 0.3 |
-| summarization | 201 | 0.97 | 10.2 |
-| anonimlestirme | 201 | 0.67 | 7.0 |
-| draft_writer | 201 | 0.01 | 0.2 |
-| routing | 201 | 3.15 | 33.0 |
-| user_info | 201 | 0.0 | 0.0 |
+| ocr | 420 | 0.0 | 0.0 |
+| classification | 420 | 1.8 | 17.0 |
+| info_extraction | 420 | 1.73 | 16.4 |
+| missing_info | 420 | 0.09 | 0.9 |
+| legislation | 420 | 1.23 | 11.7 |
+| triage | 420 | 0.02 | 0.2 |
+| summarization | 420 | 1.0 | 9.4 |
+| anonimlestirme | 420 | 0.71 | 6.7 |
+| draft_writer | 420 | 0.92 | 8.7 |
+| routing | 420 | 3.09 | 29.1 |
+| user_info | 420 | 0.0 | 0.0 |
 
 ### 3.3 Ölçekleme testi (bellek içi çoğaltma)
 
 | Ölçek | Evrak | Toplam (sn) | Evrak başına (ms) | Doğrusallık oranı |
 |---|---|---|---|---|
-| 1x | 67 | 0.72 | 10.75 | 1.0 |
-| 5x | 335 | 3.616 | 10.79 | 1.0 |
-| 10x | 670 | 7.216 | 10.77 | 1.0 |
+| 1x | 84 | 0.945 | 11.25 | 1.0 |
+| 5x | 420 | 4.719 | 11.24 | 1.0 |
+| 10x | 840 | 9.457 | 11.26 | 1.0 |
 
 ## 4. Yorum
 
 - **Gerçek zamana yakın çalışma iddiası ölçümle doğrulanmıştır:** evrak
-  başına p99 gecikme 15.27 ms'dir; yani en yavaş yüzde birlik dilimde bile
+  başına p99 gecikme 15.73 ms'dir; yani en yavaş yüzde birlik dilimde bile
   bir evrağın uçtan uca işlenmesi (sınıflandırma + bilgi çıkarımı + eksik
   bilgi + mevzuat + özet + KVKK nüshası + taslak + yönlendirme) saniyenin
   altıda birinden kısadır. Demo/arayüz kullanımında yanıt anlıktır.
-- **Kurumsal hacim projeksiyonu (ölçülen 91.8 evrak/sn üzerinden):**
+- **Kurumsal hacim projeksiyonu (ölçülen 88.1 evrak/sn üzerinden):**
   tek çekirdekte günde 500 evrak alan orta ölçekli bir il müdürlüğünün
-  tüm günlük hacmi ~5.4 saniyede, günde 2.000 evrak alan büyük bir
-  kurumun hacmi ~22 saniyede (< 1 dakika) işlenir. Saatlik kapasite
-  ~330.000 evraktır; Türkiye ölçeğinde merkezî bir evrak akışı için bile
+  tüm günlük hacmi ~5.7 saniyede, günde 2.000 evrak alan büyük bir
+  kurumun hacmi ~23 saniyede (< 1 dakika) işlenir. Saatlik kapasite
+  ~317.000 evraktır; Türkiye ölçeğinde merkezî bir evrak akışı için bile
   tek makine yeterlidir.
 - **Doğrusal ölçeklenme:** 1x→10x yük artışında evrak başına süre
-  10.75→10.77 ms ile sabit kalmıştır (doğrusallık oranı 1.0). Pipeline
+  11.25→11.26 ms ile sabit kalmıştır (doğrusallık oranı 1.0). Pipeline
   evrak başına durum biriktirmez (her işlemde `AgentState` sıfırlanır);
   bu, uzun süre çalışan bir servis örneğinde performans erimesi
   olmayacağının kanıtıdır.
 - **Yatay ölçeklenme potansiyeli:** işleme evrak başına bağımsız
   (durumsuz) olduğundan süreç sayısıyla çarpılabilir; ölçüm yapılan 8
-  çekirdekli makinede süreç başına ~92 evrak/sn taban değeri, çok
+  çekirdekli makinede süreç başına ~88 evrak/sn taban değeri, çok
   süreçli dağıtımda kabaca çekirdek sayısıyla ölçeklenebilir bir üst
   sınır tanımlar (bu rapor tek süreç değerini taahhüt eder).
 - **Darboğaz analizi:** en maliyetli adım yönlendirmedir (routing,
-  ortalama 3.15 ms, toplam sürenin %33'ü); onu sınıflandırma (%19) ve
-  bilgi çıkarımı (%18.3) izler. Olası bir optimizasyon bu üç regex/sözlük
+  ortalama 3.09 ms, toplam sürenin %29.1'i); onu sınıflandırma (%17.0) ve
+  bilgi çıkarımı (%16.4) izler. Olası bir optimizasyon bu üç regex/sözlük
   yoğun adıma odaklanmalıdır — ancak mevcut mutlak değerler zaten
   milisaniye mertebesinde olduğundan optimizasyon gerekliliği yoktur.
-- **Kaynak ayak izi:** tepe Python tahsisi 0.2 MB, pipeline kurulumu
-  0.02 sn'dir; sistem düşük donanımlı kurum bilgisayarlarında ve
+- **Kaynak ayak izi:** tepe Python tahsisi 0.21 MB, pipeline kurulumu
+  0.018 sn'dir; sistem düşük donanımlı kurum bilgisayarlarında ve
   soğuk başlatılan sunucusuz (serverless) ortamlarda dahi çalıştırılabilir.
 
 ## 5. Sınırlılıklar
@@ -118,7 +118,7 @@ Yöntem (ayrıntı: `scripts/benchmark.py` modül docstring'i):
    (Darwin/arm64, Python 3.9) tek süreçte ölçülmüştür; farklı
    donanımda mutlak değerler değişir (göreli dağılım ve doğrusallık
    bulgusu taşınabilir).
-2. **Sentetik evrak uzunlukları:** değerlendirme setindeki 67 kurgu
+2. **Sentetik evrak uzunlukları:** değerlendirme setindeki 84 kurgu
    evrak 1–2.3 KB (ortalama ~1.8 KB) düz metindir. Gerçek hayattaki çok
    sayfalı taranmış PDF'lerde görüntü OCR'ı (Tesseract vb.) baskın
    maliyet olur; bu ölçümde OCR adımı düz metin okuduğu için ~0 ms
@@ -137,7 +137,7 @@ Yöntem (ayrıntı: `scripts/benchmark.py` modül docstring'i):
 ## 6. Yeniden Üretim
 
 ```bash
-python3 scripts/benchmark.py --tekrar 3
+python3 scripts/benchmark.py --tekrar 5
 # Çıktılar: konsol tabloları + data/processed/benchmark_raporu.json
 python3 -m pytest tests/test_benchmark.py -q   # metrik fonksiyonlarının birim testleri
 ```

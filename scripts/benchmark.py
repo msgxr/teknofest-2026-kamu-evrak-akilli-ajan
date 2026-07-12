@@ -66,7 +66,7 @@ if str(PROJE_KOKU) not in sys.path:
 logger = logging.getLogger("kamu_evrak_ajan.benchmark")
 
 # Değerlendirme setleri: sabit sırada işlenir (deterministik ölçüm).
-# 35 (geliştirme) + 16 (held-out) + 16 (held-out v2) = 67 evrak.
+# 52 (geliştirme) + 16 (held-out) + 16 (held-out v2) = 84 evrak.
 SET_DIZINLERI = [
     PROJE_KOKU / "data" / "raw" / "kurgu_evraklar",
     PROJE_KOKU / "data" / "raw" / "kurgu_evraklar_heldout",

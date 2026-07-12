@@ -150,7 +150,7 @@ python3 scripts/evaluate.py \
 ### 4. İşlenmiş Veriler (`processed/`)
 - Ham verilerin temizlenmiş ve yapılandırılmış halleri
 - Sınıflandırma etiketleri ve metadata
-- Değerlendirme raporları: `eval_report.json` (geliştirme seti), `eval_report_heldout.json` (held-out set), `eval_report_heldout_v2.json` (yeni tutulmuş set v2)
+- Değerlendirme raporları: `eval_report.json` (geliştirme seti), `eval_report_heldout.json` (held-out set), `eval_report_heldout_v2.json` (tutulmuş set v2), `eval_report_heldout_v3.json` (adversarial tutulmuş set v3)
 
 ## Kullanım Hakları
 

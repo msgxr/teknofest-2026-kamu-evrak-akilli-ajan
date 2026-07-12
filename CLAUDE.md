@@ -7,7 +7,7 @@ anayasasıdır. Anthropic'in Anayasal Yapay Zekâ (Constitutional AI) yaklaşım
 ## Proje Kimliği
 
 TEKNOFEST 2026 Yapay Zeka Dil Ajanları Yarışması — 1. Senaryo: "Kamu Evrak ve Yazışma
-Süreçleri için Akıllı Agent Destek Sistemi". 9 uzman ajan + orkestratör (saf Python,
+Süreçleri için Akıllı Agent Destek Sistemi". 11 uzman ajan + orkestratör (saf Python,
 framework'süz), offline-first hibrit mimari (kural tabanlı + isteğe bağlı LLM).
 Kritik tarihler: ön değerlendirme sunumu **12 Temmuz 2026**, final **Ağustos 2026**.
 
@@ -49,7 +49,7 @@ python scripts/build_presentation.py                 # sunum PPTX üretimi
 
 | Dizin / Dosya | Sorumluluk |
 |---|---|
-| `src/agents/` | 9 ajan (ocr, classification, info_extraction, missing_info, legislation, summarization, draft_writer, routing, user_info) + `orchestrator.py` (koşullu akış, 3 kapı: okunabilirlik / dil / düşük güven) |
+| `src/agents/` | 11 ajan (ocr, classification, info_extraction, missing_info, legislation, summarization, draft_writer, routing, user_info, triage [önceliklendirme/aciliyet+yasal süre], anonimlestirme [KVKK maskeleme]) + `orchestrator.py` (koşullu akış, 3 kapı: okunabilirlik / dil / düşük güven) |
 | `src/models/llm_wrapper.py` | Model-agnostik LLM katmanı (stdlib urllib; OpenAI-uyumlu / Ollama / offline otomatik tespit) |
 | `src/utils/bm25.py` | Saf Python BM25-Okapi (mevzuat RAG) |
 | `src/templates/` | 5 resmi yazı şablonu |

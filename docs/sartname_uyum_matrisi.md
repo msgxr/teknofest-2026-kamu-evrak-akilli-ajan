@@ -34,8 +34,8 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 | Süreli evrakın önceliklendirilmesi — aciliyet damgaları ve yasal cevap sürelerinden son işlem tarihi (yenilik, m. 9) | `src/agents/triage_agent.py` (İVEDİ/GÜNLÜDÜR damgaları + metin içi süre kayıtları + 4982/3071/2577/CİMER yasal süre tablosu) + `tests/test_triage.py` | ✅ |
 | Kişisel verilerden arındırılmış paylaşım/arşiv nüshası — KVKK md. 4 ve md. 8 (yenilik, m. 9) | `src/agents/anonimlestirme_agent.py` (checksum doğrulamalı TCKN, telefon, e-posta, IBAN, kişi adı, adres için format koruyan maskeleme) + `tests/test_anonimlestirme.py` | ✅ |
 | Model eğitimi zorunlu değil; hazır/açık kaynak model kullanımı | `src/models/llm_wrapper.py` (OpenAI-uyumlu / Ollama / offline otomatik tespit; eğitim yok) | ✅ |
-| Performans ölçümü (sınıflandırma, yönlendirme, özet, eksik bilgi) | `scripts/evaluate.py` + `data/processed/eval_report*.json` (3 set: geliştirme, tutulmuş, tutulmuş v2) | ✅ |
-| Gerçek zamana yakın sonuç üretimi | `docs/teknik_rapor.md` §5 — evrak başına medyan ~0,02 sn; arayüzde adım adım süre tablosu | ✅ |
+| Performans ölçümü (sınıflandırma, yönlendirme, özet, eksik bilgi) | `scripts/evaluate.py` + `data/processed/eval_report*.json` (4 set: geliştirme, tutulmuş, tutulmuş v2, adversarial v3) | ✅ |
+| Gerçek zamana yakın sonuç üretimi | `docs/teknik_rapor.md` §5 — evrak başına medyan ~0,012 sn; arayüzde adım adım süre tablosu | ✅ |
 
 ## Yenilik Modülleri (m. 9 Yenilikçilik)
 

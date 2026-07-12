@@ -1,5 +1,5 @@
 {
-  "zaman_damgasi": "2026-07-12T12:58:53",
+  "zaman_damgasi": "2026-07-12T14:31:54",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v2",
   "set_adi": "kurgu_evraklar_heldout_v2",
   "llm": {
@@ -249,11 +249,11 @@
     }
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0175,
-    "evrak_basina_medyan_sure_saniye": 0.0125,
+    "evrak_basina_ortalama_sure_saniye": 0.0173,
+    "evrak_basina_medyan_sure_saniye": 0.012,
     "adim_bazinda_ortalama_sure_saniye": {
       "ocr": 0.0001,
-      "classification": 0.0064,
+      "classification": 0.0062,
       "info_extraction": 0.0019,
       "missing_info": 0.0003,
       "legislation": 0.0018,
@@ -261,7 +261,7 @@
       "summarization": 0.0011,
       "anonimlestirme": 0.0008,
       "draft_writer": 0.0011,
-      "routing": 0.0041,
+      "routing": 0.004,
       "user_info": 0.0
     }
   },
