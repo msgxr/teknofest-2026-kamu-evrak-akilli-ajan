@@ -1,10 +1,12 @@
 # ============================================================
 # Teknofest 2026 — Kamu Evrak Akıllı Ajan Sistemi
-# Çekirdek bağımlılıklar (sistem bunlarla TAM çalışır)
+# Çekirdek bağımlılıklar: metin (TXT) ve metin-katmanlı PDF girişiyle sistem
+# TAM çalışır (11 ajan, hibrit RAG, taslak, yönlendirme, KVKK — LLM'siz).
 #
-# Not: LLM çağrıları stdlib (urllib) ile yapılır; OpenAI SDK,
-# LangChain, torch vb. ÇEKİRDEK için gerekli değildir.
-# Opsiyonel yetenekler için: pip install -r requirements-optional.txt
+# Not: LLM çağrıları stdlib (urllib) ile yapılır; OpenAI SDK, LangChain, torch
+# vb. ÇEKİRDEK için gerekli değildir. TARANMIŞ PDF / GÖRÜNTÜ (OCR) girişi ve
+# semantik arama OPSİYONELDİR: pip install -r requirements-optional.txt
+# (+ görüntü OCR için sistemde Tesseract kurulumu; bkz. docs/model_bilgileri.md).
 # ============================================================
 
 # --- Temel ---

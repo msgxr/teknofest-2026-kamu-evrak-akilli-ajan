@@ -84,6 +84,60 @@ class TestAnonimlestirmeAgent:
         assert "TR** **** **** **** **** **13 26" in result.anonymized_text
         assert result.anonymization_report["maskelenen"]["iban"] == 1
 
+    def test_dogum_tarihi_maskeleme(self):
+        """'Doğum Tarihi' etiketli tarih maskelenmeli; etiket korunmalı."""
+        state = SahteState(raw_text="Doğum Tarihi : 12.01.1990")
+        result = self.agent.run(state)
+        assert "12.01.1990" not in result.anonymized_text
+        assert "Doğum Tarihi" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["dogum_tarihi"] == 1
+
+    def test_olagan_evrak_tarihi_maskelenmez(self):
+        """Etiketsiz evrak/yazı tarihi maskelenmemeli (aşırı maskeleme yok)."""
+        state = SahteState(raw_text="Tarih : 12.01.1990\nToplantı 15.03.2026 tarihinde yapılacaktır.")
+        result = self.agent.run(state)
+        assert "12.01.1990" in result.anonymized_text
+        assert "15.03.2026" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["dogum_tarihi"] == 0
+
+    def test_sicil_no_maskeleme(self):
+        """'Sicil No' etiketli sicil numarası maskelenmeli (ilk hane açık)."""
+        state = SahteState(raw_text="Sicil No : 123456")
+        result = self.agent.run(state)
+        assert "123456" not in result.anonymized_text
+        assert "1*****" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["sicil_no"] == 1
+
+    def test_evrak_karar_no_maskelenmez(self):
+        """Esas/Karar/Evrak numaraları sicil değildir; maskelenmemeli."""
+        state = SahteState(raw_text="Karar No : 2026/145\nEsas No : 2026/98")
+        result = self.agent.run(state)
+        assert "2026/145" in result.anonymized_text
+        assert "2026/98" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["sicil_no"] == 0
+
+    def test_dogum_tarihi_tire_ve_iso_maskeleme(self):
+        """Tire ayraçlı ve ISO biçimli doğum tarihleri de maskelenmeli."""
+        for metin in ("Doğum Tarihi : 12-01-1990", "Doğum Tarihi: 1990-01-12"):
+            result = self.agent.run(SahteState(raw_text=metin))
+            assert "1990" not in result.anonymized_text, metin
+            assert result.anonymization_report["maskelenen"]["dogum_tarihi"] == 1, metin
+
+    def test_ayracli_sicil_kuyrugu_sizmaz(self):
+        """Boşluk/tire ayraçlı sicilde ilk hane hariç TÜM haneler maskelenmeli."""
+        result = self.agent.run(SahteState(raw_text="Sicil No : 123 456"))
+        # Son blok '456' açıkta kalmamalı
+        assert "456" not in result.anonymized_text
+        assert "1** ***" in result.anonymized_text
+        assert result.anonymization_report["maskelenen"]["sicil_no"] == 1
+
+    def test_tuzel_kisi_sicili_maskelenmez(self):
+        """Ticaret/Vergi/Tapu sicili tüzel kişi verisidir; maskelenmemeli (KVKK)."""
+        for metin in ("Ticaret Sicil No : 1234567", "Vergi Sicil No: 9876543210"):
+            result = self.agent.run(SahteState(raw_text=metin))
+            assert "1234567" in result.anonymized_text or "9876543210" in result.anonymized_text
+            assert result.anonymization_report["maskelenen"]["sicil_no"] == 0, metin
+
     # ------------------------------------------------------------------
     # Kişi adları
     # ------------------------------------------------------------------
@@ -344,6 +398,7 @@ class TestAnonimlestirmeAgent:
         assert set(rapor.keys()) == {"maskelenen", "toplam", "yontem"}
         assert set(rapor["maskelenen"].keys()) == {
             "tc_kimlik", "telefon", "eposta", "iban", "kisi_adi", "adres", "plaka",
+            "dogum_tarihi", "sicil_no",
         }
         assert rapor["toplam"] == sum(rapor["maskelenen"].values())
 

@@ -97,6 +97,42 @@ _ADRES_DESENI = re.compile(
     r"[^\n]*?\bNo\s*[:.]?\s*[\dA-Za-z/\-]+"
 )
 
+# Doğum tarihi: yalnızca "Doğum Tarihi/Yeri ve Tarihi" etiketinin ARDINDAKİ
+# tarih maskelenir; etiket korunur. Bağlam koşulu, evraktaki olağan
+# tarihlerin (yazı tarihi, toplantı tarihi) yanlışlıkla maskelenmesini
+# önler. Doğum tarihi tek başına bir kişiyi büyük olasılıkla belirleyen
+# özel nitelikli olmayan ama hassas bir kişisel veridir (KVKK md. 4).
+_AY_ADLARI = (
+    r"Ocak|Şubat|Mart|Nisan|Mayıs|Haziran|Temmuz|Ağustos|Eylül|Ekim|"
+    r"Kasım|Aralık"
+)
+_DOGUM_TARIHI_DESENI = re.compile(
+    r"(Doğum\s*(?:Yeri\s*(?:ve|/)\s*)?Tarihi\s*[:.\-]?\s*)"
+    r"(\d{1,2}[./-]\d{1,2}[./-]\d{2,4}"                 # gg.aa.yyyy / gg-aa-yyyy
+    r"|\d{4}[./-]\d{1,2}[./-]\d{1,2}"                   # ISO: yyyy-aa-gg
+    r"|\d{1,2}\s+(?:" + _AY_ADLARI + r")\s+\d{2,4})",   # 12 Ocak 1990 / 90
+    re.IGNORECASE,
+)
+
+# Sicil numarası: personel sicil/memur numarası kişiyi kurum kayıtlarında
+# tekil belirleyen bir tanımlayıcıdır. Yalnızca "Sicil No/Numarası"
+# etiketiyle etiketli sayı maskelenir; esas/karar/evrak numaraları
+# (farklı etiketler) etkilenmez. Sayının içindeki ayraç/boşluk da kapsanır
+# (ör. "123 456" tam maskelensin, kuyruk sızmasın).
+_SICIL_DESENI = re.compile(
+    r"(?P<onek>\w+)?[ \t]*"
+    r"(?P<etiket>Sicil\s*(?:No|Numarası|Nu|Nr)?\s*[:.\-]?[ \t]*)"
+    r"(?P<deger>\d(?:[\d \t.\-]*\d)?)",
+    re.IGNORECASE,
+)
+
+# Tüzel kişi / mülk sicilleri (Ticaret, Vergi, Tapu, Emlak, Oda, Esnaf,
+# Ticari) kişisel veri DEĞİLDİR (KVKK yalnızca gerçek kişileri korur; tüzel
+# kişi verisi maskelenmez). "Sicil" öncesindeki bu önekler maskelemeyi durdurur.
+_TUZEL_SICIL_ONEKLERI = frozenset({
+    "ticaret", "ticari", "ticarî", "vergi", "tapu", "emlak", "oda", "esnaf",
+})
+
 # Kişi adı kaynakları (extracted_info boşken bağımsız çalışma için):
 # "Ad Soyad :" alan satırları, "Sayın Ad Soyad" hitapları, numaralı
 # katılımcı listeleri ("1. Yakup SARAÇ - Üye") ve imza satırları
@@ -334,6 +370,33 @@ def _iban_maskesi(iban: str) -> str:
     return "".join(sonuc)
 
 
+def _tarih_maskesi(tarih: str) -> str:
+    """Tarihteki alfasayısal karakterleri yıldızlar, ayraçları korur.
+
+    '12.01.1990' → '**.**.****'; '12 Ocak 1990' → '** **** ****'.
+    """
+    return re.sub(r"\w", "*", tarih)
+
+
+def _sicil_maskesi(numara: str) -> str:
+    """İlk hane açık, kalan TÜM haneler yıldız; ayraç/boşluk düzeni korunur.
+
+    '123456' → '1*****'; '123 456' → '1** ***' (kuyruk sızmaz).
+    """
+    ilk = True
+    sonuc = []
+    for karakter in numara:
+        if karakter.isdigit():
+            if ilk:
+                sonuc.append(karakter)
+                ilk = False
+            else:
+                sonuc.append("*")
+        else:
+            sonuc.append(karakter)
+    return "".join(sonuc)
+
+
 def _kisi_adi_maskesi(ad: str) -> str:
     """
     Her ad/soyad sözcüğünün baş harfi açık: 'Elif KOÇAK' → 'E*** K***'.
@@ -383,6 +446,8 @@ class AnonimlestirmeAgent:
             "kisi_adi": 0,
             "adres": 0,
             "plaka": 0,
+            "dogum_tarihi": 0,
+            "sicil_no": 0,
         }
 
         # Sıra önemlidir: IBAN önce maskelenir ki içindeki hane grupları
@@ -392,6 +457,8 @@ class AnonimlestirmeAgent:
         metin, sayaclar["tc_kimlik"] = self._tc_maskele(metin)
         metin, sayaclar["telefon"] = self._telefon_maskele(metin)
         metin, sayaclar["plaka"] = self._plaka_maskele(metin)
+        metin, sayaclar["dogum_tarihi"] = self._dogum_tarihi_maskele(metin)
+        metin, sayaclar["sicil_no"] = self._sicil_maskele(metin)
         metin, sayaclar["eposta"] = self._eposta_maskele(metin)
         metin, sayaclar["adres"] = self._adres_maskele(metin)
         metin, sayaclar["kisi_adi"] = self._kisi_adlarini_maskele(metin, extracted)
@@ -462,6 +529,36 @@ class AnonimlestirmeAgent:
             return "** *** **"
 
         return self._PLAKA_DESENI.sub(degistir, metin), adet
+
+    def _dogum_tarihi_maskele(self, metin: str) -> "tuple[str, int]":
+        """'Doğum Tarihi' etiketli tarihi maskeler; etiket korunur."""
+        adet = 0
+
+        def degistir(m: "re.Match") -> str:
+            nonlocal adet
+            adet += 1
+            return m.group(1) + _tarih_maskesi(m.group(2))
+
+        return _DOGUM_TARIHI_DESENI.sub(degistir, metin), adet
+
+    def _sicil_maskele(self, metin: str) -> "tuple[str, int]":
+        """'Sicil No/Numarası' etiketli personel sicil numarasını maskeler.
+
+        Tüzel kişi / mülk sicilleri (Ticaret, Vergi, Tapu, Emlak ...) kişisel
+        veri olmadığından maskelenmez (önekle ayırt edilir).
+        """
+        adet = 0
+
+        def degistir(m: "re.Match") -> str:
+            nonlocal adet
+            onek = m.group("onek")
+            if onek and turkish_lower(onek) in _TUZEL_SICIL_ONEKLERI:
+                return m.group(0)  # tüzel kişi sicili — maskelenmez
+            adet += 1
+            onek_str = f"{onek} " if onek else ""
+            return onek_str + m.group("etiket") + _sicil_maskesi(m.group("deger"))
+
+        return _SICIL_DESENI.sub(degistir, metin), adet
 
     def _eposta_maskele(self, metin: str) -> "tuple[str, int]":
         """E-posta adreslerini maskeler (alan adı açık kalır)."""

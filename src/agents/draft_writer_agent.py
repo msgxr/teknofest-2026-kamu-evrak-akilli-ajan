@@ -208,6 +208,15 @@ _DAGITIM_SATIRI = re.compile(r"^\s*(?:Gereği|Bilgi)\s*:\s*(.+)$", re.IGNORECASE
 # Gelen evrakta ek beyanı ("Ek :", "Ekler :", "Ek-1", "EKLER:") tespiti
 _EK_BEYANI = re.compile(r"(?mi)^\s*ek(?:ler)?\s*(?:-?\s*\d+\s*)?:")
 
+# Cevap yazısı muhatabı için dağıtım/broadcast placeholder'ları: bunlar
+# tek bir gönderene yönlendirilemez (gelen evrak birden çok yere dağıtılmış
+# ya da genel makam hitabı taşıyor); bu durumda muhatap düzeltmesi
+# uygulanmaz, mevcut davranış korunur.
+_DAGITIM_MUHATAP_ISARETLERI = (
+    "DAĞITIM", "İLGİLİ MAKAM", "İLGİLİLER", "TÜM BİRİM", "İLGİLİ BİRİM",
+    "İLGİLİ YER",
+)
+
 # ----------------------------------------------------------------------
 # Madde-referanslı format denetimi sabitleri (P0-2)
 #
@@ -532,6 +541,19 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
             birim_adi = "Yazı İşleri Müdürlüğü"
         konu = self._resolve_konu(yazi_turu, extracted, state)
         muhatap = self._resolve_muhatap(yazi_turu, evrak_turu, extracted, state.raw_text)
+
+        # Cevap yazısında (dilekçe hariç) muhatap, gelen evrakın GÖNDERENİdir
+        # (antetteki üst kurum) — gelen evrakın alıcısı (=biz) değil. Antet
+        # birimi de bizim (gelen muhatap) birimimizle güncellenir; böylece
+        # "kendine yazışma" oluşmaz. Broadcast/dağıtım muhataplarında ve
+        # gönderen belirlenemeyen durumlarda mevcut davranış korunur.
+        if yazi_turu == "cevap_yazisi" and evrak_turu != "dilekce":
+            duzeltme = self._cevap_gonderen_alici(extracted, state.raw_text, kurum_adi)
+            if duzeltme:
+                muhatap, birim_yeni = duzeltme
+                if birim_yeni:
+                    birim_adi = birim_yeni
+
         ilgi = self._resolve_ilgi(evrak_turu, extracted, state.raw_text)
         metin = self._build_body(yazi_turu, evrak_turu, konu, state)
         kapanis = self._resolve_kapanis(yazi_turu, evrak_turu, muhatap, kurum_adi)
@@ -912,6 +934,100 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
                 return muhatap_upper
             return f"{muhatap_upper} MAKAMINA"
         return "GENEL MÜDÜRLÜK MAKAMINA"
+
+    def _cevap_gonderen_alici(
+        self, extracted: dict, raw_text: str, gonderen_kurum: str
+    ) -> "Optional[tuple]":
+        """
+        Cevap yazısında (dilekçe hariç) muhatabı ve antet birimini düzeltir.
+
+        Gelen kurumsal evrakın anteti GÖNDERENİ, muhatabı ise ALICIYI (=biz)
+        gösterir. Cevap yazarken muhatap GÖNDEREN, antet birimi ise ALICI
+        (biz) olmalıdır; aksi hâlde sistem cevabı gelen evrakın alıcısına
+        (yani kendine) hitaben yazar. Aşağıdaki durumlarda None döner ve
+        mevcut davranış korunur (yanlış düzeltmeden kaçınılır):
+          - gelen muhatap boş ya da dağıtım/broadcast ifadesi ("DAĞITIM
+            YERLERİNE", "İLGİLİ MAKAMA" ...): tek gönderene yönlendirilemez;
+          - gönderen (antet üst kurumu) belirlenememiş;
+          - gönderen ile gelen muhatap aynı çıkıyor (kendi kendine yazışma).
+
+        Returns:
+            (muhatap, birim_adi) ikilisi ya da None.
+        """
+        gelen_muhatap = _tr_upper(self._clean_org(extracted.get("muhatap") or ""))
+        if not gelen_muhatap:
+            return None
+        if any(im in gelen_muhatap for im in _DAGITIM_MUHATAP_ISARETLERI):
+            return None
+        # Gönderen = gelen evrakın antet (letterhead) makamı. Cevap, evrakı
+        # GÖNDEREN BİRİME yönlendirilir (üst kuruma değil): kurum-içi
+        # yazışmada (ör. Fen İşleri Müdürlüğü → bizim Mali Hizmetler
+        # Müdürlüğü) muhatap "üst kurum" olursa antet kurumuyla çakışıp
+        # "kendine yazışma" görünümü doğar. Bu yüzden letterhead'deki, bizim
+        # (gelen muhatap) birimimizden FARKLI ilk birim adayı gönderen
+        # sayılır; birim yoksa üst kuruma düşülür.
+        adaylar = self._antet_adaylari(extracted, raw_text)
+        alici_birim = _tr_upper(self._hitaptan_birim(gelen_muhatap))
+        gonderen = ""
+        for aday in adaylar:
+            birim_aday = _KURUM_SOYMA_DESENI.sub("", aday).strip()
+            if (
+                birim_aday
+                and any(birim_aday.endswith(ek) for ek in _BIRIM_EKLERI)
+                and _tr_upper(birim_aday) != alici_birim
+            ):
+                gonderen = birim_aday
+                break
+        if not gonderen:
+            gonderen = (adaylar[0] if adaylar else gonderen_kurum) or ""
+        if not gonderen:
+            return None
+        gonderen_upper = _tr_upper(gonderen)
+        # Kendi kendine yazışma önleme: gönderen antet kurumuyla aynıysa
+        # (ör. gönderen birimi ayırt edilemeyen kurumlar-arası yazışma) ya da
+        # gelen muhatabın içinde geçiyorsa düzeltme uygulanmaz (mevcut,
+        # geçerli muhatap korunur — jenerik/çakışan hitap üretilmez).
+        if (
+            gonderen_upper == _tr_upper(gonderen_kurum)
+            or gonderen_upper in gelen_muhatap
+            or gelen_muhatap.startswith(gonderen_upper)
+        ):
+            return None
+        muhatap = self._yonelme_hali(gonderen)
+        if not muhatap:
+            return None
+        # Üretilen muhatap TANINAN bir kurumsal hitap değilse (gönderen
+        # güvenle çıkarılamamış, jenerik fallback'e düşülmüş — ör. antet
+        # letterhead'i çıkarıma girmemiş) düzeltme UYGULANMAZ; mevcut ve
+        # geçerli olan muhatap korunur. Bu denetim, format-geçerli bir hitap
+        # üretilemediğinde regresyonu (geçersiz "...MÜDÜRLÜKE" gibi) önler.
+        if not (_HITAP_SONU.search(_tr_upper(muhatap)) or "MAKAM" in _tr_upper(muhatap)):
+            return None
+        # Antet birimi: gelen muhataptan (=biz) yalın birim adı türetilir;
+        # birim eki taşımıyorsa (ör. genel makam hitabı) birim değiştirilmez.
+        birim = self._hitaptan_birim(gelen_muhatap)
+        return muhatap, birim
+
+    @staticmethod
+    def _hitaptan_birim(hitap: str) -> str:
+        """
+        Yönelme hâlindeki birim hitabından yalın birim adını türetir.
+
+        "... MÜDÜRLÜĞÜNE" → "... Müdürlüğü"; yönelme eki morfolojik olarak
+        soyulur ve başlık biçimine getirilir. Sonuç bir birim ekiyle
+        (Müdürlüğü/Müşavirliği/Dairesi ...) bitmiyorsa boş dize döner
+        (genel makam/dağıtım hitapları birim adı üretmez).
+        """
+        yalin = _tr_upper((hitap or "").strip())
+        if not yalin:
+            return ""
+        yalin = re.sub(r"\s+MAKAMINA$", "", yalin)
+        yalin = re.sub(r"([GĞ])([IİUÜ])N[AE]$", r"\1\2", yalin)  # …LÜĞÜNE → …LÜĞÜ
+        yalin = re.sub(r"(S[IİUÜ])N[AE]$", r"\1", yalin)         # …SİNE → …Sİ
+        baslik = _tr_baslik(yalin)
+        if any(baslik.endswith(ek) for ek in _BIRIM_EKLERI):
+            return baslik
+        return ""
 
     @staticmethod
     def _yonelme_hali(ad: str) -> str:

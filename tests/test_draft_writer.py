@@ -289,3 +289,42 @@ class TestKapanisSecimi:
         """Kademeler tespit edilemiyorsa tür-tabanlı davranış korunmalı."""
         kapanis = DraftWriterAgent()._resolve_kapanis("ust_yazi", "tutanak")
         assert "arz ederim" in kapanis
+
+
+class TestCevapGonderenMuhatabi:
+    """Cevap yazısı muhatabı, gelen evrakın GÖNDEREN birimine yönlendirilir.
+
+    Gelen kurumsal evrakın anteti gönderen, muhatabı ise alıcı (=biz) olduğundan
+    cevabın muhatabı gönderen birim olmalıdır; sistem cevabı kendine (gelen
+    alıcıya) yazmamalı ve antet kurumu ile muhatap çakışmamalıdır.
+    """
+
+    def test_gonderen_birime_yonlendirilir(self):
+        """Kurum-içi üst yazıya cevapta muhatap GÖNDEREN BİRİM olmalı (kendine değil)."""
+        agent = DraftWriterAgent()
+        extracted = {
+            "muhatap": "MALİ HİZMETLER MÜDÜRLÜĞÜNE",  # gelen alıcı = biz
+            "kurum_adlari": ["DOĞUŞEHİR BELEDİYE BAŞKANLIĞI", "Fen İşleri Müdürlüğü"],
+        }
+        sonuc = agent._cevap_gonderen_alici(extracted, "", "DOĞUŞEHİR BELEDİYE BAŞKANLIĞI")
+        assert sonuc is not None
+        muhatap, birim = sonuc
+        assert muhatap == "FEN İŞLERİ MÜDÜRLÜĞÜNE"       # gönderen birim
+        assert birim == "Mali Hizmetler Müdürlüğü"       # antet birimi = biz
+        # Kendine yazışma yok: muhatap antet kurumuyla çakışmaz
+        assert "BAŞKANLIĞI" not in muhatap
+
+    def test_broadcast_muhatap_degistirilmez(self):
+        """Dağıtım/broadcast gelen muhatapta düzeltme uygulanmaz (mevcut korunur)."""
+        agent = DraftWriterAgent()
+        extracted = {
+            "muhatap": "DAĞITIM YERLERİNE",
+            "kurum_adlari": ["AKÇOVA VALİLİĞİ", "İl Bilgi İşlem Müdürlüğü"],
+        }
+        assert agent._cevap_gonderen_alici(extracted, "", "AKÇOVA VALİLİĞİ") is None
+
+    def test_gonderen_cikarilamazsa_mevcut_korunur(self):
+        """Antet gönderen çıkarılamıyorsa (jenerik fallback) düzeltme uygulanmaz."""
+        agent = DraftWriterAgent()
+        extracted = {"muhatap": "GÜNEYKIYI BÖLGE MÜDÜRLÜĞÜNE", "kurum_adlari": []}
+        assert agent._cevap_gonderen_alici(extracted, "", "GENEL MÜDÜRLÜK") is None
