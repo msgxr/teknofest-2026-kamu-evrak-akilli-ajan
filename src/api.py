@@ -265,7 +265,8 @@ class EvrakAPIHandler(BaseHTTPRequestHandler):
             return None
         try:
             veri = json.loads(govde.decode("utf-8"))
-        except (ValueError, UnicodeDecodeError):
+        except (ValueError, UnicodeDecodeError, RecursionError):
+            # RecursionError: aşırı derin iç içe JSON (kaynak tüketimi/DoS savunması)
             self._hata_yanit(400, "İstek gövdesi geçerli bir JSON değil.")
             return None
         if not isinstance(veri, dict):

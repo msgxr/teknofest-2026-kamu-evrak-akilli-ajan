@@ -152,9 +152,13 @@ class SummarizationAgent:
         konu = (extracted.get("konu") or "").strip()
         if konu:
             parts.append(f"Konu: {konu}")
+        # Belgenin KENDİ tarihi tercih edilir; yoksa çıkarılan ilk tarihe düşülür
+        # (İlgi/atıf/olay tarihini belge tarihi gibi göstermemek için).
+        evrak_tarihi = str(extracted.get("evrak_tarihi") or "").strip()
         tarihler = extracted.get("tarihler") or []
-        if tarihler:
-            parts.append(f"Tarih: {tarihler[0]}")
+        gosterilecek = evrak_tarihi or (tarihler[0] if tarihler else "")
+        if gosterilecek:
+            parts.append(f"Tarih: {gosterilecek}")
         return " | ".join(parts)
 
     # ------------------------------------------------------------------

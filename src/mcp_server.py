@@ -79,12 +79,29 @@ ARACLAR = [
 ]
 
 
+_GECERLI_MODLAR = {"full", "classify", "draft"}
+
+
+def _gecerli_metin(argumanlar: Dict[str, Any]) -> str:
+    """'metin' argümanını doğrular (str + boş değil); değilse ValueError."""
+    metin = argumanlar.get("metin", "")
+    if not isinstance(metin, str) or not metin.strip():
+        raise ValueError("'metin' boş olmayan bir metin (string) olmalıdır.")
+    return metin
+
+
 def _arac_calistir(ad: str, argumanlar: Dict[str, Any]) -> dict:
-    """Araç adını mevcut API işlevine vekâlet ettirir."""
+    """Araç adını mevcut API işlevine vekâlet ettirir (giriş doğrulamalı)."""
     if ad == "evrak_isle":
-        return _evrak_isle(argumanlar.get("metin", ""), argumanlar.get("mod", "full"))
+        metin = _gecerli_metin(argumanlar)
+        mod = argumanlar.get("mod", "full")
+        if mod not in _GECERLI_MODLAR:
+            raise ValueError(
+                f"Geçersiz mod: {mod!r}. Geçerli değerler: {sorted(_GECERLI_MODLAR)}"
+            )
+        return _evrak_isle(metin, mod)
     if ad == "evrak_anonimlestir":
-        return _evrak_anonimlestir(argumanlar.get("metin", ""))
+        return _evrak_anonimlestir(_gecerli_metin(argumanlar))
     if ad == "birimleri_listele":
         return _birim_katalogu()
     if ad == "evrak_turlerini_listele":
@@ -126,8 +143,10 @@ def istek_isle(istek: Dict[str, Any]) -> Optional[Dict[str, Any]]:
                     {"type": "text", "text": json.dumps(veri, ensure_ascii=False)}
                 ]
             })
-        except Exception as exc:  # noqa: BLE001 (protokol hata sarmalaması)
-            return hata(-32602, f"Araç çalıştırma hatası: {exc}")
+        except ValueError as exc:  # kontrollü giriş doğrulama hatası
+            return hata(-32602, str(exc))
+        except Exception:  # noqa: BLE001 — iç istisna istemciye HAM sızdırılmaz
+            return hata(-32603, "Araç çalıştırılırken bir iç hata oluştu.")
 
     if istek_id is None:
         return None  # bilinmeyen bildirim → sessiz
