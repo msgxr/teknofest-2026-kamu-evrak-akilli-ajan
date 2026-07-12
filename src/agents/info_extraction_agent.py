@@ -129,8 +129,13 @@ _NO_ADRES_BAGLAMI = re.compile(
 
 _TC_ADAY = re.compile(r"(?<!\d)(\d{11})(?!\d)")
 
+# Türkiye telefon: +90/0 öneki OPSİYONEL (baştaki sıfır olmadan yazılanları da
+# yakalar — KVKK sızıntısını kapatır); ilk grup GSM (5xx) veya alan kodu (2xx-4xx)
+# ile doğrulanır → rastgele 10 haneli dizilerde aşırı eşleşme sınırlanır ve 11
+# haneli TCKN ile çakışmaz. Niceleyiciler RFC sınırlı (CWE-1333 ReDoS'suz).
 _TELEFON = re.compile(
-    r"(?<!\d)(?:\+90|0)[\s.\-]?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{2}[\s.\-]?\d{2}(?!\d)"
+    r"(?<!\d)(?:\+90|0)?[\s.\-]?\(?(?:5\d{2}|[2-4]\d{2})\)?"
+    r"[\s.\-]?\d{3}[\s.\-]?\d{2}[\s.\-]?\d{2}(?!\d)"
 )
 
 # GÜVENLİK (CWE-1333 ReDoS): niceleyiciler RFC sınırlarına bağlandı;

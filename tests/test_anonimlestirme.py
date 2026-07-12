@@ -343,7 +343,7 @@ class TestAnonimlestirmeAgent:
         rapor = result.anonymization_report
         assert set(rapor.keys()) == {"maskelenen", "toplam", "yontem"}
         assert set(rapor["maskelenen"].keys()) == {
-            "tc_kimlik", "telefon", "eposta", "iban", "kisi_adi", "adres",
+            "tc_kimlik", "telefon", "eposta", "iban", "kisi_adi", "adres", "plaka",
         }
         assert rapor["toplam"] == sum(rapor["maskelenen"].values())
 

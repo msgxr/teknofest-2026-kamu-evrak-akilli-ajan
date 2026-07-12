@@ -382,6 +382,7 @@ class AnonimlestirmeAgent:
             "iban": 0,
             "kisi_adi": 0,
             "adres": 0,
+            "plaka": 0,
         }
 
         # Sıra önemlidir: IBAN önce maskelenir ki içindeki hane grupları
@@ -390,6 +391,7 @@ class AnonimlestirmeAgent:
         metin, sayaclar["iban"] = self._iban_maskele(metin)
         metin, sayaclar["tc_kimlik"] = self._tc_maskele(metin)
         metin, sayaclar["telefon"] = self._telefon_maskele(metin)
+        metin, sayaclar["plaka"] = self._plaka_maskele(metin)
         metin, sayaclar["eposta"] = self._eposta_maskele(metin)
         metin, sayaclar["adres"] = self._adres_maskele(metin)
         metin, sayaclar["kisi_adi"] = self._kisi_adlarini_maskele(metin, extracted)
@@ -445,6 +447,21 @@ class AnonimlestirmeAgent:
             return _telefon_maskesi(deger)
 
         return _TELEFON.sub(degistir, metin), adet
+
+    # Türk araç plakası: il kodu (01-81) + 1-3 harf + 2-4 rakam. İl doğrulaması
+    # rastgele "sayı-harf-sayı" dizilerinde aşırı eşleşmeyi sınırlar (KVKK).
+    _PLAKA_DESENI = re.compile(r"\b(?:0[1-9]|[1-7]\d|8[01])\s?[A-Z]{1,4}\s?\d{2,4}\b")
+
+    def _plaka_maskele(self, metin: str) -> "tuple[str, int]":
+        """Araç plakalarını maskeler (kamu evrağında sık kişisel-veri unsuru)."""
+        adet = 0
+
+        def degistir(m: "re.Match") -> str:
+            nonlocal adet
+            adet += 1
+            return "** *** **"
+
+        return self._PLAKA_DESENI.sub(degistir, metin), adet
 
     def _eposta_maskele(self, metin: str) -> "tuple[str, int]":
         """E-posta adreslerini maskeler (alan adı açık kalır)."""
