@@ -41,7 +41,8 @@ python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v3 --ra
 
 python scripts/dayaniklilik_testi.py                 # metamorfik dayanıklılık (CheckList-INV; tür/birim invaryansı)
 
-streamlit run src/app.py                             # web arayüzü
+streamlit run src/app.py                             # web arayüzü (canlı ajan hattı — streaming)
+python -m src.mcp_server                             # MCP sunucusu (stdio JSON-RPC 2.0)
 python demo/demo_scenario.py                         # konsol demo senaryosu
 python -m src.main --input data/raw/kurgu_evraklar/dilekce_01.txt   # tek evrak CLI
 python scripts/build_presentation.py                 # sunum PPTX üretimi
@@ -54,6 +55,8 @@ python scripts/build_presentation.py                 # sunum PPTX üretimi
 | `src/agents/` | 11 ajan (ocr, classification, info_extraction, missing_info, legislation, summarization, draft_writer, routing, user_info, triage [önceliklendirme/aciliyet+yasal süre], anonimlestirme [KVKK maskeleme]) + `orchestrator.py` (koşullu akış, 3 kapı: okunabilirlik / dil / düşük güven) |
 | `src/models/llm_wrapper.py` | Model-agnostik LLM katmanı (stdlib urllib; OpenAI-uyumlu / Ollama / offline otomatik tespit) |
 | `src/utils/bm25.py` | Saf Python BM25-Okapi (mevzuat RAG) |
+| `src/utils/` (güven/ölçüm katmanı) | `kalibrasyon.py` (ECE/temperature scaling), `secici_tahmin.py` (reject option), `konformal.py` (conformal prediction), `metamorfik.py` + `scripts/dayaniklilik_testi.py` (CheckList-INV dayanıklılık), `ozet_kalite.py` (özet sadakat/ROUGE-L), `tutarlilik_denetimi.py` (çapraz doğrulama), `turkce_ner.py` (yer NER), `emsal_cbr.py` (Case-Based Reasoning), `kvkk_denetim.py` (sızıntı ölçümü), `taslak_reflexion.py` (Self-Refine/keep-best) |
+| `src/mcp_server.py` | Çalışan MCP (JSON-RPC 2.0 / stdio) sunucusu — 5 aracı API'ye vekâlet ettirir (harici SDK gerekmez) |
 | `src/templates/` | 5 resmi yazı şablonu |
 | `scripts/evaluate.py` | Saf Python metrikler (sınıflandırma, yönlendirme, eksik bilgi, süreler) |
 | `data/raw/` | Etiketli sentetik setler: geliştirme (52), tutulmuş (16), tutulmuş v2 (16), tutulmuş v3 adversarial (16) + 15 mevzuat metni |

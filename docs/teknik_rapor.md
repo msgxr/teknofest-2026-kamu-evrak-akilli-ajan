@@ -156,6 +156,34 @@ Sistemin kusurlu/zorlayıcı girdilere dayanıklılığı, 12.07.2026'da oluştu
 
 **Hata analizi (karışma desenleri):** (a) *Sınıflandırma* — tek hata `ust_yazi_a1` → cevap_yazisi: bozuk sayı bloklu üst yazının İlgi satırındaki "... sayılı yazınız" ikinci-şahıs iyelikli atfı, cevap yazısının temel ayrım sinyalini tetiklemiştir (bilinen sinyalin sınır durumu; confusion matrix raporun `siniflandirma.confusion_matrix` alanındadır). (b) *Eksik bilgi* — üç yanlış alarm ve bir kaçırma tamamen adversarial tuzakların hedefindedir: `cevap_yazisi_a1`'de İlgi bloğu yokken gövdedeki "İlgi (b)'de kayıtlı yazınız" ifadesi alanın VAR sanılmasına yol açmış (kopuk zincir, FN); `tutanak_a1`'deki tamamen sözel tarih ("Temmuz ayının on ikinci günü") çıkarılamamış (FP); iki rapor dosyasında farklı cümle iskeleti kullanıldığından fiil-kökü tabanlı sonuç/değerlendirme denetimi yanlış alarm üretmiştir (FP×2). (c) *Mevzuat* — `tutanak_a2` KVKK-yoğun içerik taşımasına rağmen "kişisel/kvkk/rıza" tetikleyici kelimeleri geçmediğinden kisisel_veri teması aktifleşmemiş, 6698 önerilememiştir; `rapor_a1`'de 5018 yerine arşiv/RYY önerilmiştir. (d) *Güçlü yanlar* — yönlendirme adversarial sette dahi 16/16'dır; iki çift-doğalı makam oluru da doğru birime yönlendirilmiştir; taslak kalitesi ve hız etkilenmemiştir. Bu bulgulara yönelik iyileştirmeler bilinçli olarak YAPILMAMIŞ (set held-out kalmıştır), Bölüm 6'ya gelecek çalışma olarak işlenmiştir.
 
+### 5.2. Güven, Ölçüm ve Otonomi Katmanı (İleri Geliştirmeler)
+
+Uygulama başarımının ötesinde, sistemin güvenilirliğini ve otonomisini
+literatür-standardı yöntemlerle NİCEL kanıta bağlayan bir katman eklenmiştir
+(hepsi saf Python, offline-first korunur; ölçümler `scripts/evaluate.py` ve
+`scripts/dayaniklilik_testi.py` çıktısındadır):
+
+| Yetenek | Yöntem (literatür) | Ölçülen sonuç (geliştirme seti) |
+|---|---|---|
+| Güven kalibrasyonu | ECE/Brier + temperature scaling (Guo vd. 2017) | ECE 0,188 → **0,008** |
+| Seçici tahmin (reject option) | risk-coverage; Chow 1970; MSP (Hendrycks 2017) | eşik 0,6'da kapsama %90, kabul edilenlerde risk **0,0** |
+| Conformal prediction | LAC split conformal (Angelopoulos & Bates 2021) | hedef %90 → ampirik kapsama **%100**, ort. küme boyutu **1,0** |
+| Getirim sıralaması | MRR/nDCG + context P/R; RAGAS (Es vd. 2023) | MRR **0,93**, nDCG 0,80 |
+| Hibrit füzyon | Reciprocal Rank Fusion (Cormack vd. 2009) | ölçek-bağımsız sıralama; salt-BM25 offline birebir korunur |
+| Metamorfik dayanıklılık | CheckList-INV (Ribeiro vd. 2020) | 260 varyant; tür invaryansı **%99,2**, gürbüz doğruluk %99,2 |
+| Özet sadakati | faithfulness + ROUGE-L (Lin 2004) | sadakat **1,0** (kaynağa dayanmayan sayısal olgu yok) |
+| KVKK sızıntı ölçümü | i2b2 de-id geleneği (Stubbs & Uzuner 2015) | sızıntısız oran **1,0** (0 kaçak) |
+| Çapraz tutarlılık | çok-ajanlı doğrulama (Du vd. 2023) | ajanlar-arası çelişki denetimi (özet↔kaynak, taslak↔mevzuat) |
+
+Ayrıca **Reflexion/Self-Refine** kapalı taslak döngüsü (hakem geri bildirimiyle
+yeniden üretim + keep-best; Shinn vd. 2023), **canlı akış (streaming)** ajan
+hattı, **Türkçe yer NER'i** (81 il gazetteer), **emsal-tabanlı öneri** (Case-Based
+Reasoning; kurumsal hafızadan advisory önsel), **çalışan MCP sunucusu**
+(JSON-RPC 2.0 / stdio) ve **e-Yazışma / TS 13298 üstveri XML** çıktısı eklenmiştir.
+Bu geliştirmeler mevcut sınıflandırma/yönlendirme/mevzuat/taslak başarımını
+DEĞİŞTİRMEDEN (deterministik olarak doğrulanmıştır) üzerine bir güven, ölçüm ve
+otonomi katmanı kurar; 442 birim/entegrasyon testiyle korunur.
+
 ### 6. Sınırlılıklar ve Gelecek Çalışmalar
 
 - BM25 sözcüksel erişimdir; düzeltici sorgu genişletme döngüsü söz dağarcığı uyumsuzluğunu kısmen giderir, tam eşanlamlı/bağlamsal eşleşme için opsiyonel semantik katman (turkish-e5-large + bge-reranker-v2-m3) tanımlıdır ancak varsayılan kurulumda kapalıdır (ilk açılışta model indirme gerektirir; kapalı ağ varsayımı).
