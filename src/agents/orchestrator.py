@@ -579,6 +579,18 @@ class OrchestratorAgent:
                 )
             except Exception as emsal_hata:
                 logger.debug(f"Emsal önerisi hesaplanamadı: {emsal_hata}")
+
+        # Kanıt/attribution: kararı destekleyen kaynak span'leri (açıklanabilirlik).
+        # ADDITIVE — kararı değiştirmez; arayüz/rapor için grounded vurgu üretir.
+        from src.utils.kanit import vurgu_spanlari
+
+        kanit_vurgulari = vurgu_spanlari(
+            self.state.raw_text,
+            {
+                "bilgi_cikarim": self.state.extracted_info,
+                "onceliklendirme": self.state.triage,
+            },
+        )
         return {
             "input_file": self.state.input_file,
             "ocr": self.state.ocr_result,
@@ -603,6 +615,7 @@ class OrchestratorAgent:
             "guven_izleme": self.state.confidence_trace,
             "tutarlilik_denetimi": tutarlilik,
             "emsal_onerisi": emsal_onerisi_sonuc,
+            "kanit_vurgulari": kanit_vurgulari,
             "islem_adimlari": self.state.processing_steps,
             "hatalar": self.state.errors,
             # Kapı 3: düşük güvenli kararlar için insan onayı işareti

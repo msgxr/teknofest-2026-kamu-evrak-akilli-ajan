@@ -417,6 +417,10 @@ _KIMLIK_ALANLARI = [
 # Eskalasyon eşiği ve softmax sıcaklığı (kalibrasyon parametreleri)
 _ESKALASYON_ESIGI = 0.6
 _SOFTMAX_SICAKLIK = 2.0
+# Öz-tutarlılık (self-consistency): LLM eskalasyonunda kaç örnekleme alınıp
+# çoğunluk oylanacağı. 1 = mevcut davranış (tek çağrı) BİREBİR korunur; >1 ise
+# K örnekleme + uzlaşı-tabanlı kalibre güven. Yalnızca LLM aktifken etkilidir.
+_OZ_TUTARLILIK_ORNEK = 1
 
 # ----------------------------------------------------------------------
 # Hibrit ensemble ağırlıkları (kural + istatistiksel model birleşimi)
@@ -508,7 +512,24 @@ class ClassificationAgent:
                         f"Nihai güven düşük ({result['guven']:.2f} < "
                         f"{_ESKALASYON_ESIGI}); LLM eskalasyonu deneniyor."
                     )
-                    llm_result = self._classify_with_llm(text, result)
+                    if _OZ_TUTARLILIK_ORNEK > 1:
+                        # Öz-tutarlılık: K örnekle + çoğunluk oyu → kalibre güven
+                        from src.utils.oz_tutarlilik import cogunluk_oyu
+
+                        adaylar = [
+                            self._classify_with_llm(text, result)
+                            for _ in range(_OZ_TUTARLILIK_ORNEK)
+                        ]
+                        karar, uzlasi = cogunluk_oyu([a.get("tur") for a in adaylar])
+                        llm_result = next(
+                            (a for a in adaylar if a.get("tur") == karar), adaylar[0]
+                        )
+                        llm_result["guven"] = uzlasi
+                        llm_result["oz_tutarlilik"] = {
+                            "ornek": _OZ_TUTARLILIK_ORNEK, "uzlasi": uzlasi,
+                        }
+                    else:
+                        llm_result = self._classify_with_llm(text, result)
                     llm_result["yontem"] = "llm_eskalasyon"
                     llm_result["tum_skorlar"] = result.get("tum_skorlar", {})
                     llm_result["ham_skorlar"] = result.get("ham_skorlar", {})
