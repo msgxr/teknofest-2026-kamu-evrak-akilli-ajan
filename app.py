@@ -91,6 +91,16 @@ AJANLAR = [
 
 AJAN_HATTI_SIRASI = [a["kod"] for a in AJANLAR]
 
+# Orkestratör — 11 uzman ajanı koşullu akışla yöneten çekirdek koordinatör.
+# (src/agents/orchestrator.py karşılığı; 3 kapı: okunabilirlik / dil / düşük güven.)
+ORKESTRATOR = {
+    "kod": "orchestrator", "ad": "Orkestratör Ajan", "ikon": "🧠",
+    "rol": "11 uzman ajanı koşullu akışla yönetir; okunabilirlik, dil ve "
+           "düşük güven kapılarıyla akışı yönlendirir.",
+    "kategori": "Çekirdek · Koordinasyon",
+    "kapilar": ["Okunabilirlik kapısı", "Dil kapısı", "Düşük güven kapısı"],
+}
+
 EVRAK_TURLERI = [
     "Dilekçe", "Üst Yazı", "Cevap Yazısı", "Genelge",
     "Tutanak", "Rapor", "Onaylı Belge", "Bilgilendirme",
@@ -175,6 +185,7 @@ GEZINME = {
         ("Evrak İşleme", "📥", "CANLI"),
         ("Toplu İşleme", "⚡", ""),
         ("Ajan Yönetimi", "🤖", str(len(AJANLAR))),
+        ("Asistan", "💬", "AI"),
         ("Mevzuat ve RAG", "📚", ""),
     ],
     "SİSTEM": [
@@ -182,6 +193,15 @@ GEZINME = {
         ("Ayarlar", "⚙️", ""),
     ],
 }
+
+# Asistan (Orkestratör sohbeti) karşılama mesajı.
+_KARSILAMA_MESAJI = (
+    "👋 Merhaba, ben **Orkestratör Ajan**. 11 uzman ajanı yöneten çekirdek "
+    "koordinatörüm. Bana doğal dille soru sorabilirsiniz; ilgili ajana "
+    "yönlendirip yanıtı derlerim.\n\n"
+    "Örnek: *“3071 sayılı kanuna göre dilekçeye kaç günde cevap verilir?”*, "
+    "*“Ajanların durumu nedir?”*, *“Bu evrakta KVKK riski var mı?”*"
+)
 
 
 # ===========================================================================
@@ -205,7 +225,7 @@ def tema_uygula() -> None:
     stil bloğu enjekte edilir. Uygulama yine tek `app.py` ve `streamlit run`
     ile tarayıcıdan açılır; harici frontend çatısı kullanılmaz.
     """
-    st.markdown(
+    _md(
         """
         <style>
         /* ---- Genel zemin ve varsayılan Streamlit kromunu sadeleştir ---- */
@@ -398,8 +418,7 @@ def tema_uygula() -> None:
         .ez-dot { color: #22C55E; margin-right: 7px; }
         .ez-status-val { color: #93A2BC; font-weight: 600; font-size: 0.76rem; }
         </style>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -413,12 +432,19 @@ def oturum_baslat() -> None:
     ss["islenen_evrak"] = 1482
     ss["bugun_islenen"] = 164
     ss["ajan_telemetri"] = {a["kod"]: _rastgele_telemetri() for a in AJANLAR}
+    # Orkestratör telemetrisi ayrı tutulur; uzman-ajan sayımlarını bozmaz.
+    orkestrator = _rastgele_telemetri()
+    orkestrator["durum"] = "aktif"
+    orkestrator["tamamlanan_akis"] = 1289
+    ss["orkestrator_tel"] = orkestrator
     ss["log_kayitlari"] = [_log_kaydi(geri_saniye=(8 - i) * 6)
                            for i in range(8)]
     ss["yuklenen_pdfler"] = []
     ss["son_analiz"] = None
     ss["ajan_mesajlari"] = [_ajan_mesaji(geri_saniye=(6 - i) * 3)
                             for i in range(6)]
+    ss["sohbet"] = [{"rol": "assistant", "icerik": _KARSILAMA_MESAJI}]
+    ss["bekleyen_soru"] = None
 
 
 # ===========================================================================
@@ -479,7 +505,9 @@ def _ajan_mesaji(geri_saniye: int = 0) -> str:
 
 def telemetriyi_guncelle() -> None:
     """Her yeniden çalıştırmada ajan telemetrisini canlı gibi tazeler."""
-    for tel in st.session_state["ajan_telemetri"].values():
+    telemetriler = list(st.session_state["ajan_telemetri"].values())
+    telemetriler.append(st.session_state["orkestrator_tel"])
+    for tel in telemetriler:
         tel["cpu"] = round(min(95.0, max(2.0,
                      tel["cpu"] + random.uniform(-6.0, 6.0))), 1)
         tel["bellek"] = round(min(512.0, max(48.0,
@@ -487,6 +515,11 @@ def telemetriyi_guncelle() -> None:
         tel["islem"] += random.randint(0, 6)
         if random.random() < 0.18:
             tel["durum"] = random.choice(["aktif", "calisiyor", "beklemede"])
+    # Orkestratör çoğunlukla aktif kalır (çekirdek koordinatör).
+    ork = st.session_state["orkestrator_tel"]
+    if ork["durum"] == "beklemede" and random.random() < 0.6:
+        ork["durum"] = "aktif"
+    ork["tamamlanan_akis"] = ork.get("tamamlanan_akis", 1289) + random.randint(0, 3)
 
 
 # ===========================================================================
@@ -496,6 +529,21 @@ def telemetriyi_guncelle() -> None:
 def _kacar(metin: str) -> str:
     """HTML özel karakterlerini güvenli biçimde kaçırır."""
     return _html.escape(str(metin))
+
+
+def _duzles(html_str: str) -> str:
+    """HTML dizesindeki satır başı boşluklarını temizleyip tek satıra indirir.
+
+    Streamlit'in markdown motoru, 4+ boşlukla girintili satırları KOD BLOĞU
+    sanıp ham HTML'i ekranda düz metin (kod) olarak gösterir. Her satırın baş/son
+    boşluğunu kırpıp satırları birleştirerek bu girinti sorununu ortadan kaldırır.
+    """
+    return "".join(satir.strip() for satir in html_str.splitlines())
+
+
+def _md(html_str: str) -> None:
+    """Girintiden arındırılmış HTML'i Streamlit'e güvenle basar."""
+    st.markdown(_duzles(html_str), unsafe_allow_html=True)
 
 
 def _sparkline(degerler: list, renk: str) -> str:
@@ -587,7 +635,7 @@ def _ust_cubuk(baslik: str, alt: str, canli: bool = False) -> None:
     """Sayfa üst çubuğunu (başlık + arama + ikonlar + avatar) çizer."""
     canli_html = ('<span class="ez-livepill">● Canlı izleme</span>'
                   if canli else "")
-    st.markdown(
+    _md(
         f"""
         <div class="ez-topbar">
           <div>
@@ -604,8 +652,7 @@ def _ust_cubuk(baslik: str, alt: str, canli: bool = False) -> None:
           </div>
         </div>
         <div style="height:10px"></div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -616,7 +663,7 @@ def _ust_cubuk(baslik: str, alt: str, canli: bool = False) -> None:
 def kenar_cubugu_ciz() -> str:
     """Kenar çubuğunu çizer ve seçili sayfayı döndürür."""
     with st.sidebar:
-        st.markdown(
+        _md(
             """
             <div class="ez-brand">
               <div class="ez-brand-logo">📑</div>
@@ -625,14 +672,12 @@ def kenar_cubugu_ciz() -> str:
                 <div class="ez-brand-sub">KAMU AJAN SİSTEMİ</div>
               </div>
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
         aktif = st.session_state["aktif_sayfa"]
         for bolum, ogeler in GEZINME.items():
-            st.markdown(f'<div class="ez-navsec">{bolum}</div>',
-                        unsafe_allow_html=True)
+            _md(f'<div class="ez-navsec">{bolum}</div>')
             for etiket, ikon, rozet in ogeler:
                 rozet_ek = f"   ·   {rozet}" if rozet else ""
                 tip = "primary" if etiket == aktif else "secondary"
@@ -641,8 +686,8 @@ def kenar_cubugu_ciz() -> str:
                     st.session_state["aktif_sayfa"] = etiket
                     st.rerun()
 
-        st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
-        st.markdown(
+        _md('<div style="height:14px"></div>')
+        _md(
             f"""
             <div class="ez-status">
               <div class="ez-navsec">SİSTEM DURUMU</div>
@@ -664,8 +709,7 @@ def kenar_cubugu_ciz() -> str:
             <div class="ez-status-val" style="text-align:center;opacity:.7">
               © 2026 · Kurumsal Sürüm 2.0<br>Sentetik veri · KVKK uyumlu
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
     return st.session_state["aktif_sayfa"]
@@ -702,7 +746,7 @@ def sayfa_genel_bakis() -> None:
             "🛡️", "%99,4", "Mevzuat Uyum Skoru", "+0,3", "green", YESIL,
             [random.randint(48, 60) for _ in range(12)]),
     ]
-    st.markdown(_metrik_gridi(kartlar), unsafe_allow_html=True)
+    _md(_metrik_gridi(kartlar))
 
     # --- Canlı akış + birim sevki (2 sütun) -----------------------------
     dagilim = list(zip(BIRIMLER[:5], [348, 296, 214, 158, 132]))
@@ -713,7 +757,7 @@ def sayfa_genel_bakis() -> None:
                 f'{_log_paneli_html(ss["log_kayitlari"], random.randint(18, 30))}'
                 f'{_birim_paneli_html(dagilim)}</div>')
 
-    yer.markdown(_grid(), unsafe_allow_html=True)
+    yer.markdown(_duzles(_grid()), unsafe_allow_html=True)
 
     b1, b2 = st.columns([1, 5])
     with b1:
@@ -722,10 +766,10 @@ def sayfa_genel_bakis() -> None:
             for _ in range(14):
                 ss["log_kayitlari"].append(_log_kaydi())
                 ss["log_kayitlari"] = ss["log_kayitlari"][-40:]
-                yer.markdown(_grid(), unsafe_allow_html=True)
+                yer.markdown(_duzles(_grid()), unsafe_allow_html=True)
                 time.sleep(0.4)
 
-    st.markdown('<div style="height:18px"></div>', unsafe_allow_html=True)
+    _md('<div style="height:18px"></div>')
 
     # --- Alt analitik: tür dağılımı + haftalık hacim --------------------
     g1, g2 = st.columns([2, 3])
@@ -799,6 +843,11 @@ def _analiz_calistir(metin: str) -> dict:
     ilerleme = st.progress(0.0, text="Ajan hattı başlatılıyor...")
     toplam = len(AJAN_HATTI_SIRASI)
     with st.status("🔄 Ajan hattı çalışıyor...", expanded=True) as durum:
+        # Orkestratör hattı planlar ve koşullu akışı yönetir.
+        st.write(f"{ORKESTRATOR['ikon']} **{ORKESTRATOR['ad']}** — koşullu akış "
+                 f"planlanıyor (3 kapı: okunabilirlik / dil / düşük güven)  "
+                 f"`52 ms`")
+        time.sleep(0.16)
         for i, kod in enumerate(AJAN_HATTI_SIRASI, start=1):
             ajan = next(a for a in AJANLAR if a["kod"] == kod)
             sure = random.randint(90, 420)
@@ -807,8 +856,10 @@ def _analiz_calistir(metin: str) -> dict:
             ilerleme.progress(i / toplam,
                               text=f"{ajan['ad']} tamamlandı ({i}/{toplam})")
             time.sleep(0.14)
-        durum.update(label="✅ Analiz tamamlandı", state="complete",
-                     expanded=False)
+        st.write(f"{ORKESTRATOR['ikon']} **{ORKESTRATOR['ad']}** — akış "
+                 f"tamamlandı, sonuçlar birleştirildi.  `18 ms`")
+        durum.update(label="✅ Analiz tamamlandı (orkestratör onayı)",
+                     state="complete", expanded=False)
 
     st.session_state["islenen_evrak"] += 1
     st.session_state["bugun_islenen"] += 1
@@ -1149,6 +1200,36 @@ def _toplu_isle(adet: int, hiz: str) -> None:
 #  BÖLÜM 9 — SAYFA: AJAN YÖNETİMİ (MULTI-AGENT)
 # ===========================================================================
 
+def _orkestrator_paneli() -> None:
+    """Orkestratör (çekirdek koordinatör) durum panelini çizer.
+
+    11 uzman ajanı yöneten orkestratörü; canlı telemetrisi, tamamladığı akış
+    sayısı ve 3 karar kapısı (okunabilirlik / dil / düşük güven) ile gösterir.
+    """
+    tel = st.session_state["orkestrator_tel"]
+    rozet = {"aktif": "🟢 Aktif", "calisiyor": "🔵 Çalışıyor",
+             "beklemede": "🟡 Beklemede"}[tel["durum"]]
+    st.markdown("##### 🧠 Orkestratör — Çekirdek Koordinatör")
+    with st.container(border=True):
+        st.markdown(f"### {ORKESTRATOR['ikon']} {ORKESTRATOR['ad']}  ·  {rozet}")
+        st.caption(ORKESTRATOR["rol"])
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Yönetilen Ajan", f"{len(AJANLAR)}")
+        m2.metric("Tamamlanan Akış", f"{tel['tamamlanan_akis']:,}".replace(",", "."))
+        m3.metric("CPU", f"%{tel['cpu']}")
+        m4.metric("Bellek", f"{int(tel['bellek'])} MB")
+
+        st.markdown("**Karar Kapıları (koşullu akış)**")
+        g1, g2, g3 = st.columns(3)
+        g1.success("🚪 Okunabilirlik kapısı — geçildi")
+        g2.success("🚪 Dil kapısı — geçildi")
+        eskale = random.randint(0, 3)
+        if eskale:
+            g3.warning(f"🚪 Düşük güven kapısı — {eskale} evrak insan onayına")
+        else:
+            g3.success("🚪 Düşük güven kapısı — eskalasyon yok")
+
+
 def sayfa_ajan_yonetimi() -> None:
     """Ajan Yönetimi sayfası (ajan kartları + mesajlaşma simülasyonu)."""
     _ust_cubuk("Ajan Yönetimi",
@@ -1171,9 +1252,14 @@ def sayfa_ajan_yonetimi() -> None:
                       "kümülatif", "blue", MAVI_ACIK,
                       [random.randint(35, 60) for _ in range(10)]),
     ]
-    st.markdown(_metrik_gridi(kartlar), unsafe_allow_html=True)
+    _md(_metrik_gridi(kartlar))
 
-    st.markdown("##### 🧩 Ajan Filosu")
+    # --- Orkestratör (çekirdek koordinatör) paneli ----------------------
+    _orkestrator_paneli()
+
+    st.markdown("##### 🧩 Uzman Ajan Filosu")
+    st.caption(f"Aşağıdaki {len(AJANLAR)} uzman ajan, orkestratör tarafından "
+               f"koşullu akışla yönetilir.")
     sutunlar = st.columns(3)
     for idx, ajan in enumerate(AJANLAR):
         tel = ss["ajan_telemetri"][ajan["kod"]]
@@ -1215,6 +1301,207 @@ def sayfa_ajan_yonetimi() -> None:
                             scale=alt.Scale(scheme="blues")),
             tooltip=["Ajan", "İşlem"]).properties(height=360),
         use_container_width=True)
+
+
+# ===========================================================================
+#  BÖLÜM 9.5 — SAYFA: ASİSTAN (ORKESTRATÖR SOHBETİ)
+# ===========================================================================
+
+# Hazır hızlı sorular (sohbet başlatıcılar).
+_HIZLI_SORULAR = [
+    "Ajanların şu anki durumu nedir?",
+    "3071 sayılı kanuna göre dilekçeye kaç günde cevap verilir?",
+    "Bir dilekçeyi hangi birime yönlendirmeliyim?",
+    "Bu evrakta KVKK / kişisel veri riski var mı?",
+    "Çok ivedi bir evrak için süreç nasıl işler?",
+    "Sistem neler yapabilir?",
+]
+
+
+def _orkestrator_yanit(soru: str) -> str:
+    """Orkestratörün kural tabanlı (kurgu) yanıtını üretir.
+
+    Soruyu anahtar kelimelere göre ilgili uzman ajana 'yönlendirir' ve derlenmiş
+    bir yanıt döndürür. Emin olunmayan konularda bilgi yetersizliğini açıkça
+    belirtir (halüsinasyon yasağı — Anayasal İlke 2).
+    """
+    s = soru.lower()
+    ss = st.session_state
+
+    def _yonlendir(ajan_ad: str, govde: str) -> str:
+        return (f"🧭 Bu soruyu **{ajan_ad}**'na yönlendirdim.\n\n{govde}")
+
+    # Selamlama
+    if any(k in s for k in ["merhaba", "selam", "günaydın", "iyi günler"]):
+        return ("Merhaba! 👋 Size nasıl yardımcı olabilirim? Evrak, mevzuat, "
+                "ajan durumu, KVKK veya yönlendirme hakkında sorabilirsiniz.")
+
+    # Yetenekler / yardım
+    if any(k in s for k in ["ne yapab", "neler yap", "yardım", "yetenek",
+                            "nasıl kullan", "ne işe", "sistem neler"]):
+        return ("Şunları yapabilirim:\n"
+                "- 📥 **Evrak analizi**: tür, özet, öncelik, eksik alan tespiti\n"
+                "- ⚖️ **Mevzuat/RAG**: ilgili kanun-yönetmelik maddelerini bulma\n"
+                "- 🧭 **Yönlendirme**: doğru birime havale önerisi\n"
+                "- 🛡️ **KVKK**: kişisel veri tespiti ve maskeleme\n"
+                "- ✍️ **Taslak**: resmî yazışma formatında cevap üretme\n"
+                "- 🤖 **Ajan durumu**: filo telemetrisi ve orkestrasyon\n\n"
+                "Sol taraftaki hızlı sorulardan da başlayabilirsiniz.")
+
+    # Ajan durumu
+    if any(k in s for k in ["ajan", "durum", "telemetri", "filo", "çalışıyor",
+                           "aktif mi"]):
+        aktif = sum(1 for t in ss["ajan_telemetri"].values()
+                    if t["durum"] in ("aktif", "calisiyor"))
+        ork = ss["orkestrator_tel"]
+        akis = f"{ork['tamamlanan_akis']:,}".replace(",", ".")
+        toplam = f"{ss['islenen_evrak']:,}".replace(",", ".")
+        return ("🤖 **Ajan Filosu Durumu**\n\n"
+                f"- Aktif/çalışan uzman ajan: **{aktif}/{len(AJANLAR)}**\n"
+                f"- Orkestratör: **🟢 {ork['durum'].capitalize()}** "
+                f"(tamamlanan akış: {akis})\n"
+                f"- Bugün işlenen evrak: **{ss['bugun_islenen']}**\n"
+                f"- Toplam işlenen: **{toplam}**\n\n"
+                "Detay için **Ajan Yönetimi** sekmesine bakabilirsiniz.")
+
+    # Mevzuat / kanun / süre
+    if any(k in s for k in ["mevzuat", "kanun", "yönetmelik", "madde", "gün",
+                           "süre", "yasal", "3071", "4982", "6698", "kaç gün"]):
+        adaylar = [m for m in MEVZUAT_KORPUS
+                   if m["kod"].lower() in s or any(
+                       kel in m["baslik"].lower() for kel in s.split())]
+        if not adaylar:
+            adaylar = MEVZUAT_KORPUS[:3]
+        satir = "\n".join(
+            f"- **{m['kod']} · {m['baslik']}** ({m['tur']}, {m['yil']}) — "
+            f"{m['ozet']}" for m in adaylar[:3])
+        ek = ""
+        if "3071" in s or "dilekçe" in s or "kaç gün" in s:
+            ek = ("\n\n📌 **Özet cevap:** 3071 sayılı Dilekçe Hakkı Kanunu "
+                  "uyarınca idare, başvurulara **en geç 30 gün** içinde cevap "
+                  "vermekle yükümlüdür.")
+        return _yonlendir("Mevzuat Ajanı",
+                          f"İlgili mevzuat (BM25/RAG · İsabet@3):\n{satir}{ek}")
+
+    # KVKK / kişisel veri
+    if any(k in s for k in ["kvkk", "kişisel veri", "maskele", "anonim", "pii",
+                           "tckn", "gizlilik"]):
+        return _yonlendir(
+            "KVKK Anonimleştirme Ajanı",
+            "6698 sayılı KVKK kapsamında evraklardaki **TCKN, telefon, e-posta, "
+            "IBAN ve ad-soyad** gibi kişisel verileri otomatik tespit edip "
+            "maskeliyorum. Öncesi/sonrası karşılaştırmasını ve sızıntı skorunu "
+            "**KVKK ve Uyum** sekmesinde canlı deneyebilirsiniz.")
+
+    # Öncelik / ivedi
+    if any(k in s for k in ["öncelik", "ivedi", "acil", "aciliyet", "önceliklendir"]):
+        return _yonlendir(
+            "Önceliklendirme Ajanı",
+            "Evrakları aciliyet + yasal süre analizine göre şu seviyelere "
+            "ayırıyorum: " + ", ".join(ONCELIKLER.values()) + ".\n\n"
+            "**Çok ivedi** evraklar öncelikli kuyruğa alınır; taslak ve "
+            "yönlendirme ilk sırada işlenir, ilgili amire anında bildirilir.")
+
+    # Yönlendirme / birim
+    if any(k in s for k in ["birim", "yönlendir", "havale", "hangi müdürlük",
+                           "kime gönder"]):
+        return _yonlendir(
+            "Yönlendirme Ajanı",
+            "Evrak içeriğine göre şu birimlerden uygun olana havale öneriyorum:\n"
+            + "\n".join(f"- {b}" for b in BIRIMLER[:5])
+            + "\n\nÖrneğin bir kaldırım/imar dilekçesi genelde "
+            "**İmar ve Şehircilik Md.**'ne yönlendirilir.")
+
+    # Özet
+    if any(k in s for k in ["özet", "özetle", "kısaca"]):
+        return _yonlendir(
+            "Özet Ajanı",
+            "Evrakların sadakat denetimli (ROUGE-L kontrollü) yönetici özetini "
+            "çıkarıyorum. Bir evrak yüklemek için **Evrak İşleme** sekmesini "
+            "kullanın; özet ve kalite göstergesini orada görürsünüz.")
+
+    # Taslak / cevap
+    if any(k in s for k in ["taslak", "cevap yaz", "resmî yazı", "resmi yazı",
+                           "yazı hazırla", "dys"]):
+        return _yonlendir(
+            "Cevap Hazırlama Ajanı",
+            "DYS/e-Yazışma formatında (sayı, tarih, konu, ilgi, imza bloğu, "
+            "dağıtım) resmî cevap taslağı üretiyorum. **Evrak İşleme** "
+            "sekmesinde bir evrak analiz edildiğinde taslak otomatik hazırlanır "
+            "ve indirilebilir.")
+
+    # Eksik bilgi
+    if any(k in s for k in ["eksik", "zorunlu alan", "tamamla"]):
+        return _yonlendir(
+            "Eksik Bilgi Ajanı",
+            "Evrakta zorunlu alanların (muhatap, referans no, iletişim, tarih "
+            "vb.) eksikliğini tespit edip başvurandan tamamlanmasını isteyen "
+            "bilgilendirme metni üretiyorum.")
+
+    # Evrak türü / genel
+    if any(k in s for k in ["evrak", "dilekçe", "tür", "sınıflandır", "belge"]):
+        return _yonlendir(
+            "Sınıflandırma Ajanı",
+            "Evrakları şu türlere ayırıyorum: " + ", ".join(EVRAK_TURLERI)
+            + ".\n\nBir evrakı uçtan uca analiz etmek için **Evrak İşleme** "
+            "sekmesinden metni girip *Akıllı Ajanı Çalıştır* deyin.")
+
+    # Bilinmeyen — dürüst bilgi yetersizliği
+    return ("Bu konuda emin olabileceğim yeterli bilgim yok, bu yüzden tahmin "
+            "yürütmeyeceğim. 🤔\n\nAncak şunlarda yardımcı olabilirim: evrak "
+            "analizi, mevzuat/RAG, ajan durumu, önceliklendirme, yönlendirme, "
+            "KVKK ve taslak üretimi. Sorunuzu bu çerçevede yeniden ifade "
+            "edebilir misiniz?")
+
+
+def sayfa_asistan() -> None:
+    """Asistan sayfası — orkestratör ile doğal dil sohbeti."""
+    _ust_cubuk("Asistan · Orkestratör",
+               "Doğal dille sorun; orkestratör ilgili ajana yönlendirip yanıtlar")
+    ss = st.session_state
+
+    sol, sag = st.columns([1, 2])
+
+    # --- Sol: orkestratör kartı + hızlı sorular -------------------------
+    with sol:
+        ork = ss["orkestrator_tel"]
+        with st.container(border=True):
+            st.markdown(f"### 🧠 {ORKESTRATOR['ad']}")
+            st.write("🟢 Aktif · çevrimiçi")
+            st.caption(ORKESTRATOR["rol"])
+            c1, c2 = st.columns(2)
+            c1.metric("Yönetilen Ajan", len(AJANLAR))
+            c2.metric("Yanıt Süresi", f"{random.randint(180, 640)} ms")
+
+        st.markdown("**💡 Hızlı Sorular**")
+        for i, oneri in enumerate(_HIZLI_SORULAR):
+            if st.button(oneri, key=f"oneri_{i}", use_container_width=True):
+                ss["bekleyen_soru"] = oneri
+                st.rerun()
+
+        if st.button("🗑️ Sohbeti Temizle", use_container_width=True):
+            ss["sohbet"] = [{"rol": "assistant", "icerik": _KARSILAMA_MESAJI}]
+            st.rerun()
+
+    # --- Sağ: konuşma alanı ---------------------------------------------
+    with sag:
+        st.markdown("##### 💬 Sohbet")
+        with st.container(border=True, height=440):
+            for mesaj in ss["sohbet"]:
+                avatar = "🧠" if mesaj["rol"] == "assistant" else "🧑"
+                with st.chat_message(mesaj["rol"], avatar=avatar):
+                    st.markdown(mesaj["icerik"])
+
+    # --- Girdi (alt sabit) + bekleyen hızlı soru işleme -----------------
+    girdi = st.chat_input("Orkestratöre sorun: evrak, mevzuat, ajan durumu, "
+                          "KVKK, öncelik, yönlendirme...")
+    soru = girdi or ss.get("bekleyen_soru")
+    if soru:
+        ss["bekleyen_soru"] = None
+        ss["sohbet"].append({"rol": "user", "icerik": soru})
+        ss["sohbet"].append({"rol": "assistant",
+                             "icerik": _orkestrator_yanit(soru)})
+        st.rerun()
 
 
 # ===========================================================================
@@ -1312,7 +1599,7 @@ def sayfa_kvkk_uyum() -> None:
         _metrik_karti("📄", "100%", "Sentetik Veri", "gerçek PII yok", "green",
                       MAVI_ACIK, [random.randint(52, 60) for _ in range(10)]),
     ]
-    st.markdown(_metrik_gridi(kartlar), unsafe_allow_html=True)
+    _md(_metrik_gridi(kartlar))
 
     st.markdown("##### 🧪 Canlı Maskeleme Denemesi")
     st.caption("Metne kurgu PII (TCKN, telefon, e-posta) girin; anonimleştirme "
@@ -1406,6 +1693,7 @@ def main() -> None:
         "Evrak İşleme": sayfa_evrak_isleme,
         "Toplu İşleme": sayfa_toplu_isleme,
         "Ajan Yönetimi": sayfa_ajan_yonetimi,
+        "Asistan": sayfa_asistan,
         "Mevzuat ve RAG": sayfa_mevzuat_rag,
         "KVKK ve Uyum": sayfa_kvkk_uyum,
         "Ayarlar": sayfa_ayarlar,
