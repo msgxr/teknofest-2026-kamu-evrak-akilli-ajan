@@ -7,9 +7,11 @@ tespiti vardı; bu katman "yer"i açık bir varlık türü olarak ekler
 (şartname: "önemli bilgi unsurlarını çıkarma").
 
 Kişi ve kurum çıkarımı hâlihazırda info_extraction_agent'ta yapılır; bu modül
-onu YER boyutuyla tamamlar. Opsiyonel olarak bir Türkçe NER modeli
-(docs/model_bilgileri.md'de dokümante; ağırlık depoya KONMAZ) mevcut
-LLM-opsiyonel deseniyle zenginleştirebilir.
+onu YER boyutuyla tamamlar. Bu katman TAMAMEN kural tabanlıdır (hiçbir model
+ağırlığı indirmez/gerektirmez). Gelecekte bir Türkçe NER modeli (ör. BERTurk
+tabanlı) mevcut LLM-opsiyonel deseniyle bu katmanı zenginleştirebilir; böyle bir
+model eklenirse ağırlık depoya KONMAZ, yalnızca `docs/model_bilgileri.md`'de
+bağlantı + sürüm + lisans ile dokümante edilir (şartname m.7).
 
 Literatür: gazetteer-tabanlı NER; CoNLL-2003 varlık-düzeyi değerlendirme
 geleneği (altın etiket mevcutsa P/R/F1). Saf Python; offline-first korunur.
