@@ -22,7 +22,12 @@ pydantic-settings>=2.0.0
 pypdf>=6.13.3
 
 # --- Web Arayüzü ---
+# Kurumsal pano (app.py) Streamlit + gömülü tema ile çalışır; grafik ve tablo
+# katmanı için pandas/altair doğrudan import edilir (Streamlit bunları transitif
+# getirse de app.py doğrudan kullandığından açıkça sabitlenir — tekrarlanabilirlik).
 streamlit>=1.30.0
+pandas>=2.0.0
+altair>=5.0.0
 
 # --- Konsol çıktısı ---
 rich>=13.7.0

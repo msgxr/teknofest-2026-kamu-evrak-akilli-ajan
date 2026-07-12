@@ -27,9 +27,75 @@ import re
 import time
 from datetime import datetime, timedelta
 
+import os
+import sys
+
 import altair as alt
 import pandas as pd
 import streamlit as st
+
+# ===========================================================================
+#  BÖLÜM -1 — GERÇEK BACKEND KÖPRÜSÜ (11-ajan orkestratör)
+# ===========================================================================
+# Bu pano, GERÇEK uçtan uca pipeline'a (src/) bağlıdır: Evrak İşleme, KVKK
+# maskeleme ve Asistan sayfaları canlı orkestratör çıktısı üretir. Backend
+# yüklenemezse (bağımlılık/ortam) uygulama ÇÖKMEZ; ilgili sayfalar açık
+# "SİMÜLASYON" etiketiyle kurgu veriye zarifçe iner (şartname: ölçülmemiş
+# metrik gerçekmiş gibi sunulmaz, jüri asla yanıltılmaz — Anayasal İlke 2/4).
+
+# app.py'nin dizinini (repo kökü) modül yoluna ekle → `src` importu, uygulama
+# hangi çalışma dizininden başlatılırsa başlatılsın çözülsün.
+_KOK_DIZIN = os.path.dirname(os.path.abspath(__file__))
+if _KOK_DIZIN not in sys.path:
+    sys.path.insert(0, _KOK_DIZIN)
+
+try:
+    from src.pipelines.end_to_end_pipeline import EndToEndPipeline as _EndToEndPipeline
+    from src.agents.orchestrator import AgentState as _AgentState
+    from src.agents.anonimlestirme_agent import AnonimlestirmeAgent as _AnonimAgent
+
+    _BACKEND_VAR = True
+    _BACKEND_HATA = None
+except Exception as _imp_hata:  # pragma: no cover - ortam bağımlı
+    _EndToEndPipeline = _AgentState = _AnonimAgent = None
+    _BACKEND_VAR = False
+    _BACKEND_HATA = str(_imp_hata)
+
+
+@st.cache_resource(show_spinner=False)
+def _gercek_pipeline():
+    """Gerçek 11-ajan pipeline'ı bir kez kurar (oturumlar arası paylaşılır).
+
+    Kayıt defteri KAPALIDIR: arayüz kullanımı değerlendirme/denetim izine yan
+    etki yazmaz. Kurulum başarısızsa None döner ve çağıran fallback'e iner.
+    """
+    if _EndToEndPipeline is None:
+        return None
+    try:
+        return _EndToEndPipeline(kayit_defteri_aktif=False)
+    except Exception:
+        return None
+
+
+@st.cache_resource(show_spinner=False)
+def _anonim_agent():
+    """KVKK anonimleştirme agent'ı (hafif; yalnızca maskeleme için)."""
+    if _AnonimAgent is None:
+        return None
+    try:
+        return _AnonimAgent()
+    except Exception:
+        return None
+
+
+# Gerçek anonimleştirme raporundaki sayaç anahtarları → okunur etiketler.
+_PII_ETIKET = {
+    "tc_kimlik": "TCKN", "telefon": "Telefon", "eposta": "E-posta",
+    "iban": "IBAN", "kisi_adi": "Ad-Soyad", "adres": "Adres",
+    "plaka": "Araç Plakası", "dogum_tarihi": "Doğum Tarihi",
+    "sicil_no": "Sicil No",
+}
+
 
 # ===========================================================================
 #  BÖLÜM 0 — KURUMSAL RENK PALETİ VE SABİTLER
@@ -682,7 +748,7 @@ def kenar_cubugu_ciz() -> str:
                 rozet_ek = f"   ·   {rozet}" if rozet else ""
                 tip = "primary" if etiket == aktif else "secondary"
                 if st.button(f"{ikon}   {etiket}{rozet_ek}", key=f"nav_{etiket}",
-                             type=tip, use_container_width=True):
+                             type=tip, width="stretch"):
                     st.session_state["aktif_sayfa"] = etiket
                     st.rerun()
 
@@ -701,8 +767,10 @@ def kenar_cubugu_ciz() -> str:
                     len(st.session_state['yuklenen_pdfler'])}</span>
               </div>
               <div class="ez-status-row">
-                <span><span class="ez-dot" style="color:#F59E0B">●</span>LLM köprüsü</span>
-                <span class="ez-status-val">Ollama</span>
+                <span><span class="ez-dot" style="color:{'#22C55E' if _BACKEND_VAR
+                    else '#F59E0B'}">●</span>İşleme çekirdeği</span>
+                <span class="ez-status-val">{'Gerçek · 11 ajan' if _BACKEND_VAR
+                    else 'Simülasyon'}</span>
               </div>
             </div>
             <div style="height:10px"></div>
@@ -724,6 +792,11 @@ def sayfa_genel_bakis() -> None:
     _ust_cubuk("Kurumsal Genel Bakış",
                "Akıllı ajan hattının anlık performansı ve evrak akışı",
                canli=True)
+
+    st.caption("ℹ️ **Temsili demo göstergesi:** bu genel-bakış panosundaki toplam "
+               "sayaçlar, telemetri, haftalık hacim ve tür dağılımı sunum amaçlı "
+               "kurgu verilerdir. **Gerçek uçtan uca işleme ve gerçek metrikler "
+               "→ Evrak İşleme sekmesi.**")
 
     ss = st.session_state
     aktif_ajan = sum(1 for t in ss["ajan_telemetri"].values()
@@ -762,7 +835,7 @@ def sayfa_genel_bakis() -> None:
     b1, b2 = st.columns([1, 5])
     with b1:
         if st.button("▶ Canlı izlemeyi başlat", type="primary",
-                     use_container_width=True):
+                     width="stretch"):
             for _ in range(14):
                 ss["log_kayitlari"].append(_log_kaydi())
                 ss["log_kayitlari"] = ss["log_kayitlari"][-40:]
@@ -786,7 +859,7 @@ def sayfa_genel_bakis() -> None:
                                 legend=alt.Legend(orient="right", title=None)),
                 tooltip=["Tür", "Adet"],
             ).properties(height=280),
-            use_container_width=True,
+            width="stretch",
         )
     with g2:
         st.markdown("##### 🗓️ Haftalık İşlem Hacmi")
@@ -806,11 +879,19 @@ def sayfa_evrak_isleme() -> None:
     _ust_cubuk("Evrak İşleme",
                "Tek evrakı uçtan uca analiz et: sınıflandırma → mevzuat → taslak")
 
+    if _BACKEND_VAR:
+        st.caption("🟢 **Gerçek mod:** evrak, canlı 11-ajan orkestratörüyle "
+                   "(src/) uçtan uca işlenir — tür, özet, mevzuat, KVKK, taslak "
+                   "ve yönlendirme gerçek çıktıdır.")
+    else:
+        st.caption("🟡 **Simülasyon modu:** çekirdek backend yüklenemedi; kurgu "
+                   "sonuç gösterilir (açıkça etiketlenir).")
+
     sol, sag = st.columns([2, 3])
     with sol:
         st.markdown("##### 1) Evrak Girişi")
-        yuklenen = st.file_uploader("Evrak dosyası (TXT/PDF — kurgu)",
-                                    type=["txt", "pdf"])
+        yuklenen = st.file_uploader("Evrak dosyası (TXT — PDF için metni yapıştırın)",
+                                    type=["txt"])
         varsayilan = ORNEK_DILEKCE
         if yuklenen is not None and yuklenen.type == "text/plain":
             try:
@@ -819,7 +900,7 @@ def sayfa_evrak_isleme() -> None:
                 varsayilan = ORNEK_DILEKCE
         metin = st.text_area("Evrak metni", value=varsayilan, height=330)
         calistir = st.button("🚀 Akıllı Ajanı Çalıştır", type="primary",
-                             use_container_width=True)
+                             width="stretch")
 
     with sag:
         st.markdown("##### 2) Ajan Hattı")
@@ -827,7 +908,7 @@ def sayfa_evrak_isleme() -> None:
             if not metin or len(metin.strip()) < 15:
                 st.warning("Lütfen yeterli uzunlukta bir evrak metni giriniz.")
             else:
-                st.session_state["son_analiz"] = _analiz_calistir(metin)
+                st.session_state["son_analiz"] = _analiz_yap(metin)
         elif st.session_state["son_analiz"] is None:
             st.info("Soldan bir evrak girip **Akıllı Ajanı Çalıştır** butonuna "
                     "basın. Ajan hattı adım adım burada akacaktır.")
@@ -836,6 +917,56 @@ def sayfa_evrak_isleme() -> None:
     if sonuc is not None:
         st.divider()
         _analiz_sonuc_kartlari(sonuc)
+
+
+def _analiz_yap(metin: str) -> dict:
+    """Metni önce GERÇEK 11-ajan pipeline'ıyla işlemeyi dener; backend yoksa
+    ya da bu evrakta hata olursa açıkça etiketli kurgu (simülasyon) hattına
+    zarifçe iner. Hiçbir durumda uygulamayı çökertmez."""
+    pipe = _gercek_pipeline() if _BACKEND_VAR else None
+    if pipe is not None:
+        try:
+            return _gercek_analiz(metin, pipe)
+        except Exception as e:
+            st.warning(f"⚠️ Gerçek ajan hattı bu evrakta çalıştırılamadı; kurgu "
+                       f"(simülasyon) sonucu gösteriliyor. ({type(e).__name__})")
+    return _analiz_calistir(metin)
+
+
+def _gercek_analiz(metin: str, pipe) -> dict:
+    """Gerçek pipeline ile analiz — adımlar canlı akar, ham backend sonucu döner."""
+    toplam = len(AJAN_HATTI_SIRASI)
+    ilerleme = st.progress(0.0, text="Gerçek ajan hattı başlatılıyor...")
+    sayac = {"n": 0}
+    with st.status("🔄 Gerçek ajan hattı çalışıyor (orkestratör)...",
+                   expanded=True) as durum:
+        st.write(f"{ORKESTRATOR['ikon']} **{ORKESTRATOR['ad']}** — koşullu akış "
+                 "planlanıyor (3 kapı: okunabilirlik / dil / düşük güven)")
+
+        def _on_step(adim: dict) -> None:
+            kod = adim.get("agent", "")
+            ajan = next((a for a in AJANLAR if a["kod"] == kod), None)
+            ikon = ajan["ikon"] if ajan else "⚙️"
+            ad = ajan["ad"] if ajan else kod
+            simge = {"success": "✓", "atlandi": "⤳",
+                     "error": "✗"}.get(adim.get("status"), "•")
+            ms = int((adim.get("sure_saniye") or 0) * 1000)
+            neden = f" — {adim['neden']}" if adim.get("neden") else ""
+            st.write(f"{ikon} {simge} **{ad}**  `{ms} ms`{neden}")
+            sayac["n"] += 1
+            ilerleme.progress(min(1.0, sayac["n"] / toplam),
+                              text=f"{ad} ({sayac['n']}/{toplam})")
+
+        sonuc = pipe.process_text(metin, mode="full", kayit=False,
+                                  on_step=_on_step)
+        durum.update(label="✅ Gerçek analiz tamamlandı (orkestratör onayı)",
+                     state="complete", expanded=False)
+    ilerleme.progress(1.0, text="Tamamlandı")
+    st.session_state["islenen_evrak"] += 1
+    st.session_state["bugun_islenen"] += 1
+    sonuc["_gercek"] = True
+    sonuc["orijinal_metin"] = metin
+    return sonuc
 
 
 def _analiz_calistir(metin: str) -> dict:
@@ -881,6 +1012,7 @@ def _analiz_calistir(metin: str) -> dict:
         "ozet_kalite": _ozet_kalite_metrikleri(metin, ozet),
         "orijinal_metin": metin, "maskeli_metin": maskeli,
         "pii_tespitleri": tespitler,
+        "_gercek": False,
     }
 
 
@@ -945,7 +1077,163 @@ Dağıtım: Gereği için ilgili birim; Bilgi için başvuru sahibi.
 
 
 def _analiz_sonuc_kartlari(sonuc: dict) -> None:
-    """Analiz sonucunu kurumsal kartlar halinde çizer."""
+    """Analiz sonucunu çizer; gerçek backend çıktısı ile kurgu ayrı gösterilir."""
+    if sonuc.get("_gercek"):
+        _gercek_sonuc_goster(sonuc)
+    else:
+        _kurgu_sonuc_goster(sonuc)
+
+
+def _gercek_sonuc_goster(sonuc: dict) -> None:
+    """GERÇEK 11-ajan orkestratör çıktısını kurumsal kartlarla gösterir.
+
+    Buradaki tüm değerler canlı backend sonucudur (kurgu/random DEĞİL):
+    sınıflandırma güveni, mevzuat benzerliği, taslak kalite puanı, KVKK
+    maskeleme sayıları ve insan onayı işaretleri src/ orkestratöründen gelir.
+    """
+    cls = sonuc.get("siniflandirma") or {}
+    triage = sonuc.get("onceliklendirme") or {}
+    routing = sonuc.get("yonlendirme") or {}
+    fmt = sonuc.get("format_denetimi") or {}
+    kalite = sonuc.get("taslak_kalitesi") or {}
+    onay = sonuc.get("insan_onayi") or {}
+
+    st.success("🟢 **Gerçek 11-ajan hattı ile işlendi** — aşağıdaki tüm sonuçlar "
+               "canlı orkestratör çıktısıdır (kurgu/simülasyon değildir).")
+
+    # --- Üst metrik satırı (gerçek) -------------------------------------
+    guven = cls.get("guven")
+    fmt_skor = fmt.get("skor")
+    rguven = routing.get("guven")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Evrak Türü", cls.get("tur_adi", "—"),
+              delta=(f"güven %{int(guven * 100)}" if guven is not None else None))
+    k2.metric("Öncelik", ONCELIKLER.get(triage.get("oncelik", "normal"),
+                                        triage.get("oncelik", "—")))
+    k3.metric("Resmî Yazışma Skoru",
+              f"{int((fmt_skor or 0) * 100)}/100",
+              delta=("Formata uygun" if fmt.get("uygun") else "Eksik/uyarı var"))
+    k4.metric("Yönlendirme güveni",
+              f"%{int(rguven * 100)}" if rguven is not None else "—")
+    k4.caption(f"🧭 {routing.get('birim', '—')}")
+
+    # --- İnsan onayı (gerçek HITL) --------------------------------------
+    if onay.get("gerekli"):
+        st.warning("🛑 **İnsan onayı gerekli** (düşük güven / tutarsızlık):\n\n"
+                   + "\n".join(f"- {g}" for g in onay.get("gerekceler", [])))
+
+    # --- Özet + Mevzuat (gerçek) ----------------------------------------
+    ozet_col, mevzuat_col = st.columns(2)
+    with ozet_col:
+        with st.container(border=True):
+            st.markdown("#### 📝 Özet")
+            st.write(sonuc.get("ozet") or "—")
+            eksik = sonuc.get("eksik_bilgiler") or []
+            if eksik:
+                st.warning("Eksik zorunlu alanlar: "
+                           + ", ".join(e.get("alan", "?") for e in eksik))
+            else:
+                st.success("Zorunlu alanların tamamı mevcut. ✔")
+    with mevzuat_col:
+        with st.container(border=True):
+            meta = sonuc.get("mevzuat_arama_meta") or {}
+            yontem = str(meta.get("yontem", "bm25")).upper()
+            st.markdown(f"#### ⚖️ Mevzuat Analizi (RAG · {yontem})")
+            mv = sonuc.get("mevzuat_eslestirme") or []
+            if not mv:
+                st.caption("Eşleşen mevzuat maddesi bulunamadı.")
+            for m in mv[:3]:
+                skor = float(m.get("benzerlik") or 0.0)
+                st.write(f"**{m.get('mevzuat_adi') or m.get('baslik', '—')}** "
+                         f"· {m.get('madde_etiketi', '')}")
+                st.caption((m.get("icerik_ozeti") or m.get("gerekce") or "")[:150])
+                st.progress(min(1.0, max(0.0, skor)),
+                            text=f"benzerlik {skor:.2f}")
+
+    # --- Taslak kalite hakemi (gerçek, 0-100) ---------------------------
+    if kalite:
+        with st.container(border=True):
+            st.markdown("#### 📐 Taslak Kalite Hakemi (gerçek · 0-100)")
+            bilesen = kalite.get("bilesenler") or {}
+            q1, q2, q3, q4 = st.columns(4)
+            q1.metric("Toplam Puan", kalite.get("puan", "—"))
+            q2.metric("Biçim", bilesen.get("bicim", "—"))
+            q3.metric("Üslup", bilesen.get("uslup", "—"))
+            q4.metric("Mevzuat Temelliliği", bilesen.get("mevzuat_temellilik", "—"))
+            for not_ in kalite.get("notlar", []):
+                st.warning("⚠ " + str(not_))
+
+    # --- KVKK öncesi/sonrası (gerçek anonimleştirme) --------------------
+    _gercek_kvkk_paneli(sonuc)
+
+    # --- Önceliklendirme / yasal süre (gerçek) --------------------------
+    if triage.get("yasal_sure") or triage.get("sinyaller"):
+        with st.container(border=True):
+            st.markdown("#### 🚦 Önceliklendirme ve Yasal Süre")
+            ys = triage.get("yasal_sure") or {}
+            st.write(f"**Öncelik:** "
+                     f"{ONCELIKLER.get(triage.get('oncelik', 'normal'), '—')}")
+            if ys.get("kaynak"):
+                st.caption("Yasal süre dayanağı: " + str(ys.get("kaynak")))
+            if triage.get("kalan_gun") is not None:
+                st.info(f"Kalan yasal süre: **{triage.get('kalan_gun')} gün**")
+
+    # --- Resmî cevap taslağı (gerçek üretim) ----------------------------
+    taslak = (sonuc.get("yazi_taslagi") or "").strip()
+    with st.container(border=True):
+        st.markdown("#### 📄 Resmî Cevap Taslağı (gerçek üretim)")
+        if taslak:
+            st.code(taslak, language="text")
+            st.download_button("⬇️ Taslağı İndir (.txt)", data=taslak,
+                               file_name="resmi_cevap_taslak.txt",
+                               mime="text/plain", width="stretch")
+        else:
+            st.info("Bu evrak için taslak üretilmedi (ör. dil kapısı: metin "
+                    "Türkçe görünmüyor, veya okunabilirlik kapısı).")
+
+    # --- Ajan hattı adımları (gerçek süre) ------------------------------
+    adimlar = sonuc.get("islem_adimlari") or []
+    if adimlar:
+        with st.expander(f"🔬 Ajan hattı adımları · toplam "
+                         f"{sonuc.get('islem_suresi_saniye', '?')} sn"):
+            st.dataframe(pd.DataFrame([{
+                "Ajan": a.get("agent"), "Adım": a.get("description"),
+                "Durum": a.get("status"),
+                "Süre (ms)": int((a.get("sure_saniye") or 0) * 1000),
+            } for a in adimlar]), width="stretch", hide_index=True)
+
+
+def _gercek_kvkk_paneli(sonuc: dict) -> None:
+    """Gerçek anonimleştirme sonucunu (öncesi/sonrası + sayaçlar) gösterir."""
+    anon = sonuc.get("anonimlestirme") or {}
+    maskeli = anon.get("metin") or ""
+    rapor = anon.get("rapor") or {}
+    sayac = rapor.get("maskelenen") or {}
+    toplam = rapor.get("toplam", sum(sayac.values()) if sayac else 0)
+    with st.container(border=True):
+        st.markdown("#### 🛡️ KVKK Anonimleştirme — Öncesi / Sonrası (gerçek)")
+        if toplam:
+            st.caption(f"{toplam} adet kişisel veri (PII) tespit edilip "
+                       f"maskelendi (6698 sayılı KVKK).")
+        else:
+            st.caption("Metinde maskelenecek kişisel veri (PII) bulunmadı.")
+        sol, sag = st.columns(2)
+        with sol:
+            st.markdown("**🔓 Orijinal (PII içerir)**")
+            st.code(sonuc.get("orijinal_metin", ""), language="text")
+        with sag:
+            st.markdown("**🔒 Maskeli (paylaşıma uygun)**")
+            st.code(maskeli, language="text")
+        satir = [{"Veri Türü": _PII_ETIKET.get(k, k), "Maskelenen Adet": v}
+                 for k, v in sayac.items() if v]
+        if satir:
+            st.dataframe(pd.DataFrame(satir), width="stretch", hide_index=True)
+
+
+def _kurgu_sonuc_goster(sonuc: dict) -> None:
+    """Kurgu (simülasyon) analiz sonucunu kurumsal kartlar halinde çizer."""
+    st.info("🟡 **Simülasyon sonucu** — bu kartlar kurgu (mock) veri gösterir; "
+            "çekirdek backend yüklendiğinde sonuçlar gerçek olur.")
     st.markdown(f"### 🧾 Analiz Sonucu · `{sonuc['referans']}`")
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("Evrak Türü", sonuc["tur"],
@@ -999,7 +1287,7 @@ def _analiz_sonuc_kartlari(sonuc: dict) -> None:
         st.code(sonuc["resmi_cevap"], language="text")
         st.download_button("⬇️ Taslağı İndir (.txt)", data=sonuc["resmi_cevap"],
                            file_name=f"{sonuc['referans']}_resmi_cevap.txt",
-                           mime="text/plain", use_container_width=True)
+                           mime="text/plain", width="stretch")
 
 
 # ===========================================================================
@@ -1113,7 +1401,7 @@ def _anonim_karsilastirma_paneli(sonuc: dict) -> None:
             st.dataframe(
                 pd.DataFrame(tespitler).rename(columns={
                     "tur": "Veri Türü", "orijinal": "Orijinal", "maske": "Maskeli"}),
-                use_container_width=True, hide_index=True)
+                width="stretch", hide_index=True)
             sizinti = round(random.uniform(0.0, 0.03), 3)
             st.metric("KVKK Sızıntı Skoru", f"{sizinti:.3f}",
                       delta="Hedef ≤ 0.05 ✔")
@@ -1127,6 +1415,10 @@ def sayfa_toplu_isleme() -> None:
     """Toplu İşleme sayfası (canlı kuyruk + toplu evrak işleme)."""
     _ust_cubuk("Toplu İşleme",
                "Evrak kuyruğunu canlı olarak işle — yüksek hacimli otomasyon")
+    st.caption("ℹ️ **Temsili demo simülasyonu:** yüksek hacimli kuyruk akışını "
+               "görselleştirir (kurgu evraklar). Gerçek toplu işleme için: "
+               "`python -m src.main --klasor data/raw/kurgu_evraklar` veya tek "
+               "evrak için **Evrak İşleme** sekmesi.")
     kontrol, ozet = st.columns([2, 3])
     with kontrol:
         st.markdown("##### 🎛️ Kuyruk Ayarları")
@@ -1134,7 +1426,7 @@ def sayfa_toplu_isleme() -> None:
         hiz = st.select_slider("İşleme hızı", ["Yavaş", "Normal", "Hızlı"],
                                value="Normal")
         baslat = st.button("▶ Toplu İşlemeyi Başlat", type="primary",
-                           use_container_width=True)
+                           width="stretch")
     with ozet:
         st.markdown("##### 📥 Bekleyen Kuyruk")
         st.info(f"Kuyrukta **{adet}** kurgu evrak var. Her evrak "
@@ -1179,7 +1471,7 @@ def _toplu_isle(adet: int, hiz: str) -> None:
         m_basari.metric("Otomatik Başarı", f"%{int(basarili / i * 100)}")
         ilerleme.progress(i / adet, text=f"{ref} işlendi ({i}/{adet})")
         tablo.dataframe(pd.DataFrame(satirlar[-12:]),
-                        use_container_width=True, hide_index=True)
+                        width="stretch", hide_index=True)
         time.sleep(gecikme)
 
     ilerleme.progress(1.0, text="✅ Toplu işleme tamamlandı")
@@ -1190,7 +1482,7 @@ def _toplu_isle(adet: int, hiz: str) -> None:
                f"**%{int(basarili / adet * 100)}**.")
     df = pd.DataFrame(satirlar)
     st.markdown("##### 🧾 Tam Sonuç Tablosu")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
     st.download_button("⬇️ Sonuçları İndir (CSV)",
                        data=df.to_csv(index=False).encode("utf-8-sig"),
                        file_name="toplu_isleme_sonuc.csv", mime="text/csv")
@@ -1234,6 +1526,9 @@ def sayfa_ajan_yonetimi() -> None:
     """Ajan Yönetimi sayfası (ajan kartları + mesajlaşma simülasyonu)."""
     _ust_cubuk("Ajan Yönetimi",
                f"{len(AJANLAR)} uzman ajan + orkestratör — canlı telemetri")
+    st.caption("ℹ️ Ajan listesi ve roller **gerçektir** (src/agents ile birebir); "
+               "CPU/bellek/işlem **telemetrisi temsili demo** göstergesidir. "
+               "Gerçek adım süreleri **Evrak İşleme** çıktısında görünür.")
     ss = st.session_state
     aktif = sum(1 for t in ss["ajan_telemetri"].values() if t["durum"] == "aktif")
     calisan = sum(1 for t in ss["ajan_telemetri"].values()
@@ -1300,7 +1595,7 @@ def sayfa_ajan_yonetimi() -> None:
             color=alt.Color("İşlem:Q", legend=None,
                             scale=alt.Scale(scheme="blues")),
             tooltip=["Ajan", "İşlem"]).properties(height=360),
-        use_container_width=True)
+        width="stretch")
 
 
 # ===========================================================================
@@ -1318,12 +1613,41 @@ _HIZLI_SORULAR = [
 ]
 
 
-def _orkestrator_yanit(soru: str) -> str:
-    """Orkestratörün kural tabanlı (kurgu) yanıtını üretir.
+@st.cache_resource(show_spinner=False)
+def _legislation_agent():
+    """Mevzuat (BM25/RAG) arama ajanı — Asistan'ın gerçek mevzuat yanıtları için."""
+    if not _BACKEND_VAR:
+        return None
+    try:
+        from src.agents.legislation_agent import LegislationAgent
+        return LegislationAgent()
+    except Exception:
+        return None
 
-    Soruyu anahtar kelimelere göre ilgili uzman ajana 'yönlendirir' ve derlenmiş
-    bir yanıt döndürür. Emin olunmayan konularda bilgi yetersizliğini açıkça
-    belirtir (halüsinasyon yasağı — Anayasal İlke 2).
+
+def _gercek_mevzuat_ara(soru: str, limit: int = 3):
+    """Soruyu gerçek BM25/RAG korpusunda arar; başarısızsa None döner."""
+    agent = _legislation_agent()
+    if agent is None or _AgentState is None:
+        return None
+    try:
+        state = _AgentState(
+            raw_text=soru,
+            classification={"tur": "dilekce", "tur_adi": "Dilekçe"},
+        )
+        agent.run(state)
+        return (state.legislation_matches or [])[:limit]
+    except Exception:
+        return None
+
+
+def _orkestrator_yanit(soru: str) -> str:
+    """Orkestratörün yanıtını üretir (mevzuat için gerçek BM25/RAG kullanır).
+
+    Soruyu anahtar kelimelere göre ilgili uzman ajana 'yönlendirir'. Mevzuat
+    sorularında gerçek RAG korpusunda arama yapar; erişilemezse bilgi kartına
+    iner. Emin olunmayan konularda bilgi yetersizliğini açıkça belirtir
+    (halüsinasyon yasağı — Anayasal İlke 2).
     """
     s = soru.lower()
     ss = st.session_state
@@ -1367,21 +1691,31 @@ def _orkestrator_yanit(soru: str) -> str:
     # Mevzuat / kanun / süre
     if any(k in s for k in ["mevzuat", "kanun", "yönetmelik", "madde", "gün",
                            "süre", "yasal", "3071", "4982", "6698", "kaç gün"]):
-        adaylar = [m for m in MEVZUAT_KORPUS
-                   if m["kod"].lower() in s or any(
-                       kel in m["baslik"].lower() for kel in s.split())]
-        if not adaylar:
-            adaylar = MEVZUAT_KORPUS[:3]
-        satir = "\n".join(
-            f"- **{m['kod']} · {m['baslik']}** ({m['tur']}, {m['yil']}) — "
-            f"{m['ozet']}" for m in adaylar[:3])
+        gercek = _gercek_mevzuat_ara(soru)
+        if gercek:
+            satir = "\n".join(
+                f"- **{m.get('mevzuat_adi') or m.get('baslik', '—')}** "
+                f"{m.get('madde_etiketi', '')} "
+                f"(benzerlik {float(m.get('benzerlik') or 0):.2f})"
+                for m in gercek[:3])
+            kaynak = "gerçek BM25/RAG araması"
+        else:
+            adaylar = [m for m in MEVZUAT_KORPUS
+                       if m["kod"].lower() in s or any(
+                           kel in m["baslik"].lower() for kel in s.split())]
+            if not adaylar:
+                adaylar = MEVZUAT_KORPUS[:3]
+            satir = "\n".join(
+                f"- **{m['kod']} · {m['baslik']}** ({m['tur']}, {m['yil']}) — "
+                f"{m['ozet']}" for m in adaylar[:3])
+            kaynak = "mevzuat bilgi kartı"
         ek = ""
         if "3071" in s or "dilekçe" in s or "kaç gün" in s:
             ek = ("\n\n📌 **Özet cevap:** 3071 sayılı Dilekçe Hakkı Kanunu "
                   "uyarınca idare, başvurulara **en geç 30 gün** içinde cevap "
                   "vermekle yükümlüdür.")
         return _yonlendir("Mevzuat Ajanı",
-                          f"İlgili mevzuat (BM25/RAG · İsabet@3):\n{satir}{ek}")
+                          f"İlgili mevzuat ({kaynak}):\n{satir}{ek}")
 
     # KVKK / kişisel veri
     if any(k in s for k in ["kvkk", "kişisel veri", "maskele", "anonim", "pii",
@@ -1471,15 +1805,15 @@ def sayfa_asistan() -> None:
             st.caption(ORKESTRATOR["rol"])
             c1, c2 = st.columns(2)
             c1.metric("Yönetilen Ajan", len(AJANLAR))
-            c2.metric("Yanıt Süresi", f"{random.randint(180, 640)} ms")
+            c2.metric("Backend", "🟢 Gerçek" if _BACKEND_VAR else "🟡 Simülasyon")
 
         st.markdown("**💡 Hızlı Sorular**")
         for i, oneri in enumerate(_HIZLI_SORULAR):
-            if st.button(oneri, key=f"oneri_{i}", use_container_width=True):
+            if st.button(oneri, key=f"oneri_{i}", width="stretch"):
                 ss["bekleyen_soru"] = oneri
                 st.rerun()
 
-        if st.button("🗑️ Sohbeti Temizle", use_container_width=True):
+        if st.button("🗑️ Sohbeti Temizle", width="stretch"):
             ss["sohbet"] = [{"rol": "assistant", "icerik": _KARSILAMA_MESAJI}]
             st.rerun()
 
@@ -1533,7 +1867,7 @@ def sayfa_mevzuat_rag() -> None:
         df = df[maske]
 
     st.markdown(f"##### 📋 Korpus ({len(df)} kayıt)")
-    st.dataframe(df, use_container_width=True, hide_index=True,
+    st.dataframe(df, width="stretch", hide_index=True,
                  column_config={"Madde Sayısı": st.column_config.NumberColumn(
                      format="%d madde", width="small")})
 
@@ -1548,7 +1882,7 @@ def sayfa_mevzuat_rag() -> None:
                 color=alt.Color("Tür:N", legend=None,
                                 scale=alt.Scale(range=KATEGORIK_PALET)),
                 tooltip=["Tür", "Adet"]).properties(height=200),
-            use_container_width=True)
+            width="stretch")
 
     st.divider()
     st.markdown("##### 📎 Yeni Mevzuat Belgesi Yükle (PDF)")
@@ -1559,7 +1893,7 @@ def sayfa_mevzuat_rag() -> None:
                               key="mevzuat_pdf")
         pdf_tur = st.selectbox("Belgenin türü",
                                ["Kanun", "Yönetmelik", "Genelge", "Resmi Gazete"])
-        if st.button("📥 Kütüphaneye Ekle", use_container_width=True):
+        if st.button("📥 Kütüphaneye Ekle", width="stretch"):
             if pdf is not None:
                 ss["yuklenen_pdfler"].append({
                     "Dosya": pdf.name, "Tür": pdf_tur,
@@ -1576,7 +1910,7 @@ def sayfa_mevzuat_rag() -> None:
     if ss["yuklenen_pdfler"]:
         st.markdown("##### 🗂️ Yüklenen Belgeler")
         st.dataframe(pd.DataFrame(ss["yuklenen_pdfler"]),
-                     use_container_width=True, hide_index=True)
+                     width="stretch", hide_index=True)
     else:
         st.caption("Henüz belge yüklenmedi.")
 
@@ -1585,14 +1919,43 @@ def sayfa_mevzuat_rag() -> None:
 #  BÖLÜM 11 — SAYFA: KVKK VE UYUM
 # ===========================================================================
 
+def _maskele_dispatch(metin: str):
+    """Metni önce GERÇEK KVKK agent'ıyla maskeler; olmazsa kurgu regex'e iner.
+
+    Döner: (maskeli_metin, tablo_satirlari, gercek_bool)
+    """
+    agent = _anonim_agent() if _BACKEND_VAR else None
+    if agent is not None:
+        try:
+            state = _AgentState(raw_text=metin)
+            agent.run(state)
+            sayac = (state.anonymization_report or {}).get("maskelenen", {})
+            satir = [{"Veri Türü": _PII_ETIKET.get(k, k), "Maskelenen Adet": v}
+                     for k, v in sayac.items() if v]
+            return state.anonymized_text, satir, True
+        except Exception:
+            pass
+    maskeli, tespitler = _kvkk_maskele(metin)
+    satir = [{"Veri Türü": t["tur"], "Orijinal": t["orijinal"],
+              "Maskeli": t["maske"]} for t in tespitler]
+    return maskeli, satir, False
+
+
 def sayfa_kvkk_uyum() -> None:
-    """KVKK ve Uyum sayfası (maskeleme demosu + uyum göstergeleri)."""
+    """KVKK ve Uyum sayfası (gerçek maskeleme demosu + uyum matrisi)."""
     _ust_cubuk("KVKK ve Uyum",
                "Kişisel veri maskeleme, sızıntı ölçümü ve şartname uyum matrisi")
+
+    # Şartname kısıtı ve sentetik-veri kartları DOĞRULANABİLİR gerçeklerdir;
+    # uyum/sızıntı skorları ise toplu TEMSİLİ göstergedir (aşağıda canlı, gerçek
+    # maskeleme denenebilir). Karışıklık olmasın diye açıkça etiketlenir.
+    st.caption("ℹ️ Aşağıdaki iki skor kartı (uyum/sızıntı) **temsili demo** "
+               "göstergesidir; gerçek maskeleme aşağıda canlı denenebilir. "
+               "Şartname/sentetik-veri kartları doğrulanabilir gerçeklerdir.")
     kartlar = [
-        _metrik_karti("🛡️", "%99,4", "KVKK Uyum Skoru", "+0,3", "green", YESIL,
-                      [random.randint(48, 60) for _ in range(10)]),
-        _metrik_karti("🔒", "0.012", "Ort. Sızıntı Skoru", "≤ 0.05 ✔", "green",
+        _metrik_karti("🛡️", "%99,4", "KVKK Uyum Skoru (temsili)", "demo", "amber",
+                      YESIL, [random.randint(48, 60) for _ in range(10)]),
+        _metrik_karti("🔒", "0.012", "Ort. Sızıntı Skoru (temsili)", "demo", "amber",
                       MAVI, [random.randint(10, 30) for _ in range(10)]),
         _metrik_karti("🧾", "5 / 5", "Şartname Kısıtı", "karşılandı", "green",
                       YESIL, [random.randint(50, 60) for _ in range(10)]),
@@ -1601,12 +1964,17 @@ def sayfa_kvkk_uyum() -> None:
     ]
     _md(_metrik_gridi(kartlar))
 
-    st.markdown("##### 🧪 Canlı Maskeleme Denemesi")
-    st.caption("Metne kurgu PII (TCKN, telefon, e-posta) girin; anonimleştirme "
-               "ajanının çıktısını anında görün.")
+    st.markdown("##### 🧪 Canlı Maskeleme Denemesi (gerçek KVKK agent'ı)")
+    st.caption("Metne kurgu PII (TCKN, telefon, e-posta, IBAN) girin; gerçek "
+               "anonimleştirme ajanının çıktısını anında görün.")
     metin = st.text_area("Test metni", value=ORNEK_DILEKCE, height=220)
     if st.button("🛡️ Maskele", type="primary"):
-        maskeli, tespitler = _kvkk_maskele(metin)
+        maskeli, satir, gercek = _maskele_dispatch(metin)
+        if gercek:
+            st.success("🟢 **Gerçek KVKK anonimleştirme agent'ı** (kural tabanlı) "
+                       "ile maskelendi.")
+        else:
+            st.info("🟡 Simülasyon maskesi (çekirdek backend yüklenemedi).")
         sol, sag = st.columns(2)
         with sol:
             st.markdown("**🔓 Orijinal**")
@@ -1614,11 +1982,11 @@ def sayfa_kvkk_uyum() -> None:
         with sag:
             st.markdown("**🔒 Maskeli**")
             st.code(maskeli, language="text")
-        if tespitler:
-            st.dataframe(pd.DataFrame(tespitler).rename(columns={
-                "tur": "Veri Türü", "orijinal": "Orijinal", "maske": "Maskeli"}),
-                use_container_width=True, hide_index=True)
-            st.success(f"{len(tespitler)} kişisel veri maskelendi.")
+        if satir:
+            st.dataframe(pd.DataFrame(satir), width="stretch", hide_index=True)
+            toplam = (sum(r.get("Maskelenen Adet", 0) for r in satir)
+                      if gercek else len(satir))
+            st.success(f"{toplam} kişisel veri unsuru maskelendi.")
         else:
             st.info("Maskelenecek PII bulunamadı.")
 
@@ -1634,7 +2002,7 @@ def sayfa_kvkk_uyum() -> None:
                   "Yalnızca sentetik/kurgu veri",
                   "Sınıflandırma + taslak uçtan uca",
                   "LLM olmadan tam işlevsel çekirdek"]})
-    st.dataframe(uyum, use_container_width=True, hide_index=True)
+    st.dataframe(uyum, width="stretch", hide_index=True)
 
 
 # ===========================================================================
