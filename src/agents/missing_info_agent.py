@@ -380,11 +380,21 @@ class MissingInfoAgent:
 
     @staticmethod
     def _has_signature(text: str, tl: str) -> bool:
-        """İmza varlığını kontrol eder (anahtar kelime, çizgi bloğu, unvan satırı)."""
-        if "imza" in tl or re.search(r"_{4,}", text):
+        """İmza varlığını kontrol eder (imza bloğu göstergeleri).
+
+        Çizgi bloğu (____) ve e-imza ibaresi belge genelinde geçerli imza
+        sinyalidir. 'imza' anahtar kelimesi ile unvan satırı ise YALNIZCA
+        belgenin SON kısmında (imza alanı) aranır; gövdede geçen 'imza' sözcüğü
+        (ör. 'imza sirküleri', 'imza yetkisi') tek başına imza bloğu SAYILMAZ
+        (yapısal olmayan yanlış pozitif önlenir).
+        """
+        # Belge genelinde geçerli güçlü imza sinyalleri: çizgi bloğu / e-imza
+        if re.search(r"_{4,}", text) or re.search(r"\(?\s*e[-\s]?imza", tl):
             return True
-        # Belge sonunda unvan satırı (imza bloğu göstergesi)
-        son_kisim = turkish_lower("\n".join(text.strip().split("\n")[-6:]))
+        # İmza alanı = belgenin son 8 satırı (imza bloğu buradadır)
+        son_kisim = turkish_lower("\n".join(text.strip().split("\n")[-8:]))
+        if "imza" in son_kisim:
+            return True
         unvanlar = (
             "müdür", "başkan", "uzman", "müsteşar", "şef", "memur",
             "vali", "kaymakam", "müşavir", "sekreter",

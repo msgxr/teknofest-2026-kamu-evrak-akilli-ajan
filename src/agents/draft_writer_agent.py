@@ -1566,7 +1566,8 @@ Yalnızca yazı taslağının kendisini döndür; açıklama ekleme."""
         ekle(
             "yer_tutucu",
             "Boş yer tutucu kalmaması",
-            not re.search(r"\[[^\]]+\]", draft) and "{" not in draft and "}" not in draft,
+            not re.search(r"\[[^\]]+\]", draft)
+            and not re.search(r"\{[A-Za-zÇĞİÖŞÜçğıöşü_]+\}", draft),
             "Taslakta doldurulmamış yer tutucu ([...] veya {...}) kalmamalıdır.",
             "iç kalite kuralı (halüsinasyon yasağı)",
         )
