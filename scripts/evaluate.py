@@ -646,6 +646,18 @@ def metrikleri_hesapla(
         sicaklik_ogren_izinli=(set_adi == "kurgu_evraklar"),
     )
 
+    # 6b. Seçici sınıflandırma (reject option): 0,6 eşiğinde kapsama/risk +
+    #     ortalama belirsizlik (MSP+marj). İnsan-onayı kapısının fayda kanıtı.
+    from src.utils.secici_tahmin import belirsizlik_skoru, kapsam_risk
+    secici_tahmin = kapsam_risk(kalibre_guvenler, kalibre_dogrular, esik=0.6)
+    _belirsizlikler = [
+        belirsizlik_skoru(o)["belirsizlik"] for o in kalibre_olasiliklar if o
+    ]
+    secici_tahmin["ortalama_belirsizlik"] = (
+        round(sum(_belirsizlikler) / len(_belirsizlikler), 4)
+        if _belirsizlikler else None
+    )
+
     # 7. Özet kalitesi (referanssız: sadakat / kaynak-kapsama / sıkıştırma)
     from src.utils.ozet_kalite import kaynak_kapsama, sadakat, sikistirma_orani
     sad_l: List[float] = []
@@ -706,6 +718,7 @@ def metrikleri_hesapla(
         },
         "taslak_kalitesi": hesapla_taslak_kalitesi(sonuclar),
         "kalibrasyon": kalibrasyon,
+        "secici_tahmin": secici_tahmin,
         "ozet_kalitesi": ozet_kalitesi,
         "performans": {
             "evrak_basina_ortalama_sure_saniye": ortalama_sure,

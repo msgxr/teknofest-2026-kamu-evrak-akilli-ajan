@@ -545,6 +545,22 @@ class OrchestratorAgent:
 
     def _compile_results(self) -> dict:
         """Tüm sonuçları derleyerek tek bir sözlük döndürür."""
+        # Çapraz tutarlılık denetimi (multi-agent verification): ajan çıktıları
+        # birbirine karşı doğrulanır; çelişki insan onayı ÖNERİR (bloklamaz).
+        from src.utils.tutarlilik_denetimi import tutarlilik_denetle
+
+        tutarlilik = tutarlilik_denetle(
+            self.state.summary,
+            self.state.raw_text,
+            self.state.draft_text,
+            self.state.legislation_matches,
+        )
+        if tutarlilik["insan_onayi_onerilir"]:
+            self.state.human_review_required = True
+            for celiski in tutarlilik["celiskiler"]:
+                neden = f"Çapraz tutarlılık: {celiski['aciklama']}"
+                if neden not in self.state.human_review_reasons:
+                    self.state.human_review_reasons.append(neden)
         return {
             "input_file": self.state.input_file,
             "ocr": self.state.ocr_result,
@@ -567,6 +583,7 @@ class OrchestratorAgent:
                 "rapor": self.state.anonymization_report,
             },
             "guven_izleme": self.state.confidence_trace,
+            "tutarlilik_denetimi": tutarlilik,
             "islem_adimlari": self.state.processing_steps,
             "hatalar": self.state.errors,
             # Kapı 3: düşük güvenli kararlar için insan onayı işareti

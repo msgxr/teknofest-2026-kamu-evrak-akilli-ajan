@@ -247,6 +247,8 @@ class InfoExtractionAgent:
 
     def run(self, state: "AgentState") -> "AgentState":
         """Evraktan anahtar bilgileri çıkarır ve state.extracted_info'ya yazar."""
+        from src.utils.turkce_ner import yer_cikar
+
         text = state.raw_text
 
         extracted = {
@@ -265,6 +267,7 @@ class InfoExtractionAgent:
             "iban": self._extract_ibans(text),
             "para_tutarlari": self._extract_amounts(text),
             "ilgi_referanslari": self._extract_ilgi_references(text),
+            "yerler": yer_cikar(text),
         }
 
         # LLM zenginleştirmesi (opsiyonel; regex sonuçları esas alınır)
