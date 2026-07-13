@@ -1,0 +1,28 @@
+# AGENTRA TECH — satır sonu (line ending) ve dosya türü politikası.
+#
+# Metin dosyaları depoda LF olarak saklanır ve TÜM platformlarda LF ile çıkışlanır;
+# böylece Windows / Linux / macOS ve CI arasında tutarlıdır ve git'in makineye özgü
+# `core.autocrlf` tahminine bağımlılık ortadan kalkar.
+
+* text=auto eol=lf
+
+# Windows'a özgü betikler CRLF ile çalışmalıdır
+*.bat   text eol=crlf
+*.ps1   text eol=crlf
+
+# İkili dosyalar — asla normalize edilmez (bozulmayı önler)
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.pptx  binary
+*.docx  binary
+*.xlsx  binary
+*.zip   binary
+*.gz    binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
