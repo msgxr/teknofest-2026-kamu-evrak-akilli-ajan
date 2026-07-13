@@ -4,13 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "teknofest-2026-kamu-evrak-akilli-ajan"
-version = "0.1.0"
+version = "0.4.0"
 description = "TEKNOFEST 2026 Yapay Zeka Dil Ajanları Yarışması - Kamu Evrak ve Yazışma Süreçleri için Akıllı Agent Destek Sistemi"
 readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.9"
 authors = [
-    {name = "Teknofest 2026 Takımı"},
+    {name = "Şeyma Nur Çebi"},
+    {name = "Muhammed Sina Gün"},
+    {name = "Emine Elik"},
+    {name = "Zeynep Akel"},
 ]
 keywords = [
     "teknofest",
@@ -36,9 +39,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/TAKP/teknofest-2026-kamu-evrak-akilli-ajan"
-Repository = "https://github.com/TAKP/teknofest-2026-kamu-evrak-akilli-ajan"
-Issues = "https://github.com/TAKP/teknofest-2026-kamu-evrak-akilli-ajan/issues"
+Homepage = "https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan"
+Repository = "https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan"
+Issues = "https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

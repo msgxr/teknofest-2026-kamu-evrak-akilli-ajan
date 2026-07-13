@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Arayüz asistanı (Orkestratör copilot) — niyet eşleme, belge temelli yanıt ve
 dürüstlük testleri.
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Sunum üretim aracı — markdown kaynaktan PPTX oluşturur.
 
 Kullanım:
@@ -178,6 +181,12 @@ def sunum_uret(girdi: Path, cikti: Path) -> int:
     prs = Presentation()
     prs.slide_width = Inches(13.333)  # 16:9
     prs.slide_height = Inches(7.5)
+
+    # Dosya üst verisi (metadata) — atıf tutarlılığı + KVKK: python-pptx varsayılan
+    # şablonundan gelen yabancı ad (ör. "Steve Canny") yerine ekip adı yazılır;
+    # gerçek kişi adı sızmaz.
+    prs.core_properties.author = "AGENTRA TECH"
+    prs.core_properties.last_modified_by = "AGENTRA TECH"
 
     _kapak_slaydi(prs, slaytlar[0])
     for slayt in slaytlar[1:]:

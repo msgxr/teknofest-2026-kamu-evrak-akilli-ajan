@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Split conformal prediction — kapsama-garantili tahmin kümeleri.
 
 Tekil-etiket kararı yerine, dağılımdan-bağımsız bir KAPSAMA GARANTİSİ (ör. %90)

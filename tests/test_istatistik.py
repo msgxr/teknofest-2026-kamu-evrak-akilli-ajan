@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """İstatistiksel anlamlılık modülünün (src/utils/istatistik.py) testleri."""
 
 from src.utils.istatistik import (

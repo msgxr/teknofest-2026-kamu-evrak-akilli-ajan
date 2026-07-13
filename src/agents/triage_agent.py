@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Triage (Akıllı Önceliklendirme) Agent — Evrakın aciliyetini ve yasal
 işlem süresini tespit edip son işlem tarihini hesaplama.

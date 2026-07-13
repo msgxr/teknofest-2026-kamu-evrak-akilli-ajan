@@ -59,3 +59,17 @@ grep -rInE "(api[_-]?key|apikey|secret|token|passwd|password|Bearer |AKIA[0-9A-Z
 - [ ] `SECURITY.md` kökte ve bildirim kanalı güncel.
 - [ ] `data/README.md` sentetiklik beyanları (TCKN, telefon, EBYS kodu, yer adları) güncel.
 - [ ] `docs/model_bilgileri.md` üçüncü taraf modelleri bağlantı+sürüm+lisans ile listeliyor; depoya model ağırlığı eklenmemiş: `git ls-files | grep -E "\.(bin|pt|onnx|safetensors|gguf|h5)$"` boş.
+
+## 8. Fikri Mülkiyet / Atıf
+
+- [x] `LICENSE` telif satırı doğru özneyi taşıyor: **AGENTRA TECH — Şeyma Nur Çebi, Muhammed Sina Gün, Emine Elik, Zeynep Akel** (Apache-2.0 gövdesi değişmedi).
+- [x] `NOTICE` kökte mevcut; 4 eser sahibini ve Apache-2.0 §4(d) atıf-koruma notunu içeriyor.
+- [x] `AUTHORS` kökte mevcut; 4 eser sahibini (FSEK m.10) listeliyor.
+- [x] `CITATION.cff` kökte mevcut; geçerli YAML, 4 yazar (GitHub "Cite this repository").
+- [x] `README.md` ekip bölümü placeholder içermiyor; **AGENTRA TECH** + 4 isim yazılı.
+- [x] `README.md` "Fikri Mülkiyet ve Katkı" bölümü eklendi (izin verici lisans, abartısız; §4/§5 atıfları).
+- [x] `CONTRIBUTING.md` inbound = outbound (Apache-2.0 §5, DCO benzeri) notu var.
+- [x] Tüm `src`, `tests`, `scripts`, `demo` altındaki `*.py` dosyaları SPDX başlığı taşıyor: `grep -rL "SPDX-License-Identifier" $(git ls-files '*.py')` boş.
+- [x] Eski/tutarsız telif özneleri (`... Kamu Evrak Akıllı Ajan Takımı` [LICENSE], `Agentra Tech` [datasheet], `Teknofest 2026 Takımı` [pyproject.toml authors]) telif bağlamında kalmadı; hepsi AGENTRA TECH + 4 eser sahibine birleştirildi.
+- [x] `pyproject.toml` `authors` alanı 4 gerçek eser sahibini listeliyor (paketleme metadatası atıfla tutarlı).
+- [x] `CITATION.cff` sürüm/tarih depodaki gerçek değerle güncel (`0.4.0` / `2026-07-11`, CHANGELOG son yayın).

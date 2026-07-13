@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Adaptif görüntü ön-işleme (src/utils/goruntu_onisleme.py) testleri.
 
 cv2/PIL/numpy varsa tam hat; yoksa graceful fallback denenir.

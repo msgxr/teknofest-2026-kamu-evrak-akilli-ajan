@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """MCP sunucusunun (src/mcp_server.py) JSON-RPC dispatch testleri.
 
 stdio döngüsü olmadan istek_isle() işlev düzeyinde test edilir.

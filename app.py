@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Evrak Zekâ — Kamu Evrak Akıllı Ajanı · Kurumsal Yönetim Panosu.
 

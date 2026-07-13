@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Demo Senaryosu 2.0 — Jüri sunumu için 4 sahneli uçtan uca gösterim.
 

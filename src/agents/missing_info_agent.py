@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Eksik Bilgi Tespit Agent — Evrakta bulunması gereken eksik bilgileri tespit etme.
 

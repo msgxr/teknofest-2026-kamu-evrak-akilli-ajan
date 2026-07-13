@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """on_step (canlı akış / streaming) kancasının uçtan uca testleri."""
 
 from src.pipelines.end_to_end_pipeline import EndToEndPipeline

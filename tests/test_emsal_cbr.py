@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Emsal-tabanlı akıl yürütme (src/utils/emsal_cbr.py) testleri."""
 
 from src.utils.emsal_cbr import emsal_onerisi

@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Şema-kısıtlı LLM çözümleme (constrained decoding) testleri.
 
 Canlı LLM olmadan, HTTP çağrısı mock'lanarak payload'a doğru kısıtın

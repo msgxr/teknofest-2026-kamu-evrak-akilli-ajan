@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Evrak İlişki Zinciri (zincir_kur) ve kalibrasyon özetleme testleri.
 

@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Resmî Yazı PDF Üretici — taslak metnini Resmî Yazışmalarda Uygulanacak Usul
 ve Esaslar Hakkında Yönetmelik (RG 10.06.2020/31151) görsel formatına döker.

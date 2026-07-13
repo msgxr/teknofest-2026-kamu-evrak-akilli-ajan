@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 OCR Agent — Evrak okuma ve metin çıkarımı.
 

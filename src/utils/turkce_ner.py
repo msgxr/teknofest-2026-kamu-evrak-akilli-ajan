@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Türkçe adlandırılmış varlık çıkarımı (NER) — gazetteer + kural tabanlı.
 
 YER (lokasyon) varlıklarını saf Python ile birinci-sınıf olarak çıkarır:

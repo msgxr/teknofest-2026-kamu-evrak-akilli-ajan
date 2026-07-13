@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """e-Yazışma üstveri XML export (src/utils/eyazisma.uret_ustveri_xml) testleri."""
 
 import xml.etree.ElementTree as ET

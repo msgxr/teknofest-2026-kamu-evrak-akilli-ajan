@@ -7,7 +7,7 @@
 ## 1. Motivasyon
 - **Neden:** TEKNOFEST 2026 şartnamesi GERÇEK kamu verisi kullanımını yasaklar;
   bu setler sistemin uçtan uca değerlendirilmesi için üretilmiş SENTETİK veridir.
-- **Kim:** Takım (Agentra Tech) tarafından üretilmiş; Apache 2.0.
+- **Kim:** AGENTRA TECH ekibi tarafından üretilmiş; Apache 2.0.
 
 ## 2. Bileşim
 | Set | Adet | Amaç |

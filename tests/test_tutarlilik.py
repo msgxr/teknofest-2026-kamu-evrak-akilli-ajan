@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Çapraz tutarlılık doğrulayıcı (src/utils/tutarlilik_denetimi.py) testleri."""
 
 from src.utils.tutarlilik_denetimi import tutarlilik_denetle

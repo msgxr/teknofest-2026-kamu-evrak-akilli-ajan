@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Metamorfik perturbasyon modülünün (src/utils/metamorfik.py) birim testleri.
 
 Bozulmaların deterministik ve (makul ölçüde) etiket-koruyan olduğunu doğrular.

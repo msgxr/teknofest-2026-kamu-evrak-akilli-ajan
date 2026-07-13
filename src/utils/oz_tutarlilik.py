@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Öz-tutarlılık (self-consistency) oylaması — kalibre LLM güveni.
 
 LLM en yüksek belirsizlikte (düşük-güven eskalasyonu) çağrılır; tek örnekleme

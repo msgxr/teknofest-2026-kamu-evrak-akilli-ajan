@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Seçici sınıflandırma (selective classification / reject option) + OOD skoru.
 
 Sınıflandırıcının HER karara körü körüne güvenmek yerine, güveni düşük veya

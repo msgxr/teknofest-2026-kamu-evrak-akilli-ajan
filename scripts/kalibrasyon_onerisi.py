@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Aktif Öğrenme Kalibrasyon Önerisi — geri bildirim döngüsünün kapanışı.
 

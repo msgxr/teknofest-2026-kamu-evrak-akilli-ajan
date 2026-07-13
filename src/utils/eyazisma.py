@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 e-Yazışma uyumlu üstveri TASLAĞI üretici.
 

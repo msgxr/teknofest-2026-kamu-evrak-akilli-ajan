@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 BM25-Okapi tabanlı saf Python metin arama yardımcıları.
 

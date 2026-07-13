@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Kurgu-DETSİS tabanlı belge sayısı üretici ve doğrulayıcı.
 

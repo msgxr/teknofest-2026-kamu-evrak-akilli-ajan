@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Birim Yönlendirme Agent — Evrakı doğru birime yönlendirme.
 

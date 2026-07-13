@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """KVKK maskeleme kaçak (leak) denetimi — anonimleştirmenin nicel doğrulaması.
 
 Anonimleştirilmiş metinde MASKELENMEDEN kalmış kişisel-veri deseni (checksum-

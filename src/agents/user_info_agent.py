@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Kullanıcı Bilgilendirme Agent — Kullanıcıya süreç bilgisi sunma ve eksik bilgi talebi.
 

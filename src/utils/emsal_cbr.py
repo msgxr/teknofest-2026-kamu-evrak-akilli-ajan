@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Emsal-tabanlı akıl yürütme (Case-Based Reasoning) — ADVISORY karar katmanı.
 
 Düşük güvenli bir kararda, geçmiş ONAYLI kayıtlardan (kayıt defteri) getirilen

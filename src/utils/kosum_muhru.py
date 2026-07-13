@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Tekrarlanabilirlik mührü — her rapora makine-okunur köken (provenance) damgası.
 
 Her değerlendirme/benchmark raporuna: git commit SHA + kirli-çalışma bayrağı,

@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Saf baseline sınıflandırıcı (src/utils/baseline.py) testleri."""
 
 from src.utils.baseline import baseline_siniflandir

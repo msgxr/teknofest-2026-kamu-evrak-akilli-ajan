@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Reflexion/Self-Refine yardımcılarının (src/utils/taslak_reflexion.py) testleri."""
 
 from src.utils.taslak_reflexion import yapisal_geri_bildirim

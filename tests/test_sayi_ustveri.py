@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Sayı üretici (m.11) ve üstveri ↔ belge tutarlılık doğrulayıcısı (m.28/3)
 birim testleri.

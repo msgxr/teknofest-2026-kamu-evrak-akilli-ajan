@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Adaptif görüntü ön-işleme — OCR öncesi okunabilirlik iyileştirme (multimodal).
 
 Taranmış/telefonla çekilmiş evrak görüntüsünü OCR'a vermeden önce düzeltir:

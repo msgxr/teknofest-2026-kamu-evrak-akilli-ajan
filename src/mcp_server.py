@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """MCP (Model Context Protocol) sunucusu — stdio üzerinden JSON-RPC 2.0.
 
 `docs/mcp_vizyonu.md`'de tanımlı 5 aracı mevcut pipeline/API işlevlerine

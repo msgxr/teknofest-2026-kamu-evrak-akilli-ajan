@@ -1,0 +1,10 @@
+# markdownlint yapılandırması — AGENTRA TECH
+#
+# MD051 (link-fragments) devre dışı bırakıldı: README "İçindekiler" bölümü, GitHub'ın
+# emoji + Türkçe karakter içeren başlıklardan ürettiği slug'ları kullanır
+# (ör. "## 📜 Fikri Mülkiyet ve Katkı" -> "#-fikri-mülkiyet-ve-katkı"). Bu anchor'lar
+# GitHub'da doğru çözülür; ancak markdownlint'in slug hesaplayıcısı emoji/Unicode
+# başlıkları farklı ele aldığı için yanlış-pozitif (false-positive) üretir. Diğer tüm
+# kurallar etkin kalır.
+default: true
+MD051: false

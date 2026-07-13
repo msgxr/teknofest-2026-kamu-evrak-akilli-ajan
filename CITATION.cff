@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "Bu yazılımı kullanır veya referans verirseniz lütfen aşağıdaki gibi atıf yapınız."
+title: "Kamu Evrak ve Yazışma Süreçleri için Akıllı Ajan Destek Sistemi"
+abstract: "TEKNOFEST 2026 Yapay Zeka Dil Ajanları Yarışması (1. Senaryo) kapsamında geliştirilen, kamu evrak ve yazışma süreçleri için çok ajanlı yapay zeka destek sistemi."
+type: software
+authors:
+  - family-names: "Çebi"
+    given-names: "Şeyma Nur"
+  - family-names: "Gün"
+    given-names: "Muhammed Sina"
+  - family-names: "Elik"
+    given-names: "Emine"
+  - family-names: "Akel"
+    given-names: "Zeynep"
+repository-code: "https://github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan"
+license: Apache-2.0
+version: "0.4.0"
+date-released: "2026-07-11"
+keywords:
+  - "multi-agent"
+  - "turkish-nlp"
+  - "teknofest-2026"
+  - "yapay-zeka-dil-ajanlari"

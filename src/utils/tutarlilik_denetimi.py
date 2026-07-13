@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Çapraz tutarlılık doğrulayıcı (multi-agent verification katmanı).
 
 Hattın sonunda çalışır ve ajan çıktılarını BİRBİRİNE karşı kural tabanlı

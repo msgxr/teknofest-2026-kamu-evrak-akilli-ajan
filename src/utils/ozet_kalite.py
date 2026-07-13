@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Özet kalitesi ölçümü ve muhafazakâr cümle sıkıştırma (extract-then-compress).
 
 Şartname "özetleme kalitesi"ni açıkça puanlar (Uygulama). Altın (referans) özet

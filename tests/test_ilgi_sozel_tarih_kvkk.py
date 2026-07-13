@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Yapısal İlgi denetimi + sözel tarih çıkarımı + KVKK veri-sinyali köprüsü
 birim testleri.

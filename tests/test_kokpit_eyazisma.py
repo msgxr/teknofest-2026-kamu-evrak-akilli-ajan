@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Kurum Kokpiti (kokpit_ozeti) ve e-Yazışma üstverisi (uret_ustveri) testleri.
 

@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Güven kalibrasyonu ölçümü ve sıcaklık ölçekleme (temperature scaling).
 
 Sınıflandırma güveni (softmax olasılığı) ile gerçek doğruluk arasındaki

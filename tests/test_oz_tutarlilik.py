@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Öz-tutarlılık oylaması (src/utils/oz_tutarlilik.py) testleri."""
 
 from src.utils.oz_tutarlilik import cogunluk_oyu

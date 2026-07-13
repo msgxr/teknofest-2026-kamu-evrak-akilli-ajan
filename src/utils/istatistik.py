@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """İstatistiksel anlamlılık: güven aralıkları + eşleştirilmiş test.
 
 Küçük değerlendirme setlerinde (n=16) çıplak nokta tahminleri (ör. "0,750 (12/16)")

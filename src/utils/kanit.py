@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Karar-kaynak eşlemesi (attribution) — 'neden bu karar' kanıt span'leri.
 
 Bir kararı destekleyen kaynak metin parçalarını (span) bulur: çıkarılan varlıklar

@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Seçici sınıflandırma modülünün (src/utils/secici_tahmin.py) testleri."""
 
 from src.utils.secici_tahmin import belirsizlik_skoru, chow_reddet, kapsam_risk

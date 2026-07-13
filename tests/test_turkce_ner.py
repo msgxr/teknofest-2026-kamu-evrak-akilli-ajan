@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Türkçe NER modülünün (src/utils/turkce_ner.py) birim testleri."""
 
 from src.utils.turkce_ner import ILLER, varlik_f1, yer_cikar

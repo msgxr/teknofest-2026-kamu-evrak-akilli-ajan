@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Reflexion / Self-Refine yardımcıları — taslak öz-düzeltme döngüsü.
 
 Format denetiminin YAPISAL çıktısını (başarısız kurallar) bir "sözlü eleştiri"ye

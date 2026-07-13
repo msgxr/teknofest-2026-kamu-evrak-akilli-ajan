@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Split conformal prediction modülünün (src/utils/konformal.py) testleri."""
 
 from src.utils.konformal import (

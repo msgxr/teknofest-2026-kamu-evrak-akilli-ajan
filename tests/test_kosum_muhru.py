@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Tekrarlanabilirlik mührü modülünün (src/utils/kosum_muhru.py) testleri."""
 
 import json

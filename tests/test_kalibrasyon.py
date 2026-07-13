@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Güven kalibrasyonu modülünün (src/utils/kalibrasyon.py) birim testleri.
 
 Tümü deterministik; harici bağımlılık yok.

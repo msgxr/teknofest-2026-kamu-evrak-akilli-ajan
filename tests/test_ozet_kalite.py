@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Özet kalitesi modülünün (src/utils/ozet_kalite.py) birim testleri."""
 
 from src.utils.ozet_kalite import (

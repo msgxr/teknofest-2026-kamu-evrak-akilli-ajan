@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Resmî yazı PDF üretici (src/utils/resmi_pdf.py) testleri.
 

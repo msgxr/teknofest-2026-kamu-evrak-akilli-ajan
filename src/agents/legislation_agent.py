@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Mevzuat Eşleştirme Agent — hibrit (BM25 ∪ opsiyonel semantik) RAG ile
 madde-referanslı ve gerekçeli mevzuat önerisi.

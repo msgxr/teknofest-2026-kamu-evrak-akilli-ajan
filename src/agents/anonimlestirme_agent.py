@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 KVKK Anonimleştirme Agent — evrakın kişisel verilerden arındırılmış
 paylaşım/arşiv nüshasını üretir.

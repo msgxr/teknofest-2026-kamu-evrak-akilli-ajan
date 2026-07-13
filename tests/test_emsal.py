@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Emsal Evrak Arama (EmsalArama / emsal_ara) ve kayıt defteri şema
 genişletmesi (migration) testleri.

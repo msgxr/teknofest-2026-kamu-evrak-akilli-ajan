@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Metamorfik / perturbasyon dayanıklılık testi araçları (CheckList-INV).
 
 Etiket-KORUYAN metin bozulmaları üretir: bir evrağa anlamı değiştirmeyen

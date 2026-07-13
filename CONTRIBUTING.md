@@ -114,3 +114,11 @@ Bu proje ölçülebilir başarım raporluyor; ölçümün güvenilirliği her ş
 GitHub Issues üzerinden bildirin. İyi bir hata kaydında şunlar bulunur:
 yeniden üretme adımları (mümkünse örnek evrak metni), beklenen/gözlenen
 davranış, Python sürümü ve `pytest tests/ -q` çıktısı.
+
+## 7. Katkı ve Fikri Mülkiyet (Inbound = Outbound)
+
+Bu depoya gönderilen tüm katkılar, **Apache License 2.0 §5** uyarınca projenin
+mevcut lisansı (Apache-2.0) ile **aynı şartlarda** kabul edilir. Katkı veren,
+gönderdiği içeriğin özgün eseri olduğunu veya bu lisansı verme hakkına sahip
+olduğunu beyan eder (Developer Certificate of Origin — DCO benzeri kabul). Ayrı
+bir Katkı Lisans Sözleşmesi (CLA) gerekmez; telif hakları katkı sahibinde kalır.

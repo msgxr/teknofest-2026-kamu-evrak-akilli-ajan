@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """KVKK maskeleme kaçak denetimi (src/utils/kvkk_denetim.py) testleri."""
 
 from src.utils.kvkk_denetim import kacak_olc

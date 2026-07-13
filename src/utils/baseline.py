@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Saf baseline sınıflandırıcı — ablasyon ve 'İkiz Ekran' karşılaştırması için.
 
 Bilerek ZAYIF ama ADİL bir referans: yalnızca anahtar-kelime sayımı, en çok

@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """
 Yazı Taslak Oluşturma Agent — Resmî yazı taslağı üretme ve format denetimi.
 

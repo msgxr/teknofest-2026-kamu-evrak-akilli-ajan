@@ -1,3 +1,6 @@
+# Copyright 2026 AGENTRA TECH
+# SPDX-License-Identifier: Apache-2.0
+
 """Arayüz asistanı — güvenli hesap makinesi + genel LLM fallback testleri.
 
 Zeynep'in hibrit niyet motoru bilinen niyetleri eşler; bu iki eklenti kapsam-dışı
