@@ -10,7 +10,7 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 |---|---|---|
 | Evrakı OCR veya doğrudan metin olarak okuyabilme | `src/agents/ocr_agent.py` (TXT/MD doğrudan; PDF pypdf; görüntü/taranmış PDF için opsiyonel Tesseract/EasyOCR) | ✅ |
 | Metni anlamlandırarak evrak türünü belirleme | `src/agents/classification_agent.py` (9 tür; anahtar kelime + 20+ yapısal sinyal + softmax güven; LLM eskalasyonu) | ✅ |
-| İçerikte geçen önemli bilgi unsurlarını çıkarma | `src/agents/info_extraction_agent.py` (tarih, sayı, checksum doğrulamalı T.C. kimlik, İlgi, konu, muhatap, kurum, kişi, IBAN, iletişim) | ✅ |
+| İçerikte geçen önemli bilgi unsurlarını çıkarma | `src/agents/info_extraction_agent.py` (tarih, sayı, checksum doğrulamalı T.C. kimlik, İlgi, konu, muhatap, kurum, kişi, IBAN, iletişim); arayüz gösterimi: `src/app.py` + `app.py` ("Çıkarılan Bilgiler" kartı, PII alanları KVKK panelinde) | ✅ |
 | Eksik olan bilgileri tespit edebilme | `src/agents/missing_info_agent.py` (türe özgü `ZORUNLU_ALANLAR` + öncelik + giderme önerisi) | ✅ |
 | İlgili mevzuat / yazışma kurallarını önerebilme | `src/agents/legislation_agent.py` + `src/utils/bm25.py` (15 belgelik korpus üzerinde BM25 RAG + türe koşullu yeniden sıralama) | ✅ |
 | Kısa ve öz özet oluşturabilme | `src/agents/summarization_agent.py` (skorlamalı extractive özet; LLM varsa üretken özet) | ✅ |
@@ -22,8 +22,8 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 | Üst yazı / cevap yazısı / bilgilendirme veya alternatif tür için taslak | `src/agents/draft_writer_agent.py` + `src/templates/` (üst yazı, cevap, bilgilendirme, eksik bilgi talep, iade/ikmal notu) | ✅ |
 | Taslağın resmî üsluba uygunluğu | `src/agents/draft_writer_agent.py` — 9 kurallı Yönetmelik kontrol listesi + format skoru; hitap-kapanış uyumu | ✅ |
 | İçeriğe göre doğru birime yönlendirme önerisi | `src/agents/routing_agent.py` (9 birimlik şema, gerekçeli ve alternatifli öneri) | ✅ |
-| Kullanıcıya açık ve anlaşılır süreç bilgilendirmesi | `src/agents/user_info_agent.py` (durum, uyarılar, sonraki adımlar) | ✅ |
-| Gerekli durumlarda eksik bilgi talep edebilme | `src/agents/user_info_agent.py` (soru üretimi) + `src/templates/eksik_bilgi_talep.txt` (otomatik resmî talep yazısı) | ✅ |
+| Kullanıcıya açık ve anlaşılır süreç bilgilendirmesi | `src/agents/user_info_agent.py` (durum, uyarılar, sonraki adımlar); arayüz gösterimi: `src/app.py` + `app.py` ("Kullanıcı Bilgilendirmeleri" bölümü) | ✅ |
+| Gerekli durumlarda eksik bilgi talep edebilme | `src/agents/user_info_agent.py` (soru üretimi) + `src/templates/eksik_bilgi_talep.txt` (otomatik resmî talep yazısı); arayüz gösterimi: `src/app.py` + `app.py` (eksik bilgi talepleri) | ✅ |
 
 ## Sistem Bütünlüğü ve Yöntem (m. 6.3, 6.6, 9)
 
@@ -32,7 +32,7 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 | Uçtan uca evrak işleme ve yazışma hazırlama akışı | `src/agents/orchestrator.py` + `src/pipelines/end_to_end_pipeline.py` (iki görev tek akışta; 3 koşullu kapı) | ✅ |
 | Çok ajanlı mimari / agent orkestrasyonu | `src/agents/` — 11 uzman ajan + orkestratör, paylaşılan `AgentState` | ✅ |
 | Süreli evrakın önceliklendirilmesi — aciliyet damgaları ve yasal cevap sürelerinden son işlem tarihi (yenilik, m. 9) | `src/agents/triage_agent.py` (İVEDİ/GÜNLÜDÜR damgaları + metin içi süre kayıtları + 4982/3071/2577/CİMER yasal süre tablosu) + `tests/test_triage.py` | ✅ |
-| Kişisel verilerden arındırılmış paylaşım/arşiv nüshası — KVKK md. 4 ve md. 8 (yenilik, m. 9) | `src/agents/anonimlestirme_agent.py` (checksum doğrulamalı TCKN, telefon, e-posta, IBAN, kişi adı, adres için format koruyan maskeleme) + `tests/test_anonimlestirme.py` | ✅ |
+| Kişisel verilerden arındırılmış paylaşım/arşiv nüshası — KVKK md. 4 ve md. 8 (yenilik, m. 9) | `src/agents/anonimlestirme_agent.py` (checksum doğrulamalı TCKN, telefon, e-posta, IBAN, kişi adı, adres için format koruyan maskeleme) + `tests/test_anonimlestirme.py`; arayüz: `src/app.py` + `app.py` (KVKK panelinde maskeli paylaşım/arşiv nüshası `.txt` indirme) | ✅ |
 | Model eğitimi zorunlu değil; hazır/açık kaynak model kullanımı | `src/models/llm_wrapper.py` (OpenAI-uyumlu / Ollama / offline otomatik tespit; eğitim yok) | ✅ |
 | Performans ölçümü (sınıflandırma, yönlendirme, özet, eksik bilgi) | `scripts/evaluate.py` + `data/processed/eval_report*.json` (5 set: geliştirme, tutulmuş, tutulmuş v2, adversarial v3, adversarial-temiz v4) | ✅ |
 | Gerçek zamana yakın sonuç üretimi | `docs/teknik_rapor.md` §5 — evrak başına medyan ~0,012 sn; arayüzde adım adım süre tablosu | ✅ |
@@ -46,9 +46,9 @@ ihtiyaçlardan türetilen özgün modüller:
 |---|---|---|
 | Akıllı önceliklendirme (triyaj): İVEDİ/GÜNLÜDÜR damgaları, metin içi süre kayıtları ve yasal cevap süreleri (4982, 3071, 2577, CİMER) → son işlem tarihi hesabı | `src/agents/triage_agent.py`, `tests/test_triage.py` | ✅ |
 | KVKK anonimleştirme: kişisel verileri (TCKN, telefon, e-posta, IBAN, kişi adı, adres) format koruyarak maskeleyen paylaşım nüshası | `src/agents/anonimlestirme_agent.py`, `tests/test_anonimlestirme.py` | ✅ |
-| Kurum kokpiti: toplu evrak işleme istatistikleri (tür/birim dağılımı, eksiklik oranları, zaman tasarrufu analizi) | `src/utils/kokpit.py`, `tests/test_kokpit_eyazisma.py`, `src/app.py` (kokpit sekmesi) | ✅ |
-| e-Yazışma üstveri taslağı: taslak + yönlendirme kararının EBYS'ye aktarılabilir makine okunur üstverisi (CBDDO e-Yazışma esinli, kavram kanıtı) | `src/utils/eyazisma.py`, `tests/test_kokpit_eyazisma.py` | ✅ |
-| Geri bildirim döngüsü: kullanıcının tür/birim düzeltmeleri JSONL olarak kaydedilir, kural kalibrasyonuna girdi olur | `src/app.py` ("Sonucu Düzelt" bölümü + JSONL kayıt) | ✅ |
+| Kurum kokpiti: toplu evrak işleme istatistikleri (tür/birim dağılımı, eksiklik oranları, zaman tasarrufu analizi) | `src/utils/kokpit.py`, `tests/test_kokpit_eyazisma.py`, `src/app.py` (kokpit sekmesi), `app.py` (kurumsal pano · Toplu İşleme → Kurum Kokpiti) | ✅ |
+| e-Yazışma üstveri taslağı: taslak + yönlendirme kararının EBYS'ye aktarılabilir makine okunur üstverisi (CBDDO e-Yazışma esinli, kavram kanıtı) | `src/utils/eyazisma.py`, `tests/test_kokpit_eyazisma.py`, `app.py` (kurumsal pano · sonuç ekranı "e-Yazışma Üstverisi" + JSON indirme) | ✅ |
+| Geri bildirim döngüsü: kullanıcının tür/birim düzeltmeleri JSONL olarak kaydedilir, kural kalibrasyonuna girdi olur | `src/app.py` ve `app.py` (kurumsal pano · "Sonucu Düzelt" bölümü); ikisi de ortak `data/processed/geri_bildirim.jsonl` dosyasına aynı şemayla yazar | ✅ |
 
 ## Veri Kullanımı (m. 6.5)
 
@@ -58,7 +58,7 @@ ihtiyaçlardan türetilen özgün modüller:
 | Kurgu evrak örnekleri ve yapay resmî yazışma taslakları | `data/raw/kurgu_evraklar/` (52), `data/raw/kurgu_evraklar_heldout/` (16), `data/raw/kurgu_evraklar_heldout_v2/` (16), `data/raw/kurgu_evraklar_heldout_v3/` (16 adversarial), `data/raw/kurgu_evraklar_heldout_v4/` (16 adversarial-temiz) — tümü etiketli | ✅ |
 | Kamuya açık mevzuat metinleri | `data/raw/mevzuat_metinleri/` (15 belge; kaynak: mevzuat.gov.tr) | ✅ |
 | Veri seti çeşitliliği | 8 evrak türü × 3 farklı kurgu kurum evreni ve üslup dokusu | ✅ |
-| Demo verisinin kaynağı ve kullanım haklarının beyanı | `data/README.md` (kaynak + Apache 2.0), `src/app.py` "Hakkında" sekmesi | ✅ |
+| Demo verisinin kaynağı ve kullanım haklarının beyanı | `data/README.md` (kaynak + Apache 2.0), `src/app.py` "Hakkında" sekmesi, `app.py` (kurumsal pano · "Hakkında" sayfası: veri kaynağı + Apache 2.0 beyanı) | ✅ |
 
 ## Dokümantasyon, Lisans ve Teslim (m. 7)
 
@@ -76,7 +76,7 @@ ihtiyaçlardan türetilen özgün modüller:
 |---|---|---|
 | Ön değerlendirme sunumu (proje, mimari, takım, motivasyon) | `presentations/on_degerlendirme_sunumu.md` + `.pptx` (üretim: `scripts/build_presentation.py`) | ✅ (takım bilgisi alanları doldurulacak) |
 | Sunum PDF ve PPTX formatında | PPTX script ile üretilir; PDF PowerPoint'ten dışa aktarılır (`presentations/README.md`) | ⚠️ PDF elle alınacak |
-| Uçtan uca çalışan demo | `demo/demo_scenario.py` (konsol) + `src/app.py` (Streamlit) | ✅ |
+| Uçtan uca çalışan demo | `demo/demo_scenario.py` (konsol) + `src/app.py` (klasik Streamlit) + `app.py` (kurumsal jüri panosu "Evrak Zekâ") | ✅ |
 | Türkçe metinler üzerinde gözlemlenebilir çıktılar | Demo, sentetik Türkçe evrak setleri üzerinde çalışır | ✅ |
 | İnternet kesintisine karşı yedek plan | Offline-first mimari — LLM'siz tam işlev (`demo/README.md`, `docs/teknik_rapor.md` §1) | ✅ |
 
