@@ -127,6 +127,68 @@ AJAN_ADLARI = {
     "user_info": "Bilgilendirme",
 }
 
+# Ajan Filosu (çoklu-ajan) kartları için rol tanımları.
+# Anahtarlar orkestratördeki agents sözlüğüyle BİREBİR uyumludur
+# (src/agents/orchestrator.py) — böylece "Aktif/Beklemede" durumu gerçeği yansıtır.
+# Metinler gerçek ajan sorumluluklarıdır (CLAUDE.md mimari haritası); uydurma yoktur.
+AJAN_ROLLERI: dict[str, dict[str, str]] = {
+    "ocr": {
+        "ikon": "📄",
+        "rol": "Taranmış/dijital evraktan metni çıkarır; okunabilirlik kapısını besler.",
+        "kategori": "Görev 1 · Okuma",
+    },
+    "classification": {
+        "ikon": "🏷️",
+        "rol": "Evrak türünü belirler (dilekçe, üst yazı, tutanak, genelge...).",
+        "kategori": "Görev 1 · Analiz",
+    },
+    "info_extraction": {
+        "ikon": "🔍",
+        "rol": "Tarih, kurum, kişi ve referans no gibi kilit alanları ayıklar.",
+        "kategori": "Görev 1 · Analiz",
+    },
+    "missing_info": {
+        "ikon": "🧩",
+        "rol": "Zorunlu alanların eksikliğini saptar, tamamlama talebi üretir.",
+        "kategori": "Görev 1 · Analiz",
+    },
+    "legislation": {
+        "ikon": "⚖️",
+        "rol": "İlgili kanun/yönetmelik maddelerini BM25 RAG ile eşleştirir.",
+        "kategori": "Görev 1 · Mevzuat",
+    },
+    "summarization": {
+        "ikon": "📝",
+        "rol": "Evrakı sadakat denetimli, kısa bir özete indirger.",
+        "kategori": "Görev 1 · Analiz",
+    },
+    "triage": {
+        "ikon": "🚦",
+        "rol": "Aciliyet ve yasal süreye göre ivedilik derecesi atar.",
+        "kategori": "Ortak · Önceliklendirme",
+    },
+    "anonimlestirme": {
+        "ikon": "🔒",
+        "rol": "Kişisel verileri maskeler (KVKK); sızıntı oranını ölçer.",
+        "kategori": "Ortak · KVKK",
+    },
+    "draft_writer": {
+        "ikon": "✍️",
+        "rol": "Resmî yazışma formatında cevap taslağı üretir (Self-Refine).",
+        "kategori": "Görev 2 · Üretim",
+    },
+    "routing": {
+        "ikon": "🧭",
+        "rol": "Evrakı doğru birime sevk eder (birim kodu önerisi).",
+        "kategori": "Görev 2 · Yönlendirme",
+    },
+    "user_info": {
+        "ikon": "📣",
+        "rol": "Vatandaşa/kuruma yönelik bilgilendirme mesajı hazırlar.",
+        "kategori": "Görev 2 · Üretim",
+    },
+}
+
 # islem_adimlari[].status → (ikon, kenarlık rengi, zemin rengi)
 ADIM_DURUM_STILLERI = {
     "success": ("✅", "#2e7d32", "rgba(46, 125, 50, 0.10)"),
@@ -364,6 +426,506 @@ def _a4_gorunum_html(taslak: str) -> str:
         f'<div style="white-space:pre-wrap;">{html.escape(govde)}</div>'
         "</div>"
     )
+
+
+# ---------------------------------------------------------------------------
+# Kurumsal tema (tek seferlik CSS enjeksiyonu) + kahraman başlık
+#
+# NOT: Tüm arayüz saf Python ile üretilir. Stil, Python string'i olarak
+# hazırlanıp `st.markdown(..., unsafe_allow_html=True)` ile sayfaya basılır;
+# ayrı .css/.html dosyası YOKTUR. Dış font/CDN indirmesi bilinçli olarak
+# kullanılmaz — böylece offline-first çalışma kuralı korunur (yalnızca
+# sistem yazı tipleri).
+# ---------------------------------------------------------------------------
+
+def _kurumsal_stil_html() -> str:
+    """
+    Tüm bileşenleri tek seferde kamu (devlet) temasına taşıyan <style> bloğu.
+
+    Palet: koyu lacivert kurumsal vurgu + ölçülü altın (resmî evrak hissi) +
+    açık/nötr zeminler. Seçiciler eklemeli (additive) ve savunmacıdır; bir
+    Streamlit sürümünde bir seçici eşleşmezse arayüz yalnızca o incelikten
+    yoksun kalır, bozulmaz.
+
+    GÜVENLİK/UYUM: sabit (dinamik olmayan) CSS metnidir; kullanıcı girdisi
+    içermez. Dış kaynak (font/CDN) çağrısı yoktur → offline-first korunur.
+    """
+    return """
+<style>
+:root {
+  --kamu-lacivert: #1f3a5f;
+  --kamu-lacivert-koyu: #16293f;
+  --kamu-lacivert-acik: #2c5182;
+  --kamu-altin: #c8a24b;
+  --kamu-altin-acik: #e3c983;
+  --kamu-zemin: #f4f6f9;
+  --kamu-yuzey: #ffffff;
+  --kamu-kenar: #e2e7ee;
+  --kamu-metin: #1a2332;
+  --kamu-metin-soluk: #5b6b80;
+  --kamu-golge: 0 2px 10px rgba(20, 41, 63, 0.06);
+  --kamu-golge-vurgu: 0 8px 26px rgba(20, 41, 63, 0.16);
+}
+
+/* Sistem yazı tipi yığını — dış font indirmesi YOK (offline-first). */
+html, body, .stApp, [class*="css"] {
+  font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Genel zemin: çok hafif bir üst ışıma + nötr kamu zemini. */
+.stApp {
+  background:
+    radial-gradient(1200px 420px at 50% -160px, rgba(31, 58, 95, 0.07), transparent),
+    var(--kamu-zemin);
+}
+
+/* İçerik genişliği ve üst/alt boşluklar. */
+.block-container {
+  max-width: 1320px;
+  padding-top: 1.1rem;
+  padding-bottom: 3rem;
+}
+
+/* Streamlit üst şeridini şeffaflaştır (hero ile bütünleşsin). */
+[data-testid="stHeader"] { background: transparent; }
+
+/* Başlıklar kurumsal lacivert. */
+h1, h2, h3 { color: var(--kamu-lacivert); letter-spacing: -0.01em; }
+h2 { font-weight: 700; }
+h3 { font-weight: 650; }
+
+/* ---------------- Kahraman (hero) başlık ---------------- */
+.kamu-hero {
+  position: relative;
+  margin: 0 0 20px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--kamu-golge-vurgu);
+  background: linear-gradient(135deg,
+      var(--kamu-lacivert-koyu) 0%, var(--kamu-lacivert) 55%, var(--kamu-lacivert-acik) 100%);
+}
+.kamu-hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(620px 220px at 92% -60%, rgba(200, 162, 75, 0.22), transparent);
+  pointer-events: none;
+}
+.kamu-hero-serit {
+  height: 4px;
+  background: linear-gradient(90deg, var(--kamu-altin), var(--kamu-altin-acik), var(--kamu-altin));
+}
+.kamu-hero-govde {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 20px;
+  padding: 22px 28px 24px;
+}
+.kamu-amblem {
+  flex: 0 0 auto;
+  width: 66px; height: 66px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; line-height: 1;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+}
+.kamu-hero-eyebrow {
+  color: var(--kamu-altin-acik);
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.kamu-hero-baslik {
+  color: #ffffff; margin: 3px 0 5px;
+  font-size: 1.7rem; font-weight: 800; letter-spacing: -0.02em;
+}
+.kamu-hero-alt { color: rgba(255, 255, 255, 0.82); font-size: 0.95rem; }
+.kamu-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+.kamu-chip {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #eaf0f7; font-size: 0.76rem; font-weight: 600;
+  padding: 4px 11px; border-radius: 999px; white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .kamu-hero-govde { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .kamu-hero-baslik { font-size: 1.35rem; }
+}
+
+/* ---------------- Sekmeler ---------------- */
+.stTabs [data-baseweb="tab-list"] {
+  gap: 4px;
+  padding: 6px;
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-radius: 12px;
+  box-shadow: var(--kamu-golge);
+}
+.stTabs [data-baseweb="tab"] {
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 600;
+  color: var(--kamu-metin-soluk);
+}
+.stTabs [aria-selected="true"] {
+  background: var(--kamu-lacivert) !important;
+  color: #ffffff !important;
+}
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-baseweb="tab-border"] { background: transparent; }
+
+/* ---------------- Butonlar ---------------- */
+.stButton > button, .stDownloadButton > button {
+  border-radius: 9px;
+  font-weight: 600;
+  border: 1px solid var(--kamu-kenar);
+  transition: transform .08s ease, box-shadow .15s ease, background .15s ease;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--kamu-golge-vurgu);
+}
+.stButton > button[kind="primary"] {
+  border: none; color: #ffffff;
+  background: linear-gradient(180deg, var(--kamu-lacivert-acik), var(--kamu-lacivert));
+}
+
+/* ---------------- Metrikler (kart görünümü) ---------------- */
+[data-testid="stMetric"] {
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-left: 4px solid var(--kamu-lacivert);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: var(--kamu-golge);
+}
+[data-testid="stMetricValue"] { color: var(--kamu-lacivert); font-weight: 700; }
+
+/* ---------------- Uyarı kutuları ---------------- */
+[data-testid="stAlert"] { border-radius: 10px; border-left-width: 5px; }
+
+/* ---------------- Açılır kart (expander) ---------------- */
+[data-testid="stExpander"] {
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-radius: 12px;
+  box-shadow: var(--kamu-golge);
+  overflow: hidden;
+}
+[data-testid="stExpander"] summary { font-weight: 600; }
+
+/* ---------------- Kenar çubuğu ---------------- */
+[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #ffffff, #f1f4f9);
+  border-right: 1px solid var(--kamu-kenar);
+}
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2 { font-size: 1.1rem; }
+
+/* ---------------- Tablolar ---------------- */
+[data-testid="stTable"] thead th, .stDataFrame thead th {
+  background: var(--kamu-lacivert) !important;
+  color: #ffffff !important;
+}
+
+/* ---------------- Dosya yükleme alanı ---------------- */
+[data-testid="stFileUploaderDropzone"] {
+  border: 1.5px dashed var(--kamu-lacivert-acik);
+  border-radius: 12px;
+  background: rgba(31, 58, 95, 0.03);
+}
+
+/* ---------------- İlerleme çubuğu ---------------- */
+.stProgress > div > div > div > div {
+  background: linear-gradient(90deg, var(--kamu-lacivert), var(--kamu-altin));
+}
+
+/* ---------------- Kaydırma çubuğu ---------------- */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: #c3ccd8; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--kamu-lacivert-acik); }
+
+/* ---------------- Ajan filosu (çoklu-ajan kartları) ---------------- */
+.kamu-agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 14px;
+  margin: 8px 0 6px;
+}
+.kamu-agent-card {
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-radius: 14px;
+  padding: 14px 16px 15px;
+  box-shadow: var(--kamu-golge);
+  transition: transform .1s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.kamu-agent-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--kamu-golge-vurgu);
+  border-color: var(--kamu-lacivert-acik);
+}
+.kamu-agent-head { display: flex; align-items: center; justify-content: space-between; }
+.kamu-agent-ikon {
+  width: 42px; height: 42px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35rem; background: rgba(31, 58, 95, 0.08);
+}
+.kamu-agent-durum {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: .02em;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+.kamu-durum-aktif {
+  color: #0f7a4f; background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.kamu-durum-bekleme {
+  color: #8a6d1f; background: rgba(202, 162, 75, 0.16);
+  border: 1px solid rgba(202, 162, 75, 0.40);
+}
+.kamu-agent-ad { margin-top: 11px; font-size: 1rem; font-weight: 700; color: var(--kamu-lacivert); }
+.kamu-agent-rol { margin-top: 4px; font-size: 0.82rem; line-height: 1.4; color: var(--kamu-metin-soluk); }
+.kamu-agent-etiket {
+  display: inline-block; margin-top: 10px;
+  font-size: 0.68rem; font-weight: 600; color: var(--kamu-lacivert-acik);
+  background: rgba(31, 58, 95, 0.06); border-radius: 999px; padding: 2px 9px;
+}
+
+/* Orkestratör akış şeridi (Görev 1 → Görev 2) */
+.kamu-akis {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 12px 14px; margin-top: 6px;
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-radius: 12px; box-shadow: var(--kamu-golge);
+}
+.kamu-akis-dugum {
+  font-size: 0.82rem; font-weight: 600; color: var(--kamu-lacivert);
+  background: rgba(31, 58, 95, 0.07);
+  border: 1px solid var(--kamu-kenar);
+  border-radius: 999px; padding: 5px 12px; white-space: nowrap;
+}
+.kamu-akis-ok { font-weight: 800; color: var(--kamu-lacivert-acik); opacity: .8; }
+
+/* ---------------- Canlı akış (etkinlik günlüğü) ---------------- */
+.kamu-feed { display: flex; flex-direction: column; gap: 8px; }
+.kamu-feed-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 13px;
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-radius: 11px;
+  box-shadow: var(--kamu-golge);
+}
+.kamu-feed-nokta {
+  flex: 0 0 auto; width: 9px; height: 9px; border-radius: 999px;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+.kamu-nokta-yesil { background: #10b981; }
+.kamu-nokta-turuncu { background: #f59e0b; }
+.kamu-nokta-kirmizi { background: #ef4444; }
+.kamu-feed-govde { flex: 1 1 auto; min-width: 0; }
+.kamu-feed-ust {
+  font-size: 0.86rem; font-weight: 600; color: var(--kamu-metin);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kamu-feed-alt { font-size: 0.74rem; color: var(--kamu-metin-soluk); }
+.kamu-feed-etiket {
+  flex: 0 0 auto; font-size: 0.68rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  color: var(--kamu-lacivert); background: rgba(31, 58, 95, 0.07);
+}
+
+/* ---------------- Mevzuat kütüphanesi ---------------- */
+.kamu-mevzuat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px; margin: 6px 0;
+}
+.kamu-mevzuat-karti {
+  background: var(--kamu-yuzey);
+  border: 1px solid var(--kamu-kenar);
+  border-left: 4px solid var(--kamu-altin);
+  border-radius: 12px; padding: 12px 14px;
+  box-shadow: var(--kamu-golge);
+}
+.kamu-mevzuat-ad { font-size: 0.92rem; font-weight: 700; color: var(--kamu-lacivert); }
+.kamu-mevzuat-meta { font-size: 0.72rem; color: var(--kamu-metin-soluk); margin-top: 3px; }
+.kamu-mevzuat-kw { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+.kamu-kw {
+  font-size: 0.66rem; color: var(--kamu-lacivert-acik);
+  background: rgba(31, 58, 95, 0.06); border-radius: 999px; padding: 2px 8px;
+}
+
+/* Ayraç ve kod. */
+hr { border-color: var(--kamu-kenar); }
+code { color: var(--kamu-lacivert-koyu); }
+</style>
+"""
+
+
+def _kahraman_baslik_html(llm: dict) -> str:
+    """
+    Sayfa üstündeki kurumsal 'hero' başlığı üretir (amblem + başlık + rozetler).
+
+    Güven rozetleri sistemin ayırt edici niteliklerini tek bakışta özetler:
+    LLM/offline durumu, çok-ajanlı mimari, KVKK uyumu, Türkçe, gerçek-zamana
+    yakın işleme. LLM durumu dışındaki rozetler sabittir.
+
+    GÜVENLİK: LLM backend adı dış kaynaklı olabileceğinden html.escape ile
+    kaçırılır (XSS önlemi); diğer metinler sabit ve güvenlidir.
+    """
+    if llm.get("aktif"):
+        backend = html.escape(str(llm.get("backend") or "llm"))
+        durum_rozeti = f"🤖 LLM etkin · {backend}"
+    else:
+        durum_rozeti = "🧩 Kural tabanlı · offline"
+
+    rozetler = [
+        durum_rozeti,
+        "👥 11 uzman ajan + orkestratör",
+        "🔒 KVKK uyumlu",
+        "🇹🇷 Türkçe",
+        "⚡ Gerçek zamana yakın",
+    ]
+    # durum_rozeti dışındaki metinler sabit; backend zaten yukarıda kaçırıldı.
+    chip_html = "".join(f'<span class="kamu-chip">{r}</span>' for r in rozetler)
+
+    return (
+        '<div class="kamu-hero">'
+        '<div class="kamu-hero-serit"></div>'
+        '<div class="kamu-hero-govde">'
+        '<div class="kamu-amblem">🏛️</div>'
+        "<div>"
+        '<div class="kamu-hero-eyebrow">TEKNOFEST 2026 · Yapay Zeka Dil Ajanları</div>'
+        '<div class="kamu-hero-baslik">Kamu Evrak Akıllı Ajan Sistemi</div>'
+        '<div class="kamu-hero-alt">Evrak sınıflandırma · içerik analizi · '
+        "resmî yazı taslaklama · birim yönlendirme</div>"
+        f'<div class="kamu-chips">{chip_html}</div>'
+        "</div></div></div>"
+    )
+
+
+def _ajan_filosu_html(mevcut_kodlar: Any) -> str:
+    """
+    Çoklu-ajan filosunu kart ızgarası (grid) olarak çizen HTML üretir.
+
+    AJAN_ROLLERI sırasıyla her ajan için bir kart basar; orkestratörde yüklü
+    olan ajanlar '● Aktif' (yeşil), yüklü olmayanlar '● Beklemede' (altın)
+    rozetiyle gösterilir. Böylece durum, çalışan sistemin gerçeğini yansıtır.
+
+    GÜVENLİK: tüm dinamik metinler html.escape ile kaçırılır; ikonlar sabit
+    emoji, rol/kategori metinleri proje sözlüğünden gelir.
+    """
+    mevcut = {str(k).strip().lower() for k in (mevcut_kodlar or [])}
+    kartlar: list[str] = []
+    for kod, bilgi in AJAN_ROLLERI.items():
+        aktif = kod in mevcut
+        durum_sinif = "kamu-durum-aktif" if aktif else "kamu-durum-bekleme"
+        durum_metni = "● Aktif" if aktif else "● Beklemede"
+        ad = html.escape(_ajan_adi(kod))
+        rol = html.escape(str(bilgi.get("rol", "")))
+        etiket = html.escape(str(bilgi.get("kategori", "")))
+        ikon = html.escape(str(bilgi.get("ikon", "🤖")))
+        kartlar.append(
+            '<div class="kamu-agent-card">'
+            '<div class="kamu-agent-head">'
+            f'<span class="kamu-agent-ikon">{ikon}</span>'
+            f'<span class="kamu-agent-durum {durum_sinif}">{durum_metni}</span>'
+            "</div>"
+            f'<div class="kamu-agent-ad">{ad}</div>'
+            f'<div class="kamu-agent-rol">{rol}</div>'
+            f'<span class="kamu-agent-etiket">{etiket}</span>'
+            "</div>"
+        )
+    return '<div class="kamu-agent-grid">' + "".join(kartlar) + "</div>"
+
+
+def _ajan_akis_seridi_html() -> str:
+    """Orkestratörün Görev 1 → Görev 2 akışını özetleyen yatay şerit HTML'i."""
+    dugumler = [
+        "🧭 Orkestratör",
+        "📥 Görev 1 · Analiz",
+        "⚖️ Mevzuat (RAG)",
+        "✍️ Görev 2 · Taslak",
+        "🧭 Yönlendirme",
+        "📣 Bilgilendirme",
+    ]
+    ok = '<span class="kamu-akis-ok">→</span>'
+    ic = ok.join(
+        f'<span class="kamu-akis-dugum">{html.escape(d)}</span>' for d in dugumler
+    )
+    return f'<div class="kamu-akis">{ic}</div>'
+
+
+def _canli_akis_html(kayitlar: Any) -> str:
+    """
+    Kayıt defterindeki son işlenen evraklardan 'canlı akış' listesi üretir.
+
+    Her satır: kaynak → birim, tür · öncelik · zaman ve otomatik/insan-onayı
+    etiketi. Öncelik rengine göre soft nokta (yeşil/turuncu/kırmızı). Veriler
+    GERÇEK kayıtlardan gelir (simülasyon değil).
+
+    GÜVENLİK: tüm dinamik metinler html.escape ile kaçırılır.
+    """
+    gecerli = [k for k in (kayitlar or []) if isinstance(k, dict)]
+    if not gecerli:
+        return ""
+
+    parcalar: list[str] = []
+    for k in gecerli:
+        kaynak = html.escape(Path(str(k.get("kaynak") or "")).name or "evrak")
+        birim = html.escape(str(k.get("birim") or "—"))
+        tur = html.escape(str(EVRAK_TUR_ADLARI.get(str(k.get("tur")), k.get("tur") or "—")))
+        zaman = html.escape(str(k.get("zaman") or ""))
+        oncelik_ham = str(k.get("oncelik") or "").strip().lower()
+        if oncelik_ham in ("cok_ivedi", "çok ivedi", "ivedi", "kritik"):
+            nokta = "kamu-nokta-kirmizi"
+        elif oncelik_ham in ("gunlu", "günlü"):
+            nokta = "kamu-nokta-turuncu"
+        else:
+            nokta = "kamu-nokta-yesil"
+        oncelik_metni = html.escape(
+            ONCELIK_ROZETLERI.get(oncelik_ham, str(k.get("oncelik") or "Normal"))
+        ) if oncelik_ham else "—"
+        etiket = "✋ İnsan onayı" if k.get("insan_onayi") else "✅ Otomatik"
+        parcalar.append(
+            '<div class="kamu-feed-item">'
+            f'<span class="kamu-feed-nokta {nokta}"></span>'
+            '<div class="kamu-feed-govde">'
+            f'<div class="kamu-feed-ust">{kaynak} → {birim}</div>'
+            f'<div class="kamu-feed-alt">{tur} · {oncelik_metni} · {zaman}</div>'
+            "</div>"
+            f'<span class="kamu-feed-etiket">{etiket}</span>'
+            "</div>"
+        )
+    return '<div class="kamu-feed">' + "".join(parcalar) + "</div>"
+
+
+def _mevzuat_kutuphane_html(belgeler: Any) -> str:
+    """Korpustaki mevzuat belgelerini kart ızgarası olarak çizen HTML üretir."""
+    gecerli = [b for b in (belgeler or []) if isinstance(b, dict)]
+    if not gecerli:
+        return ""
+
+    kartlar: list[str] = []
+    for b in gecerli:
+        ad = html.escape(str(b.get("baslik") or b.get("doc_id") or "—"))
+        doc_id = html.escape(str(b.get("doc_id") or "—"))
+        try:
+            bolum = int(b.get("bolum_sayisi") or 0)
+        except (TypeError, ValueError):
+            bolum = 0
+        kelimeler = (b.get("anahtar_kelimeler") or [])[:4]
+        kw_html = "".join(
+            f'<span class="kamu-kw">{html.escape(str(kelime))}</span>'
+            for kelime in kelimeler
+        )
+        kartlar.append(
+            '<div class="kamu-mevzuat-karti">'
+            f'<div class="kamu-mevzuat-ad">⚖️ {ad}</div>'
+            f'<div class="kamu-mevzuat-meta">{doc_id} · {bolum} bölüm</div>'
+            f'<div class="kamu-mevzuat-kw">{kw_html}</div>'
+            "</div>"
+        )
+    return '<div class="kamu-mevzuat-grid">' + "".join(kartlar) + "</div>"
 
 
 # ---------------------------------------------------------------------------
@@ -1454,6 +2016,20 @@ def _sekme_kokpit(pipeline: Any) -> None:
         "özet göstergeler üretilir. Örnekler gerçek kamu verisi içermez."
     )
 
+    # Canlı Akış: kayıt defterindeki son işlenen evraklar (GERÇEK kayıtlar).
+    # Simülasyon değildir; başka sekmelerde işlenen evraklar burada belirir.
+    defter = getattr(pipeline, "kayit_defteri", None)
+    if defter is not None:
+        try:
+            son_kayitlar = defter.sorgula(limit=6)
+        except Exception as exc:  # akış, kokpitin ana işlevini düşürmemeli
+            logger.warning(f"Canlı akış okunamadı: {exc}")
+            son_kayitlar = []
+        if son_kayitlar:
+            st.markdown("#### 📡 Canlı Akış — son işlenen evraklar")
+            st.markdown(_canli_akis_html(son_kayitlar), unsafe_allow_html=True)
+            st.divider()
+
     # Kurgusal evrak kümeleri (kurgu_evraklar, kurgu_evraklar_heldout, ...)
     kumeler = sorted(
         d.name for d in VERI_KUMESI_KOKU.glob("kurgu_evraklar*") if d.is_dir()
@@ -1879,6 +2455,297 @@ def _sekme_kayit_defteri(pipeline: Any) -> None:
     )
 
 
+def _sekme_ajan_filosu(pipeline: Any) -> None:
+    """
+    Çoklu-ajan yönetimi sekmesi (Multi-Agent Swarm).
+
+    Orkestratörün koordine ettiği uzman ajanları kart ızgarasında rolleri ve
+    canlı durumları (Aktif/Beklemede) ile gösterir; ardından Görev 1 → Görev 2
+    akış şeridini ve iş birliği mantığını (3 koşullu kapı) açıklar. Tüm veriler
+    çalışan sistemden okunur — uydurma metrik/ajan yoktur.
+    """
+    st.caption(
+        "Orkestratörün koordine ettiği uzman ajan filosu — her kart, tek bir "
+        "sorumluluğu üstlenen bir ajanı temsil eder (framework'süz, saf Python)."
+    )
+
+    try:
+        agents = getattr(pipeline.orchestrator, "agents", {}) or {}
+    except Exception:  # pipeline/orkestratör beklenmedik durumda arayüzü düşürmesin
+        agents = {}
+    mevcut_kodlar = list(agents.keys())
+    mevcut_kume = {str(k).strip().lower() for k in mevcut_kodlar}
+    aktif_sayisi = sum(1 for kod in AJAN_ROLLERI if kod in mevcut_kume)
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Tanımlı uzman ajan", len(AJAN_ROLLERI))
+    c2.metric(
+        "Aktif ajan", aktif_sayisi,
+        help="Orkestratörde o an yüklü ve çalışmaya hazır ajan sayısı.",
+    )
+    c3.metric(
+        "Orkestratör kapısı", 3,
+        help="Koşullu akıştaki 3 karar kapısı: okunabilirlik / dil / düşük güven.",
+    )
+
+    st.markdown(_ajan_filosu_html(mevcut_kodlar), unsafe_allow_html=True)
+
+    st.markdown("**🔗 Ajan iş birliği akışı**")
+    st.markdown(_ajan_akis_seridi_html(), unsafe_allow_html=True)
+
+    with st.expander("Ajanlar birbiriyle nasıl iş birliği yapıyor?"):
+        st.markdown(
+            "Orkestratör, ajanları sabit değil **koşullu** bir sırayla çalıştırır; "
+            "her ajanın çıktısı bir sonrakinin girdisini besler (blackboard deseni). "
+            "Akışta **3 karar kapısı** vardır:\n\n"
+            "1. **Okunabilirlik kapısı** — OCR/metin yeterince okunaklı değilse akış "
+            "erken durur ve eksik bilgi olarak raporlanır (halüsinasyon yasağı).\n"
+            "2. **Dil kapısı** — evrak Türkçe değilse ilgili adımlar atlanır.\n"
+            "3. **Düşük güven kapısı** — sınıflandırma güveni düşükse taslak üretimi "
+            "yerine insan onayı kuyruğuna yönlendirilir.\n\n"
+            "Böylece **Görev 1 (analiz)** çıktıları güvenilir olduğunda **Görev 2 "
+            "(taslak + yönlendirme)** devreye girer; değilse sistem *emin olmadığını* "
+            "açıkça bildirir."
+        )
+
+
+@st.cache_resource(show_spinner=False)
+def _mevzuat_indeksi() -> dict:
+    """
+    Mevzuat korpusunu (data/raw/mevzuat_metinleri/*.txt) bir kez okuyup
+    belge listesi + bölüm (chunk) listesi olarak döndürür (önbellekli).
+
+    Dosya formatı LegislationAgent ile aynıdır (# Başlık / # Kaynak /
+    # Anahtar-Kelimeler başlıkları + '## ' bölümleri). Böylece arayüzdeki
+    RAG araması, sistemin gerçek korpusuyla birebir aynı içerik üzerinde çalışır.
+    """
+    from src.utils.bm25 import tokenize
+
+    kok = _PROJECT_ROOT / "data" / "raw" / "mevzuat_metinleri"
+    belgeler: list[dict] = []
+    chunklar: list[dict] = []
+    if not kok.is_dir():
+        return {"belgeler": belgeler, "chunklar": chunklar}
+
+    for path in sorted(kok.glob("*.txt")):
+        try:
+            metin = path.read_text(encoding="utf-8")
+        except Exception as exc:
+            logger.warning(f"Mevzuat dosyası okunamadı ({path.name}): {exc}")
+            continue
+
+        baslik = path.stem.replace("_", " ")
+        kaynak = "mevzuat.gov.tr (kamuya açık)"
+        anahtarlar: list[str] = []
+        govde: list[str] = []
+        for satir in metin.splitlines():
+            s = satir.strip()
+            if s.startswith("# Başlık:"):
+                baslik = s.split(":", 1)[1].strip()
+            elif s.startswith("# Kaynak:"):
+                kaynak = s.split(":", 1)[1].strip()
+            elif s.startswith("# Anahtar-Kelimeler:"):
+                anahtarlar = [w.strip() for w in s.split(":", 1)[1].split(",") if w.strip()]
+            else:
+                govde.append(satir)
+
+        # '## ' ile başlayan her başlık bir bölüm (chunk) oluşturur.
+        bolumler: list[tuple[str, str]] = []
+        bolum_basligi = "Genel"
+        birikim: list[str] = []
+        for satir in govde:
+            if satir.strip().startswith("## "):
+                if "\n".join(birikim).strip():
+                    bolumler.append((bolum_basligi, "\n".join(birikim).strip()))
+                bolum_basligi = satir.strip()[3:].strip()
+                birikim = []
+            else:
+                birikim.append(satir)
+        if "\n".join(birikim).strip():
+            bolumler.append((bolum_basligi, "\n".join(birikim).strip()))
+
+        belgeler.append({
+            "doc_id": path.stem,
+            "baslik": baslik,
+            "kaynak": kaynak,
+            "anahtar_kelimeler": anahtarlar,
+            "bolum_sayisi": len(bolumler),
+        })
+        kw = " ".join(anahtarlar)
+        for bolum, icerik in bolumler:
+            chunklar.append({
+                "doc_id": path.stem,
+                "baslik": baslik,
+                "bolum": bolum,
+                "icerik": icerik,
+                "tokens": tokenize(f"{baslik} {bolum} {icerik} {kw}"),
+            })
+
+    return {"belgeler": belgeler, "chunklar": chunklar}
+
+
+def _mevzuat_ara(indeks: dict, ek_chunklar: Any, sorgu: str, k: int = 5) -> list[dict]:
+    """
+    Korpus + oturuma eklenen belgeler üzerinde GERÇEK BM25-Okapi araması yapar.
+
+    Korpus küçük olduğundan indeks her sorguda yeniden kurulur (maliyeti ihmal
+    edilebilir); bu, oturum içinde yüklenen mevzuatın da anında aranabilmesini sağlar.
+    """
+    from src.utils.bm25 import BM25Okapi, tokenize
+
+    chunklar = list(indeks.get("chunklar") or []) + list(ek_chunklar or [])
+    if not chunklar or not (sorgu or "").strip():
+        return []
+
+    bm25 = BM25Okapi([c["tokens"] for c in chunklar])
+    skorlar = bm25.get_scores(tokenize(sorgu))
+    sirali = sorted(range(len(chunklar)), key=lambda i: skorlar[i], reverse=True)
+
+    sonuc: list[dict] = []
+    for i in sirali[:k]:
+        if skorlar[i] <= 0:
+            continue
+        c = chunklar[i]
+        icerik = str(c.get("icerik") or "")
+        snippet = icerik[:240] + ("…" if len(icerik) > 240 else "")
+        sonuc.append({
+            "baslik": c.get("baslik") or c.get("doc_id"),
+            "bolum": c.get("bolum") or "Genel",
+            "doc_id": c.get("doc_id"),
+            "skor": float(skorlar[i]),
+            "snippet": snippet,
+        })
+    return sonuc
+
+
+def _yuklenen_metni_oku(dosya: Any) -> str:
+    """Yüklenen TXT/PDF dosyasından düz metin çıkarır (PDF için pypdf; yoksa boş)."""
+    ad = str(getattr(dosya, "name", "")).lower()
+    try:
+        ham = dosya.getvalue()
+    except Exception:
+        return ""
+    if ad.endswith(".pdf"):
+        try:
+            import io
+
+            from pypdf import PdfReader
+
+            reader = PdfReader(io.BytesIO(ham))
+            return "\n".join((sayfa.extract_text() or "") for sayfa in reader.pages)
+        except Exception as exc:  # pypdf yoksa veya PDF taranmışsa
+            logger.warning(f"PDF metni çıkarılamadı: {exc}")
+            return ""
+    try:
+        return ham.decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
+
+
+def _sekme_mevzuat(pipeline: Any) -> None:
+    """
+    Mevzuat Kütüphanesi & RAG sekmesi.
+
+    Sistemin dayandığı kamu mevzuatı korpusunu listeler, korpus üzerinde canlı
+    BM25 araması (RAG geri-getirme adımının kendisi) sunar ve oturum içi belge
+    ekleme (RAG ingestion) imkânı verir. Eklenen belge kalıcı korpusa YAZILMAZ
+    — salt-okunur korpus ilkesi ve offline-first korunur.
+    """
+    st.caption(
+        "RAG geri-getirme katmanı: sistemin dayandığı mevzuat korpusu, canlı "
+        "BM25 araması ve oturum içi belge ekleme."
+    )
+
+    try:
+        indeks = _mevzuat_indeksi()
+    except Exception as exc:
+        logger.error(f"Mevzuat korpusu yüklenemedi: {exc}")
+        st.error(f"Mevzuat korpusu yüklenemedi: {exc}")
+        return
+
+    belgeler = indeks.get("belgeler") or []
+    if not belgeler:
+        st.warning(
+            "Mevzuat korpusu bulunamadı: `data/raw/mevzuat_metinleri/` dizininde "
+            "`.txt` dosyaları bekleniyor."
+        )
+        return
+
+    ek_chunklar = st.session_state.get("mevzuat_ek_chunklar", [])
+    ek_belge_sayisi = len({c.get("doc_id") for c in ek_chunklar}) if ek_chunklar else 0
+
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Mevzuat belgesi", len(belgeler) + ek_belge_sayisi)
+    m2.metric("İndeksli bölüm (chunk)", len(indeks.get("chunklar") or []) + len(ek_chunklar))
+    m3.metric(
+        "Arama motoru", "BM25-Okapi",
+        help="Saf Python, bağımlılıksız; tamamen offline çalışır (çekirdek RAG yolu).",
+    )
+
+    # --- Canlı RAG araması ---
+    st.subheader("🔎 Mevzuatta Ara (canlı RAG)")
+    sorgu = st.text_input(
+        "Arama sorgusu",
+        key="mevzuat_sorgu",
+        placeholder="örn. imar planına itiraz süresi",
+    )
+    if sorgu.strip():
+        sonuclar = _mevzuat_ara(indeks, ek_chunklar, sorgu, k=5)
+        if not sonuclar:
+            st.warning("Bu sorguyla korpusta anlamlı bir eşleşme bulunamadı.")
+        else:
+            st.caption(f"En iyi {len(sonuclar)} eşleşme (BM25 skoruna göre sıralı):")
+            for r in sonuclar:
+                with st.container(border=True):
+                    st.markdown(
+                        f"**⚖️ {r['baslik']}** — {r['bolum']}  \n"
+                        f"`{r['doc_id']}` · BM25 skoru: **{r['skor']:.2f}**"
+                    )
+                    st.write(r["snippet"])
+
+    # --- Korpus kütüphanesi ---
+    st.subheader("📚 Korpustaki Mevzuat")
+    st.markdown(_mevzuat_kutuphane_html(belgeler), unsafe_allow_html=True)
+
+    # --- Oturum içi belge ekleme (RAG ingestion) ---
+    st.subheader("➕ Yeni Mevzuat Ekle (oturum içi)")
+    st.caption(
+        "Eklenen belge yalnızca bu oturumun arama indeksine katılır; kalıcı "
+        "korpusa yazılmaz (offline-first + salt-okunur korpus ilkesi)."
+    )
+    yeni = st.file_uploader(
+        "Mevzuat dosyası (TXT veya PDF)",
+        type=["txt", "pdf"],
+        key="mevzuat_yukle",
+        help="TXT doğrudan okunur; PDF metin katmanı pypdf ile çıkarılır "
+             "(taranmış PDF için OCR gerekebilir).",
+    )
+    if yeni is not None and st.button("İndekse Ekle", key="mevzuat_ekle_btn"):
+        metin = _yuklenen_metni_oku(yeni)
+        if not metin.strip():
+            st.error(
+                "Dosyadan metin çıkarılamadı (boş olabilir veya taranmış bir "
+                "PDF olabilir; bu durumda OCR gerekir)."
+            )
+        else:
+            from src.utils.bm25 import tokenize
+
+            ad = Path(yeni.name).stem
+            ek_chunklar = list(ek_chunklar)
+            ek_chunklar.append({
+                "doc_id": f"yuklenen:{ad}",
+                "baslik": ad.replace("_", " "),
+                "bolum": "Yüklenen belge",
+                "icerik": metin,
+                "tokens": tokenize(f"{ad} {metin}"),
+            })
+            st.session_state["mevzuat_ek_chunklar"] = ek_chunklar
+            st.success(
+                f"'{yeni.name}' oturum indeksine eklendi "
+                f"({len(metin):,} karakter). Artık yukarıdaki aramada çıkabilir."
+            )
+
+
 def _sekme_hakkinda() -> None:
     """Sekme 3: mimari özeti, görev eşleşmesi ve veri kullanımı notu."""
     st.caption("Sistemin mimarisi, şartname görev eşleşmesi ve veri kullanımı ilkeleri.")
@@ -1988,11 +2855,11 @@ def main() -> None:
         layout="wide",
     )
 
-    st.title("🏛️ Kamu Evrak Akıllı Ajan Sistemi")
-    st.caption(
-        "Kamu evrak ve yazışma süreçleri için akıllı agent destek sistemi — "
-        "evrak sınıflandırma, içerik analizi, resmî yazı taslaklama ve birim yönlendirme."
-    )
+    # Kurumsal kamu temasını tek seferde enjekte et (saf Python string → CSS).
+    st.markdown(_kurumsal_stil_html(), unsafe_allow_html=True)
+
+    # Kurumsal 'hero' başlık: LLM/offline durumunu güven rozetiyle gösterir.
+    st.markdown(_kahraman_baslik_html(_llm_bilgisi()), unsafe_allow_html=True)
 
     # Pipeline kurulumu (önbellekli — bir kez)
     try:
@@ -2047,9 +2914,11 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Sekmeler
     # ------------------------------------------------------------------
-    sekme1, sekme2, sekme3, sekme4, sekme5, sekme6 = st.tabs(
+    (sekme1, sekme2, sekme3, sekme_filo, sekme_mev,
+     sekme4, sekme5, sekme6) = st.tabs(
         ["📄 Evrak İşle", "🎬 Demo Evrakları", "📊 Kurum Kokpiti",
-         "✋ İnsan Onayı Kuyruğu", "🗂️ Kayıt Defteri", "ℹ️ Hakkında"]
+         "🤖 Ajan Filosu", "📚 Mevzuat & RAG", "✋ İnsan Onayı Kuyruğu",
+         "🗂️ Kayıt Defteri", "ℹ️ Hakkında"]
     )
 
     with sekme1:
@@ -2060,6 +2929,12 @@ def main() -> None:
 
     with sekme3:
         _sekme_kokpit(pipeline)
+
+    with sekme_filo:
+        _sekme_ajan_filosu(pipeline)
+
+    with sekme_mev:
+        _sekme_mevzuat(pipeline)
 
     with sekme4:
         _sekme_insan_onayi(pipeline)
