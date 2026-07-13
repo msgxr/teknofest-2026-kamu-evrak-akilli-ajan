@@ -115,12 +115,22 @@ trafiği oluşturmazlar (offline-first ilkesi).
 - **Kurulum:** `apt install tesseract-ocr tesseract-ocr-tur` (Linux) veya `brew install tesseract tesseract-lang` (macOS)
 - **Not:** Metin dosyaları ve metin katmanlı PDF'ler için OCR gerekmez (`pypdf` ile okunur)
 
+### EasyOCR
+- **Erişim:** https://github.com/JaidedAI/EasyOCR
+- **Sürüm:** >=1.7.0 (`requirements-optional.txt` ile uyumlu)
+- **Lisans:** Apache 2.0
+- **Kullanım:** Görüntü/taranmış PDF için Tesseract'a alternatif OCR motoru; `OCRAgent(engine="easyocr")` ile etkinleşir (`easyocr.Reader(['tr'], gpu=False)`).
+- **Kurulum:** `pip install easyocr` (yalnızca opsiyonel; çekirdek işlev gerektirmez)
+- **Not:** `easyocr.Reader` İLK çağrıda CRAFT metin-tespit + Türkçe tanıma ağırlıklarını `~/.EasyOCR` altına ağdan indirir → çevrimdışı ilk kullanımda tek seferlik ağ trafiği. Kurulu değilse sistem `RuntimeError` ile zarifçe düşer; varsayılan motor Tesseract / `pypdf` ile tam işlevsel kalır (offline-first korunur). Ağırlık deposu depoya YÜKLENMEZ.
+
 ## Yerli LLM Karşılaştırma Protokolü (P2-10)
 
 Opsiyonel eskalasyon katmanı için model seçimi, `scripts/llm_karsilastirma.py`
 protokolüyle yapılır (LLM-only tür doğruluğu + JSON uyumu + gecikme; aynı
 tutulmuş set). **Henüz koşulmamıştır; koşulmadan hiçbir karşılaştırma sayısı
 rapora/sunuma yazılamaz.** GPU'lu ekip makinesinde kurulum ve koşum komutları
-betiğin docstring'indedir; adaylar: `qwen2.5:7b` (mevcut varsayılan,
-Apache-2.0), `ytu-ce-cosmos/Turkish-Llama-8b-Instruct-v0.1-GGUF` (Llama-3
-topluluk lisansı), isteğe bağlı `Turkish-Gemma-9b-T1-GGUF` (Gemma lisansı).
+betiğin docstring'indedir. Adaylar (tümü opsiyonel; ağırlık depoya YÜKLENMEZ,
+yalnızca yerel eskalasyon için indirilir):
+- `qwen2.5:7b` — mevcut varsayılan; Erişim: https://ollama.com/library/qwen2.5 ; etiket `7b`; Lisans: Apache-2.0.
+- `ytu-ce-cosmos/Turkish-Llama-8b-Instruct-v0.1-GGUF` — Erişim: https://huggingface.co/ytu-ce-cosmos/Turkish-Llama-8b-Instruct-v0.1-GGUF ; etiket `Q4_K_M`; Lisans: Llama 3 Community (OSI-onaylı DEĞİL; yalnızca opsiyonel yerel eskalasyon adayı).
+- `ytu-ce-cosmos/Turkish-Gemma-9b-T1-GGUF` — Erişim: https://huggingface.co/ytu-ce-cosmos/Turkish-Gemma-9b-T1-GGUF ; etiket `Q4_K_M`; Lisans: Gemma (OSI-onaylı DEĞİL; opsiyonel).

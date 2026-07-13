@@ -34,6 +34,17 @@ from rich.table import Table
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+# TAŞINABİLİRLİK: Windows'ta stdout UTF-8 değilse (Türkçe konsol cp1254 veya
+# çıktı dosyaya/pipe'a yönlendirildiğinde) rich çıktısındaki emoji/Türkçe
+# karakterler UnicodeEncodeError ile çöker. stdout/stderr'i UTF-8'e sabitleyerek
+# demo komutunun her ortamda çalışmasını garanti et (demo/README'deki elle
+# PYTHONIOENCODING geçici çözümünü gereksiz kılar); errors="replace" zarif düşüş.
+for _akis in (sys.stdout, sys.stderr):
+    try:
+        _akis.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 console = Console(record=True)
 
 # Demo hedef süresi (10 dakikalık sunumda demoya ayrılan pay)

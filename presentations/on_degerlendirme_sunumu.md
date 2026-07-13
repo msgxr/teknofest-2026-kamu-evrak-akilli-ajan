@@ -52,9 +52,9 @@
 
 ---
 
-# Teknik Mimari: 9 Uzman Ajan + Orkestratör
+# Teknik Mimari: 11 Uzman Ajan + Orkestratör
 
-- Her ajan tek sorumluluk üstlenir: OCR, Sınıflandırma, Bilgi Çıkarımı, Eksik Bilgi, Mevzuat (RAG), Özet, Taslak Yazımı, Yönlendirme, Bilgilendirme
+- Her ajan tek sorumluluk üstlenir: OCR, Sınıflandırma, Bilgi Çıkarımı, Eksik Bilgi, Mevzuat (RAG), Önceliklendirme/Triyaj (aciliyet + yasal süre), Özet, KVKK Anonimleştirme (PII maskeleme), Taslak Yazımı, Yönlendirme, Bilgilendirme
 - Framework bağımsız, saf Python orkestrasyon; ajanlar paylaşılan durum nesnesi (AgentState) üzerinden haberleşir
 - Akış düz zincir değil — 3 koşullu kapı:
   - Okunabilirlik kapısı: boş/bozuk metinde uydurma çıktı üretilmez
@@ -96,7 +96,7 @@
 # Uygulama Durumu: Çalışan Sistem
 
 - Uçtan uca çalışır durumda: CLI + Streamlit web arayüzü + konsol demo senaryosu
-- 37 birim ve entegrasyon testi sürekli yeşil (pytest)
+- 489 birim ve entegrasyon testi sürekli yeşil (`pytest tests/`, 13.07.2026)
 - Bağımlılık disiplini: çekirdek kurulum minimal; OCR/semantik arama/LLM opsiyonel katman
 - Değerlendirme aracı (scripts/evaluate.py): sınıflandırma, yönlendirme, eksik bilgi ve süre metriklerini otomatik raporlar
 - 100 etiketli sentetik evrak (52 geliştirme + 16 tutulmuş v1 + 16 tutulmuş v2 + 16 adversarial v3) + 15 belgelik mevzuat korpusu
@@ -117,7 +117,7 @@
     zayıflattığı için, ↓ tamamen dokunulmamış v3 oluşturuldu.
 - **Adversarial set v3 (16 evrak, HİÇ DOKUNULMAMIŞ, TEK SEFER ölçüldü):**
   sınıflandırma 0,938 - **yönlendirme 1,000** - eksik bilgi F1 0,667 - mevzuat isabet@3 0,875 - taslak kalitesi 95,8
-- Evrak başına medyan işleme süresi ~0,02-0,03 sn — gerçek zamana yakın
+- Evrak başına medyan işleme süresi ~0,011-0,012 sn (kaynak: `eval_report*.json`) — gerçek zamana yakın
 - Şeffaflık: geliştirme seti üst sınırı gösterir; v3 sonuçları hiçbir düzeltme yapılmadan olduğu gibi raporlanmıştır
 
 > not: Dürüstlük burada güç: "v1 ve v2'de hata analizi sonrası İLKESEL düzeltmeler yaptık, ama bu setlerin saflığını zayıflattığı için dördüncü bir kurgu evrende (Puslupınar/Kavakdüzü) ZORLAYICI/adversarial yepyeni bir set yazıp TEK SEFER ölçtük ve sayıları olduğu gibi koyduk — bozuk sayı bloğu, kopuk İlgi zinciri, sözel tarih ve KVKK-yoğun içeriğe rağmen yönlendirme 16/16." Jüri v3 eksik-bilgi F1'ini (0,667) sorarsa: bu tam da adversarial tuzakların (gövdede olmayan İlgi'ye atıf, tamamen sözel tarih) hedefidir ve DÜZELTME YAPMADAN raporlanmıştır — sınır davranışı gizlenmedi.

@@ -1895,18 +1895,18 @@ def _sekme_hakkinda() -> None:
         """
 | # | Ajan | Görevi | Şartname Görevi |
 |---|------|--------|-----------------|
-| 1 | OCR Agent | PDF/görüntü/metinden metin çıkarımı | Görev 1 |
-| 2 | Classification Agent | Evrak türü belirleme (kural ⊕ istatistiksel model ensemble, düşük güvende LLM eskalasyonu) | Görev 1 |
-| 3 | Info Extraction Agent | Tarih, kurum, kişi, sayı, konu, muhatap çıkarımı | Görev 1 |
-| 4 | Missing Info Agent | Eksik bilgi unsurlarının tespiti | Görev 1 |
-| 5 | Legislation Agent | İlgili mevzuat / yazışma kuralı önerisi (BM25) | Görev 1 |
-| 6 | Triage Agent | Aciliyet / yasal süre tespiti ve önceliklendirme | Görev 1 |
-| 7 | Summarization Agent | Kısa evrak özeti | Görev 1 |
-| 8 | Anonimleştirme Agent | KVKK paylaşım nüshası (kişisel veri maskeleme) | Görev 1 |
-| 9 | Draft Writer Agent | Resmî yazı taslağı + format denetimi | Görev 2 |
-| 10 | Routing Agent | Doğru birime yönlendirme önerisi | Görev 2 |
-| 11 | User Info Agent | Süreç bilgilendirmesi + eksik bilgi talebi | Görev 2 |
-| — | Orchestrator | Akış koordinasyonu, koşullu kapılar, süre/güven izleme | Görev 1 + 2 |
+| 1 | OCR Ajanı | PDF/görüntü/metinden metin çıkarımı | Görev 1 |
+| 2 | Sınıflandırma Ajanı | Evrak türü belirleme (kural ⊕ istatistiksel model ensemble, düşük güvende LLM eskalasyonu) | Görev 1 |
+| 3 | Bilgi Çıkarım Ajanı | Tarih, kurum, kişi, sayı, konu, muhatap çıkarımı | Görev 1 |
+| 4 | Eksik Bilgi Ajanı | Eksik bilgi unsurlarının tespiti | Görev 1 |
+| 5 | Mevzuat Ajanı | İlgili mevzuat / yazışma kuralı önerisi (BM25) | Görev 1 |
+| 6 | Önceliklendirme Ajanı | Aciliyet / yasal süre tespiti ve önceliklendirme | Görev 1 |
+| 7 | Özet Ajanı | Kısa evrak özeti | Görev 1 |
+| 8 | Anonimleştirme Ajanı | KVKK paylaşım nüshası (kişisel veri maskeleme) | Görev 1 |
+| 9 | Taslak Yazım Ajanı | Resmî yazı taslağı + format denetimi | Görev 2 |
+| 10 | Yönlendirme Ajanı | Doğru birime yönlendirme önerisi | Görev 2 |
+| 11 | Kullanıcı Bilgilendirme Ajanı | Süreç bilgilendirmesi + eksik bilgi talebi | Görev 2 |
+| — | Orkestratör | Akış koordinasyonu, koşullu kapılar, süre/güven izleme | Görev 1 + 2 |
 """
     )
 

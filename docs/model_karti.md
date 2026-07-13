@@ -27,7 +27,9 @@
 - **Metrikler:** sınıflandırma doğruluğu/F1, birim yönlendirme, eksik bilgi
   micro-F1, mevzuat isabet@k + MRR/nDCG, taslak kalitesi (bağımsız hakem),
   kalibrasyon (ECE), conformal kapsama, dayanıklılık invaryansı, KVKK sızıntı.
-  Tüm metrikler **%95 güven aralığıyla** (Wilson + bootstrap) raporlanır.
+  Sınıflandırma ve birim yönlendirme doğrulukları **%95 güven aralığıyla**
+  (Wilson + bootstrap) raporlanır; diğer metrikler nokta tahmini olarak verilir
+  (küçük örneklem nedeniyle güven aralığı hesaplanmaz).
 - **Sonuçlar:** `data/processed/eval_report*.json` (yalnızca `scripts/evaluate.py`
   ile üretilir; her rapor bir **tekrarlanabilirlik mührü** taşır: git commit +
   platform + veri seti içerik hash'i).

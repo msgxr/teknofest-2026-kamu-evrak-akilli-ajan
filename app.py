@@ -803,20 +803,24 @@ def sayfa_genel_bakis() -> None:
                      if t["durum"] in ("aktif", "calisiyor"))
 
     # --- Metrik kartları (sparkline'lı) ---------------------------------
+    # Not: aşağıdaki 3 toplam kart (işlenen sayısı, süre tasarrufu, uyum skoru)
+    # kurgu/temsili gösterge olduğundan HER KART "(temsili)" etiketi + nötr amber
+    # "demo" rozeti taşır (yeşil "iyileşme" rozeti izlenimi verilmez). "Aktif
+    # Çalışan Ajan" ise canlı telemetri sayımıdır (fabrike delta değil), bırakılır.
     kartlar = [
         _metrik_karti(
             "📥", f"{ss['islenen_evrak']:,}".replace(",", "."),
-            "Toplam İşlenen Evrak", "+12,4%", "green", MAVI,
+            "Toplam İşlenen Evrak (temsili)", "demo", "amber", MAVI,
             [random.randint(20, 60) for _ in range(12)]),
         _metrik_karti(
             "🤖", f"{aktif_ajan} / {len(AJANLAR)}",
             "Aktif Çalışan Ajan", "Tümü çevrimiçi", "green", YESIL,
             [random.randint(45, 60) for _ in range(12)]),
         _metrik_karti(
-            "⚡", "%85", "Ort. Süre Tasarrufu", "-41 dk/evrak", "green", MAVI,
+            "⚡", "%85", "Ort. Süre Tasarrufu (temsili)", "demo", "amber", MAVI,
             [random.randint(25, 58) for _ in range(12)]),
         _metrik_karti(
-            "🛡️", "%99,4", "Mevzuat Uyum Skoru", "+0,3", "green", YESIL,
+            "🛡️", "%99,4", "Mevzuat Uyum Skoru (temsili)", "demo", "amber", YESIL,
             [random.randint(48, 60) for _ in range(12)]),
     ]
     _md(_metrik_gridi(kartlar))

@@ -21,6 +21,19 @@ from rich.logging import RichHandler
 from src.config import settings
 from src.pipelines.end_to_end_pipeline import EndToEndPipeline
 
+# TAŞINABİLİRLİK (madde 4/5 — uçtan uca akış kırılamaz, offline çekirdek tam çalışır):
+# Windows'ta stdout UTF-8 değilse (Türkçe konsol cp1254 / cp1252 ya da çıktı bir
+# dosyaya/pipe'a yönlendirildiğinde) rich banner'ındaki emoji/Türkçe karakterler
+# UnicodeEncodeError ile çöker ve dokümante CLI komutu (python -m src.main --input ...)
+# hiçbir evrak işlenmeden EXIT 1 verir. stdout/stderr'i UTF-8'e sabitleyerek komutun
+# her ortamda (borulama/yönlendirme/legacy konsol dahil) çalışmasını garanti ederiz;
+# errors="replace" yeniden yapılandırılamayan akışlarda zarif düşüş sağlar.
+for _akis in (sys.stdout, sys.stderr):
+    try:
+        _akis.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # Rich console
 console = Console()
 
