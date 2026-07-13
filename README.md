@@ -84,6 +84,7 @@ Kamu kurumlarındaki evrak ve yazışma süreçleri:
 | 🧠 **Hibrit ML Ensemble** | Kural + saf-Python Naive Bayes + opsiyonel LLM üçlü sınıflandırma (`src/models/istatistiksel_siniflandirici.py`) |
 | 🗂️ **Evrak Kayıt Defteri** | SQLite denetim izi: her işlem kayıt altında, filtreli sorgu + istatistik |
 | 🌐 **REST API** | Sıfır bağımlılıklı JSON API (`python -m src.api`) — EBYS entegrasyonu için servis ucu |
+| 🔌 **MCP Sunucusu** | Model Context Protocol (JSON-RPC 2.0 / stdio) sunucusu; 5 aracı harici SDK olmadan sağlar (`python -m src.mcp_server`) — ajan/araç ekosistemine entegrasyon |
 | 🔗 **Evrak İlişki Zinciri** | İlgi referanslarından yazışma zincirlerini (dilekçe → cevap) otomatik kurar |
 | 📑 **HTML İşlem Raporu** | Arşive/denetime verilebilir, kendine yeten işlem denetim raporu |
 | 🚀 **Performans Karnesi** | ~88 evrak/sn, p95 14 ms (`scripts/benchmark.py` ile yeniden üretilebilir) |
@@ -150,7 +151,9 @@ Sistem, **framework bağımsız, stdlib tabanlı özgün bir orkestrasyon** üze
 
 ## ⚡ Hızlı Başlangıç
 
-Bağımlılıklar kuruluysa (`pip install -r requirements.txt`) tek komut yeterlidir:
+**Windows (tek tık):** Depoyu indirip `calistir.bat` dosyasına çift tıklayın — Python kurulumunu denetler, sanal ortamı (`.venv`) oluşturur, bağımlılıkları yükler ve web arayüzünü `http://localhost:8501` adresinde açar. Önceden kurulum gerektirmez.
+
+**Linux/macOS:** Bağımlılıklar kuruluysa (`pip install -r requirements.txt`) tek komut yeterlidir:
 
 ```bash
 ./baslat.sh          # Streamlit web arayüzü (http://localhost:8501)
@@ -225,6 +228,9 @@ python demo/demo_scenario.py
 # Streamlit web arayüzü
 streamlit run src/app.py
 
+# MCP sunucusu (JSON-RPC 2.0 / stdio — ajan/araç ekosistemi entegrasyonu)
+python -m src.mcp_server
+
 # Ölçülebilir başarım raporu (52 etiketli evrak üzerinde
 # sınıflandırma / yönlendirme / eksik bilgi / süre metrikleri)
 python scripts/evaluate.py
@@ -280,7 +286,7 @@ teknofest-2026-kamu-evrak-akilli-ajan/
 │   ├── templates/                  # Yazı şablonları
 │   ├── app.py                      # Streamlit web arayüzü
 │   └── main.py                     # Komut satırı giriş noktası
-├── data/                           # Veri setleri (52 geliştirme + 48 tutulmuş kurgu evrak + mevzuat)
+├── data/                           # Veri setleri (52 geliştirme + 64 tutulmuş [v1–v4, 16'şar] kurgu evrak + 15 mevzuat)
 ├── scripts/                        # Değerlendirme aracı (evaluate.py)
 ├── tests/                          # Test dosyaları
 ├── demo/                           # Demo senaryoları
