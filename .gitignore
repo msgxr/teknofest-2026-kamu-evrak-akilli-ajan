@@ -92,3 +92,8 @@ coverage.xml
 
 # Demo calisma aninda uretilen girdiler (tarih-bagimli/binari)
 demo/demo_evraklar/
+
+# Calisma-zamani uretilen denetim izi ve geri bildirim log'u
+# (her kosuda degisir; kod CREATE TABLE IF NOT EXISTS ile otomatik yeniden olusturur)
+data/processed/kayit_defteri.db
+data/processed/geri_bildirim.jsonl
