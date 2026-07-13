@@ -306,11 +306,6 @@ MEVZUAT_KORPUS = [
      "ozet": "Antet, imza bloğu, ek listesi ve kurumsal kimlik standartları."},
 ]
 
-KURGU_EVRAK_REFERANSLARI = [
-    "EVR-2026-000412", "EVR-2026-000418", "EVR-2026-000425",
-    "EVR-2026-000431", "EVR-2026-000447", "EVR-2026-000452",
-    "EVR-2026-000460", "EVR-2026-000473", "EVR-2026-000488",
-]
 
 ORNEK_DILEKCE = """T.C.
 ÖRNEK BELEDİYE BAŞKANLIĞI'NA
@@ -454,12 +449,24 @@ def tema_uygula() -> None:
             font-size: 2.05rem; font-weight: 800; color: #0F1E38;
             line-height: 1.1;
         }
-        .ez-label { font-size: 0.86rem; color: #64748B; margin-top: 2px; }
+        .ez-label { font-size: 0.86rem; color: #475569; margin-top: 2px; }
+        .ez-card-tip {
+            font-size: 0.74rem; color: #64748B; margin-top: 12px;
+            line-height: 1.35; border-top: 1px solid #F1F5F9; padding-top: 9px;
+        }
         .ez-spark {
             display: flex; align-items: flex-end; gap: 4px;
             height: 42px; margin-top: 16px;
         }
         .ez-bar { flex: 1; border-radius: 3px 3px 0 0; opacity: 0.9; }
+        /* Üst çubuk gerçek durum çipi (sahte kontrollerin yerine) */
+        .ez-statuschip {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: #ffffff; border: 1px solid #E2E8F0; border-radius: 999px;
+            padding: 7px 15px; font-size: 0.82rem; font-weight: 600;
+            color: #334155;
+        }
+        .ez-statuschip .ez-dot { font-size: 0.7rem; }
 
         /* ---- Panel başlıkları ---- */
         .ez-panel-head { margin-bottom: 12px; }
@@ -490,7 +497,7 @@ def tema_uygula() -> None:
             font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
             border-radius: 6px; background: #EFF6FF; color: #2563EB;
         }
-        .ez-time { font-size: 0.72rem; color: #94A3B8; margin-left: 8px; }
+        .ez-time { font-size: 0.72rem; color: #64748B; margin-left: 8px; }
 
         /* ---- Birim sevk barları ---- */
         .ez-dept-row { margin: 13px 0; }
@@ -556,11 +563,6 @@ def tema_uygula() -> None:
             font-size: 0.68rem; font-weight: 700; color: #5B6B85;
             letter-spacing: 0.08em; margin: 14px 6px 4px 6px;
         }
-        .ez-navbadge {
-            background: #22406b; color: #cfe0ff; font-size: 0.62rem;
-            font-weight: 700; padding: 1px 7px; border-radius: 999px;
-        }
-        .ez-navbadge.live { background: #16A34A; color: #eafff1; }
 
         /* ---- Kenar çubuğu alt durum listesi ---- */
         .ez-status { margin: 4px 6px; }
@@ -630,6 +632,8 @@ def _md(html_str: str) -> None:
 
 def _sparkline(degerler: list, renk: str) -> str:
     """Değer listesinden mini sütun grafiği (sparkline) HTML'i üretir."""
+    if not degerler:
+        return ""
     ust = max(degerler) or 1
     barlar = "".join(
         f'<span class="ez-bar" style="height:{max(14, int(v / ust * 100))}%;'
@@ -639,10 +643,20 @@ def _sparkline(degerler: list, renk: str) -> str:
 
 
 def _metrik_karti(ikon: str, deger: str, etiket: str, rozet: str,
-                  rozet_tipi: str, renk: str, spark: list) -> str:
-    """Sparkline'lı kurumsal metrik kartı HTML'i üretir."""
+                  rozet_tipi: str, renk: str, spark: list = None,
+                  ipucu: str = "") -> str:
+    """Kurumsal metrik kartı HTML'i üretir (ölçülen tek değer + rozet + ipucu).
+
+    Not (şartname m.6): Kartlarda eskiden dekoratif sparkline vardı; ancak tüm
+    kartlarda aynı seri tekrarlandığı ve o metriğe ait trend izlenimi yarattığı
+    için KALDIRILDI (ölçülmemiş gösterge gerçekmiş gibi sunulamaz). `spark`
+    parametresi geriye-uyum için korunur ama çizilmez; onun yerine ölçülen
+    değeri açıklayan kısa bir `ipucu` satırı gösterilir.
+    """
     pill = (f'<span class="ez-pill {rozet_tipi}">{_kacar(rozet)}</span>'
             if rozet else "")
+    ipucu_html = (f'<div class="ez-card-tip">{_kacar(ipucu)}</div>'
+                  if ipucu else "")
     return f"""
     <div class="ez-card">
       <div class="ez-card-head">
@@ -652,7 +666,7 @@ def _metrik_karti(ikon: str, deger: str, etiket: str, rozet: str,
       </div>
       <div class="ez-value">{_kacar(deger)}</div>
       <div class="ez-label">{_kacar(etiket)}</div>
-      {_sparkline(spark, renk)}
+      {ipucu_html}
     </div>"""
 
 
@@ -662,22 +676,33 @@ def _metrik_gridi(kartlar: list) -> str:
 
 
 def _ust_cubuk(baslik: str, alt: str, canli: bool = False) -> None:
-    """Sayfa üst çubuğunu (başlık + arama + ikonlar + avatar) çizer."""
-    canli_html = ('<span class="ez-livepill">● Canlı izleme</span>'
+    """Sayfa üst çubuğunu (başlık + gerçek durum çipi) çizer.
+
+    Not: Eskiden burada işlevsiz süsleme kontroller (arama kutusu, tema/bildirim
+    ikonu, 'MG' avatarı) vardı; hiçbiri çalışmadığı ve jüriyi yanıltabileceği
+    için KALDIRILDI (Anayasal İlke 4). Yerlerine backend durumunu doğru yansıtan
+    gerçek bir çip kondu.
+    """
+    canli_html = ('<span class="ez-livepill">● Canlı işleme</span>'
                   if canli else "")
+    cekirdek_html = (
+        '<span class="ez-statuschip"><span class="ez-dot" '
+        'style="color:#22C55E">●</span>Gerçek çekirdek · 11 ajan</span>'
+        if _BACKEND_VAR else
+        '<span class="ez-statuschip"><span class="ez-dot" '
+        'style="color:#F59E0B">●</span>Çekirdek yüklenemedi</span>'
+    )
     _md(
         f"""
         <div class="ez-topbar">
           <div>
-            <div class="ez-crumb">TEKNOFEST 2026 · Yapay Zeka Dil Ajanları</div>
+            <div class="ez-crumb">Evrak Zekâ · {_kacar(baslik)}</div>
             <div class="ez-h1">{_kacar(baslik)}</div>
             <div class="ez-h1-sub">{_kacar(alt)}</div>
           </div>
-          <div style="display:flex;gap:12px;align-items:center;">
-            <span class="ez-search">🔍&nbsp; Evrak, ajan veya mevzuat ara</span>
-            <span class="ez-icobtn">🌙</span>
-            <span class="ez-icobtn">🔔</span>
-            <span class="ez-avatar">MG</span>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+                      justify-content:flex-end;">
+            {cekirdek_html}
             {canli_html}
           </div>
         </div>
@@ -737,7 +762,7 @@ def kenar_cubugu_ciz() -> str:
               </div>
             </div>
             <div style="height:10px"></div>
-            <div class="ez-status-val" style="text-align:center;opacity:.7">
+            <div class="ez-status-val" style="text-align:center;color:#B4C2D9">
               © 2026 · Kurumsal Sürüm 2.0<br>Sentetik veri · KVKK uyumlu
             </div>
             """
@@ -758,8 +783,10 @@ def sayfa_genel_bakis() -> None:
 
     st.caption("ℹ️ Bu panodaki **tüm sayılar gerçektir**: metrikler "
                "`scripts/evaluate.py`'nin ürettiği ölçüm raporlarından, işlem "
-               "dağılımları gerçek kayıt defterinden (SQLite) gelir — kurgu/demo "
-               "gösterge yoktur (şartname m.6).")
+               "dağılımları mevcut kayıt defterinden (`kayit_defteri.db`, SQLite "
+               "denetim izi) gelir — kurgu/demo gösterge yoktur (şartname m.6). "
+               "Pano üzerinden yapılan işlemler denetim bütünlüğü için deftere "
+               "**yazmaz**; dağılımlar kayıtlı geçmişi yansıtır.")
 
     set_ad = st.selectbox("Değerlendirme seti (ölçüm raporu)",
                           list(_EVAL_SETLERI.keys()), index=0)
@@ -778,24 +805,24 @@ def sayfa_genel_bakis() -> None:
     ga = rapor.get("guven_araliklari") or {}
     n = rapor.get("degerlendirilen_dosya_sayisi", "—")
 
-    # Sparkline serisi: sınıf-bazında F1'ler (gerçek, rapordan türetilir).
-    spark = [max(14, round(v.get("f1", 0) * 60))
-             for v in (sinif.get("sinif_bazinda") or {}).values()] or [50]
-
     def _ga_rozet(anahtar: str) -> str:
         w = (ga.get(anahtar) or {}).get("wilson_95")
         return f"%95 GA {_yzd(w[0], 0)}–{_yzd(w[1], 0)}" if w else ""
 
     kartlar = [
         _metrik_karti("🏷️", _yzd(sinif.get("accuracy")), "Sınıflandırma Doğruluğu",
-                      _ga_rozet("siniflandirma"), "green", MAVI, spark),
+                      _ga_rozet("siniflandirma"), "green", MAVI,
+                      ipucu="Evrak türünün doğru bilindiği oran (8 tür)."),
         _metrik_karti("🧭", _yzd(yon.get("accuracy")), "Birim Yönlendirme",
-                      _ga_rozet("yonlendirme"), "green", YESIL, spark),
+                      _ga_rozet("yonlendirme"), "green", YESIL,
+                      ipucu="Evrakın doğru birime sevk edildiği oran."),
         _metrik_karti("🧩", _yzd(eksik.get("micro_f1")), "Eksik Bilgi (micro-F1)",
-                      f"TP {eksik.get('tp', '—')}", "blue", MAVI_ACIK, spark),
+                      f"TP {eksik.get('tp', '—')}", "blue", MAVI_ACIK,
+                      ipucu="Zorunlu alan eksikliğini yakalama başarımı (micro-F1)."),
         _metrik_karti("⚖️", _yzd(mevz.get("isabet_orani")), "Mevzuat İsabet@3",
                       f"{mevz.get('isabet', '—')}/{mevz.get('etiketli_evrak', '—')}",
-                      "green", MAVI, spark),
+                      "green", MAVI,
+                      ipucu="İlk 3 öneride doğru mevzuatın bulunduğu oran."),
     ]
     _md(_metrik_gridi(kartlar))
 
@@ -804,14 +831,18 @@ def sayfa_genel_bakis() -> None:
         _metrik_karti("📝", f"{taslak.get('ortalama_puan', '—')}/100",
                       "Taslak Kalitesi (hakem)",
                       f"asgari {taslak.get('asgari_puan', '—')}", "blue",
-                      MAVI_ACIK, spark),
+                      MAVI_ACIK,
+                      ipucu="LLM-as-judge hakem puanı: biçim + üslup + mevzuat."),
         _metrik_karti("🛡️", _yzd(kvkk.get("sizintisiz_oran")), "KVKK Sızıntısız Oran",
-                      f"{kvkk.get('toplam_kacak', '—')} kaçak", "green", YESIL, spark),
+                      f"{kvkk.get('toplam_kacak', '—')} kaçak", "green", YESIL,
+                      ipucu="Maskeleme sonrası PII sızmayan evrak oranı."),
         _metrik_karti("⚡", f"{perf.get('evrak_basina_medyan_sure_saniye', '—')} sn",
                       "Medyan İşleme Süresi", "gerçek zamana yakın", "green",
-                      MAVI, spark),
+                      MAVI,
+                      ipucu="Evrak başına uçtan uca medyan işleme süresi (ölçüldü)."),
         _metrik_karti("📥", str(ss["oturum_islenen"]), "Bu Oturumda İşlenen",
-                      "canlı sayaç", "blue", MAVI_ACIK, spark),
+                      "canlı sayaç", "blue", MAVI_ACIK,
+                      ipucu="Bu tarayıcı oturumunda panoda işlenen evrak sayısı."),
     ]
     _md(_metrik_gridi(kartlar2))
 
@@ -834,10 +865,11 @@ def sayfa_genel_bakis() -> None:
                 theta="Adet:Q",
                 color=alt.Color("Tür:N", scale=alt.Scale(range=KATEGORIK_PALET),
                                 legend=alt.Legend(orient="right", title=None)),
-                tooltip=["Tür", "Adet"]).properties(height=280), width="stretch")
+                tooltip=["Tür", "Adet"]).properties(height=280), use_container_width=True)
         else:
-            st.info("Kayıt defteri boş. **Evrak İşleme** / **Toplu İşleme** "
-                    "sekmelerinde gerçek evrak işleyin.")
+            st.info("Kayıt defteri (`kayit_defteri.db`) henüz kayıt içermiyor. "
+                    "Dağılımlar denetim izinden okunur; CLI/toplu değerlendirme "
+                    "ile kayıt üretildikçe burada görünür.")
     with g2:
         st.markdown("##### 🏢 Birim Sevk Dağılımı")
         st.caption("Kaynak: gerçek kayıt defteri (yönlendirilen birimler)")
@@ -904,7 +936,15 @@ def sayfa_evrak_isleme() -> None:
     sonuc = st.session_state["son_analiz"]
     if sonuc is not None:
         st.divider()
-        _analiz_sonuc_kartlari(sonuc)
+        try:
+            _analiz_sonuc_kartlari(sonuc)
+        except Exception as e:
+            # Render sırasında beklenmedik bir alan hatası tüm sayfayı (ve kalıcı
+            # son_analiz nedeniyle oturumu) kilitlemesin: hatayı göster, temizle.
+            st.error(f"⛔ Sonuç görüntülenirken hata: {type(e).__name__}: {e}")
+            st.session_state["son_analiz"] = None
+            if st.button("↻ Son analizi temizle"):
+                st.rerun()
 
 
 def _analiz_yap(metin: str):
@@ -1134,8 +1174,16 @@ def sayfa_toplu_isleme() -> None:
         set_ad = st.selectbox("Evrak seti (gerçek)", list(_KURGU_SETLERI.keys()))
         yollar = _kurgu_evrak_yollari(_KURGU_SETLERI[set_ad])
         azami = len(yollar)
-        adet = st.slider("İşlenecek evrak sayısı", 1, max(1, azami),
-                         min(10, azami) or 1)
+        # Slider min==max iken çöker (StreamlitAPIException); boş/tek dosyalı
+        # sette slider'ı atla.
+        if azami == 0:
+            st.warning("Bu sette işlenecek .txt evrak bulunamadı.")
+            adet = 0
+        elif azami == 1:
+            st.info("Bu sette 1 evrak var; tümü işlenecek.")
+            adet = 1
+        else:
+            adet = st.slider("İşlenecek evrak sayısı", 1, azami, min(10, azami))
         baslat = st.button("▶ Gerçek Toplu İşlemeyi Başlat", type="primary",
                            width="stretch", disabled=(azami == 0))
     with ozet:
@@ -1323,7 +1371,7 @@ def sayfa_ajan_yonetimi() -> None:
             y=alt.Y("Ajan:N", sort="-x", title=None),
             color=alt.Color("Süre (ms):Q", legend=None,
                             scale=alt.Scale(scheme="blues")),
-            tooltip=["Ajan", "Süre (ms)"]).properties(height=360), width="stretch")
+            tooltip=["Ajan", "Süre (ms)"]).properties(height=360), use_container_width=True)
     else:
         st.info("Adım süresi verisi için önce `scripts/evaluate.py` çalıştırın.")
 
@@ -1560,8 +1608,13 @@ def sayfa_asistan() -> None:
     if soru:
         ss["bekleyen_soru"] = None
         ss["sohbet"].append({"rol": "user", "icerik": soru})
-        ss["sohbet"].append({"rol": "assistant",
-                             "icerik": _orkestrator_yanit(soru)})
+        with st.spinner("Orkestratör ilgili ajana yönlendiriyor..."):
+            try:
+                yanit = _orkestrator_yanit(soru)
+            except Exception as exc:
+                yanit = ("Geçici bir hata oluştu, tekrar deneyin. "
+                         f"(ayrıntı: {type(exc).__name__})")
+        ss["sohbet"].append({"rol": "assistant", "icerik": yanit})
         st.rerun()
 
 
@@ -1650,16 +1703,25 @@ def sayfa_kvkk_uyum() -> None:
     kartlar = [
         _metrik_karti("🛡️", _yzd(kvkk.get("sizintisiz_oran")), "KVKK Sızıntısız Oran",
                       f"{kvkk.get('degerlendirilen', '—')} evrak", "green",
-                      YESIL, [50] * 8),
+                      YESIL, ipucu="Maskeleme sonrası PII sızmayan evrak oranı "
+                      "(ölçüldü: evaluate.py)."),
         _metrik_karti("🔒", str(kvkk.get("toplam_kacak", "—")), "Toplam PII Kaçağı",
-                      "ölçülen", "green", MAVI, [50] * 8),
-        _metrik_karti("🧾", "5 / 5", "Şartname Kısıtı", "karşılandı", "green",
-                      YESIL, [50] * 8),
-        _metrik_karti("📄", "%100", "Sentetik Veri", "gerçek PII yok", "green",
-                      MAVI_ACIK, [50] * 8),
+                      "ölçülen", "green", MAVI,
+                      ipucu="Değerlendirmede maskelemeden kaçan toplam PII adedi."),
+        _metrik_karti("🧬", str(kvkk.get("degerlendirilen", "—")),
+                      "Değerlendirilen Evrak", "ölçülen", "blue", MAVI_ACIK,
+                      ipucu="Sızıntı metriğinin hesaplandığı evrak sayısı."),
+        _metrik_karti("🧩", str(len(_PII_ETIKET)), "Maskelenen PII Türü",
+                      "kural tabanlı", "blue", MAVI,
+                      ipucu="TCKN, telefon, e-posta, IBAN, ad-soyad, adres, "
+                      "plaka, doğum tarihi, sicil no."),
     ]
     _md(_metrik_gridi(kartlar))
     st.caption("Kaynak: `data/processed/eval_report.json` (kvkk bloğu).")
+    # Beyan (ölçüm değil): şartname ilkeleri açıkça 'beyan' olarak işaretlenir.
+    st.info("📌 **Beyan (ölçüm değil):** 5/5 şartname kısıtı karşılanmıştır ve "
+            "veri **%100 sentetiktir** (gerçek PII yoktur). Bu iki ifade bir "
+            "taahhüttür; aşağıdaki uyum matrisiyle belgelenir.")
 
     st.markdown("##### 🧪 Canlı Maskeleme (gerçek KVKK anonimleştirme ajanı)")
     st.caption("Metne kurgu PII (TCKN, telefon, e-posta, IBAN) girin; gerçek "
@@ -1733,11 +1795,24 @@ def sayfa_ayarlar() -> None:
     with sag:
         with st.container(border=True):
             st.markdown("#### 🧠 Karar Eşikleri (kod sabiti)")
+            # Değerleri kaynaktan içe aktar (elle yazım → drift riskini önler;
+            # 'gerçek' denen değer gerçekten kaynaktan gelsin — Anayasal İlke 4).
+            try:
+                from src.agents.orchestrator import _INSAN_ONAYI_GUVEN_ESIGI
+                onay_esik = f"{_INSAN_ONAYI_GUVEN_ESIGI:.2f}"
+            except Exception:
+                onay_esik = "—"
+            try:
+                from src.agents.legislation_agent import DUZELTME_ESIGI
+                rag_esik = f"{DUZELTME_ESIGI:.2f}"
+            except Exception:
+                rag_esik = "—"
             c1, c2 = st.columns(2)
-            c1.metric("İnsan onayı güven eşiği", "0.60")
-            c2.metric("Corrective RAG tetiği", "0.15")
-            st.caption("Kaynak: `src/agents/orchestrator.py` "
-                       "(`_INSAN_ONAYI_GUVEN_ESIGI`), `legislation_agent`.")
+            c1.metric("İnsan onayı güven eşiği", onay_esik)
+            c2.metric("Corrective RAG tetiği", rag_esik)
+            st.caption("Değerler kaynaktan canlı okunur: "
+                       "`orchestrator._INSAN_ONAYI_GUVEN_ESIGI`, "
+                       "`legislation_agent.DUZELTME_ESIGI`.")
         with st.container(border=True):
             st.markdown("#### 🗂️ Veri ve KVKK")
             st.write("✅ Yalnızca sentetik/kurgu veri (şartname m.6.5)")
