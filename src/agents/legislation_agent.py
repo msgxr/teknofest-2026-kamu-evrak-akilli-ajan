@@ -213,6 +213,22 @@ DOYGUNLUK_KATSAYISI = 1.5
 ZAYIF_ESLESME_ESIGI = 0.5
 
 # ----------------------------------------------------------------------
+# KVKK veri-tespit sinyali köprüsü
+#
+# 6698 sayılı KVKK, "kişisel/kvkk/rıza" sözcükleri metinde GEÇMESE dahi
+# belge gerçek kişiye ait kişisel veri (doğrulanmış T.C. kimlik numarası
+# veya IBAN) içeriyorsa uygulanır. Tema aktifleşmesi tetikleyici sözcüklere
+# bağlı olduğundan bu tür belgelerde (KVKK-yoğun ama sözcüksüz evrak) 6698
+# kaçırılıyordu. İnfo-çıkarım ajanının veri-tespit sinyali (extracted_info),
+# bir usul yükümlülüğü gibi (bkz. _ensure_usul_mevzuati) doğrudan mevzuat
+# önerisine bağlanır. Enjekte edilen öneri metinsel eşleşme İDDİA ETMEZ:
+# benzerliği taslak atıf eşiğinin (MEVZUAT_ATIF_ESIGI = 0.6) ALTINDA
+# tutulur — öneri/uyarı olarak görünür ama taslak alıntısını zorlamaz;
+# eklenme_nedeni ve gerekçe sinyal kökenini şeffafça bildirir.
+KVKK_6698_DOC_ID = "kvkk_6698"
+KVKK_SINYAL_BENZERLIK = 0.55
+
+# ----------------------------------------------------------------------
 # Düzeltici (corrective) arama döngüsü ve hibrit birleşim sabitleri
 # ----------------------------------------------------------------------
 
@@ -515,9 +531,16 @@ class LegislationAgent:
         """Evrak içeriğine göre ilgili mevzuat önerilerini üretir."""
         evrak_turu = state.classification.get("tur", "")
         konu = ""
-        if isinstance(state.extracted_info, dict):
-            konu = state.extracted_info.get("konu") or ""
+        ei = state.extracted_info if isinstance(state.extracted_info, dict) else {}
+        konu = ei.get("konu") or ""
         query_text = f"{konu}\n{state.raw_text[:SORGU_METIN_LIMITI]}".strip()
+
+        # KVKK veri-tespit sinyali: belge doğrulanmış T.C. kimlik numarası
+        # ya da IBAN içeriyorsa (gerçek kişiye ait kişisel veri), 6698 sayılı
+        # KVKK sözcüksel eşleşmeden bağımsız olarak ilgilidir (bkz.
+        # _ensure_kvkk_mevzuati). TCKN checksum'lı doğrulanmıştır; kurumlar
+        # TCKN taşımaz, bu yüzden yanlış-pozitif riski düşüktür.
+        kvkk_veri_sinyali = bool(ei.get("tc_kimlik")) or bool(ei.get("iban"))
 
         self._ensure_index()
 
@@ -567,10 +590,15 @@ class LegislationAgent:
         # dilekçe hakkı) önerilerin başında yer alır
         matches = self._ensure_usul_mevzuati(matches, evrak_turu)
 
+        # KVKK köprüsü: kişisel veri saptandıysa 6698'i öneri listesine
+        # (ilk üçe) al — usul mevzuatı ve en iyi metinsel eşleşme korunur
+        matches = self._ensure_kvkk_mevzuati(matches, kvkk_veri_sinyali)
+
         state.legislation_matches = matches[:5]
         state.legislation_meta = {
             "yontem": yontem,
             "duzeltme_dongusu": duzeltme,
+            "kvkk_veri_sinyali": kvkk_veri_sinyali,
         }
         logger.info(
             f"Mevzuat eşleştirmesi: {len(state.legislation_matches)} sonuç "
@@ -896,6 +924,69 @@ class LegislationAgent:
         )
         usul_onerisi["eklenme_nedeni"] = "tur_usul_mevzuati"
         return [usul_onerisi] + matches
+
+    def _ensure_kvkk_mevzuati(
+        self, matches: List[dict], kvkk_sinyali: bool
+    ) -> List[dict]:
+        """
+        Belgede gerçek kişiye ait kişisel veri (doğrulanmış T.C. kimlik
+        numarası / IBAN) saptandıysa 6698 sayılı KVKK'yı öneri listesinin
+        ilk üçüne yerleştirir.
+
+        6698'in ilgililiği bu durumda sözcük çakışmasından değil verinin
+        kendisinden gelir; "kişisel/kvkk" sözcükleri metinde geçmese bile
+        kişisel veri işleniyorsa KVKK uygulanır (usul mevzuatına paralel
+        yapısal kesinlik). Enjekte edilen öneri metinsel eşleşme İDDİA
+        ETMEZ: benzerliği taslak atıf eşiğinin (0.6) altında raporlanır ve
+        eklenme_nedeni="kvkk_veri_sinyali" ile şeffafça işaretlenir.
+        Yerleştirme, listede varsa (gerçek benzerliğini koruyarak) ilk üçe
+        taşıma, yoksa üçüncü sıraya ekleme biçimindedir; böylece usul
+        mevzuatı (sıra 0) ve en iyi metinsel eşleşme (sıra 1) korunur.
+        """
+        if not kvkk_sinyali:
+            return matches
+
+        cls = type(self)
+        chunk = next(
+            (c for c in (cls._chunks or []) if c["doc_id"] == KVKK_6698_DOC_ID),
+            None,
+        )
+        if chunk is None:
+            return matches
+
+        kvkk_gerekcesi = (
+            "belgede gerçek kişiye ait kişisel veri (T.C. kimlik numarası / "
+            "IBAN) saptandığından 6698 sayılı KVKK'nın işleme (m.5-6) ve "
+            "aktarma (m.8) şartları geçerlidir (veri-tespit sinyali; metinsel "
+            "eşleşme aranmaz)"
+        )
+
+        # Listede varsa: gerçek benzerliğini koru, işaretle ve ilk üçe taşı
+        for i, m in enumerate(matches):
+            ayni = (
+                m.get("doc_id") == KVKK_6698_DOC_ID
+                or m.get("baslik") == chunk["baslik"]
+            )
+            if ayni:
+                m["eklenme_nedeni"] = "kvkk_veri_sinyali"
+                m.pop("zayif_esleme", None)
+                mevcut = m.get("gerekce") or ""
+                if "veri-tespit sinyali" not in mevcut:
+                    m["gerekce"] = (
+                        f"{kvkk_gerekcesi}; {mevcut}" if mevcut else kvkk_gerekcesi
+                    )
+                if i > 2:
+                    matches.insert(2, matches.pop(i))
+                return matches
+
+        # Listede yok: üçüncü sıraya ekle (usul + en iyi eşleşme korunur)
+        kvkk_onerisi = self._match_olustur(
+            chunk, KVKK_SINYAL_BENZERLIK, kvkk_gerekcesi
+        )
+        kvkk_onerisi["eklenme_nedeni"] = "kvkk_veri_sinyali"
+        poz = min(2, len(matches))
+        matches.insert(poz, kvkk_onerisi)
+        return matches
 
     # ------------------------------------------------------------------
     # Opsiyonel ChromaDB semantik arama (yedek yol)

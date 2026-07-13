@@ -1,74 +1,74 @@
 {
-  "zaman_damgasi": "2026-07-13T12:29:10",
-  "veri_dizini": "data/raw/kurgu_evraklar",
-  "set_adi": "kurgu_evraklar",
+  "zaman_damgasi": "2026-07-13T12:26:56",
+  "veri_dizini": "data/raw/kurgu_evraklar_heldout_v4",
+  "set_adi": "kurgu_evraklar_heldout_v4",
   "tekrarlanabilirlik": {
     "git_commit": "08616ffdb097147f2675f7383018947bcc6de7c5",
     "calisma_agaci_kirli": true,
     "python": "3.12.10",
     "platform": "Windows-11-10.0.26200-SP0",
     "requirements_sha256": "bb75d4cfed1b8383",
-    "set_icerik_hash": "c66e8719d8f15382"
+    "set_icerik_hash": "f133624512ca0fb6"
   },
   "llm": {
     "backend": "offline",
     "model": "gpt-4o-mini",
     "kullanilabilir": false
   },
-  "degerlendirilen_dosya_sayisi": 52,
+  "degerlendirilen_dosya_sayisi": 16,
   "siniflandirma": {
-    "accuracy": 1.0,
-    "macro_f1": 1.0,
-    "macro_precision": 1.0,
-    "macro_recall": 1.0,
+    "accuracy": 0.9375,
+    "macro_f1": 0.9333,
+    "macro_precision": 0.9583,
+    "macro_recall": 0.9375,
     "sinif_bazinda": {
       "bilgilendirme": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "destek": 6
+        "destek": 2
       },
       "cevap_yazisi": {
-        "precision": 1.0,
+        "precision": 0.6667,
         "recall": 1.0,
-        "f1": 1.0,
-        "destek": 6
+        "f1": 0.8,
+        "destek": 2
       },
       "dilekce": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "destek": 8
+        "destek": 2
       },
       "genelge": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "destek": 6
+        "destek": 2
       },
       "onayli_belge": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "destek": 6
+        "destek": 2
       },
       "rapor": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "destek": 5
+        "destek": 2
       },
       "tutanak": {
         "precision": 1.0,
         "recall": 1.0,
         "f1": 1.0,
-        "destek": 7
+        "destek": 2
       },
       "ust_yazi": {
         "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "destek": 8
+        "recall": 0.5,
+        "f1": 0.6667,
+        "destek": 2
       }
     },
     "confusion_matrix": {
@@ -84,7 +84,7 @@
       ],
       "matris": {
         "bilgilendirme": {
-          "bilgilendirme": 6,
+          "bilgilendirme": 2,
           "cevap_yazisi": 0,
           "dilekce": 0,
           "genelge": 0,
@@ -95,7 +95,7 @@
         },
         "cevap_yazisi": {
           "bilgilendirme": 0,
-          "cevap_yazisi": 6,
+          "cevap_yazisi": 2,
           "dilekce": 0,
           "genelge": 0,
           "onayli_belge": 0,
@@ -106,7 +106,7 @@
         "dilekce": {
           "bilgilendirme": 0,
           "cevap_yazisi": 0,
-          "dilekce": 8,
+          "dilekce": 2,
           "genelge": 0,
           "onayli_belge": 0,
           "rapor": 0,
@@ -117,7 +117,7 @@
           "bilgilendirme": 0,
           "cevap_yazisi": 0,
           "dilekce": 0,
-          "genelge": 6,
+          "genelge": 2,
           "onayli_belge": 0,
           "rapor": 0,
           "tutanak": 0,
@@ -128,7 +128,7 @@
           "cevap_yazisi": 0,
           "dilekce": 0,
           "genelge": 0,
-          "onayli_belge": 6,
+          "onayli_belge": 2,
           "rapor": 0,
           "tutanak": 0,
           "ust_yazi": 0
@@ -139,7 +139,7 @@
           "dilekce": 0,
           "genelge": 0,
           "onayli_belge": 0,
-          "rapor": 5,
+          "rapor": 2,
           "tutanak": 0,
           "ust_yazi": 0
         },
@@ -150,35 +150,36 @@
           "genelge": 0,
           "onayli_belge": 0,
           "rapor": 0,
-          "tutanak": 7,
+          "tutanak": 2,
           "ust_yazi": 0
         },
         "ust_yazi": {
           "bilgilendirme": 0,
-          "cevap_yazisi": 0,
+          "cevap_yazisi": 1,
           "dilekce": 0,
           "genelge": 0,
           "onayli_belge": 0,
           "rapor": 0,
           "tutanak": 0,
-          "ust_yazi": 8
+          "ust_yazi": 1
         }
       }
     },
-    "yanlis_siniflananlar": []
+    "yanlis_siniflananlar": [
+      {
+        "dosya": "ust_yazi_b1.txt",
+        "beklenen": "ust_yazi",
+        "tahmin": "cevap_yazisi"
+      }
+    ]
   },
   "yonlendirme": {
-    "accuracy": 0.9615,
+    "accuracy": 0.9375,
     "yanlis_yonlendirilenler": [
       {
-        "dosya": "cevap_yazisi_06.txt",
-        "beklenen": "yazi_isleri",
-        "tahmin": "basin_halkla_iliskiler"
-      },
-      {
-        "dosya": "tutanak_06.txt",
-        "beklenen": "yazi_isleri",
-        "tahmin": "hukuk"
+        "dosya": "ust_yazi_b2.txt",
+        "beklenen": "genel_mudurluk",
+        "tahmin": "strateji"
       }
     ]
   },
@@ -186,70 +187,59 @@
     "micro_precision": 1.0,
     "micro_recall": 1.0,
     "micro_f1": 1.0,
-    "tp": 18,
+    "tp": 4,
     "fp": 0,
     "fn": 0
   },
   "mevzuat_onerisi": {
     "isabet_at_3": {
       "k": 3,
-      "etiketli_evrak": 52,
-      "isabet": 50,
-      "isabet_orani": 0.9615
+      "etiketli_evrak": 16,
+      "isabet": 15,
+      "isabet_orani": 0.9375
     },
     "isabet_at_1": {
       "k": 1,
-      "etiketli_evrak": 52,
-      "isabet": 47,
-      "isabet_orani": 0.9038
+      "etiketli_evrak": 16,
+      "isabet": 13,
+      "isabet_orani": 0.8125
     },
     "siralama": {
       "k": 3,
-      "etiketli_evrak": 52,
-      "mrr": 0.9263,
-      "ndcg": 0.7784,
-      "context_precision": 0.5064,
-      "context_recall": 0.75
+      "etiketli_evrak": 16,
+      "mrr": 0.8646,
+      "ndcg": 0.812,
+      "context_precision": 0.5,
+      "context_recall": 0.8229
     },
     "isabetsizler": [
       {
-        "dosya": "tutanak_02.txt",
-        "beklenen": [
-          "resmi_yazisma_yonetmeligi"
-        ],
-        "tahmin": [
-          "cimer_vatandas_basvurulari_bilgi_notu",
-          "bilgi_edinme_kanunu_4982",
-          "elektronik_imza_kanunu_5070"
-        ]
-      },
-      {
-        "dosya": "tutanak_04.txt",
+        "dosya": "rapor_b1.txt",
         "beklenen": [
           "kamu_mali_yonetimi_5018"
         ],
         "tahmin": [
           "devlet_arsiv_hizmetleri_yonetmeligi",
-          "dilekce_hakki_kanunu_3071",
-          "imar_kanunu_3194"
+          "resmi_yazisma_yonetmeligi",
+          "bilgi_edinme_kanunu_4982"
         ]
       }
     ]
   },
   "taslak_kalitesi": {
-    "ortalama_puan": 93.6,
-    "asgari_puan": 73.0,
-    "degerlendirilen": 52,
+    "ortalama_puan": 94.7,
+    "asgari_puan": 82.0,
+    "degerlendirilen": 16,
     "yontemler": {
-      "kural_hakem": 52
+      "kural_hakem": 16
     }
   },
   "kalibrasyon": {
-    "n": 52,
-    "ece": 0.1882,
-    "mce": 0.703,
-    "brier": 0.0623,
-    "aurc": 0.0,
+    "n": 16,
+    "ece": 0.3291,
+    "mce": 0.7365,
+    "brier": 0.1966,
+    "aurc": 0.0282,
     "reliability_kutulari": [
       {
         "aralik": [
@@ -274,8 +264,8 @@
           0.2,
           0.3
         ],
-        "sayi": 1,
-        "ortalama_guven": 0.297,
+        "sayi": 2,
+        "ortalama_guven": 0.2635,
         "dogruluk": 1.0
       },
       {
@@ -284,7 +274,7 @@
           0.4
         ],
         "sayi": 1,
-        "ortalama_guven": 0.371,
+        "ortalama_guven": 0.362,
         "dogruluk": 1.0
       },
       {
@@ -293,7 +283,7 @@
           0.5
         ],
         "sayi": 1,
-        "ortalama_guven": 0.436,
+        "ortalama_guven": 0.496,
         "dogruluk": 1.0
       },
       {
@@ -301,17 +291,17 @@
           0.5,
           0.6
         ],
-        "sayi": 2,
-        "ortalama_guven": 0.5805,
-        "dogruluk": 1.0
+        "sayi": 4,
+        "ortalama_guven": 0.5663,
+        "dogruluk": 0.75
       },
       {
         "aralik": [
           0.6,
           0.7
         ],
-        "sayi": 6,
-        "ortalama_guven": 0.6482,
+        "sayi": 3,
+        "ortalama_guven": 0.6463,
         "dogruluk": 1.0
       },
       {
@@ -319,8 +309,8 @@
           0.7,
           0.8
         ],
-        "sayi": 10,
-        "ortalama_guven": 0.7425,
+        "sayi": 2,
+        "ortalama_guven": 0.777,
         "dogruluk": 1.0
       },
       {
@@ -328,8 +318,8 @@
           0.8,
           0.9
         ],
-        "sayi": 9,
-        "ortalama_guven": 0.8561,
+        "sayi": 2,
+        "ortalama_guven": 0.843,
         "dogruluk": 1.0
       },
       {
@@ -337,95 +327,93 @@
           0.9,
           1.0
         ],
-        "sayi": 22,
-        "ortalama_guven": 0.9513,
+        "sayi": 1,
+        "ortalama_guven": 0.905,
         "dogruluk": 1.0
       }
-    ],
-    "ogrenilen_sicaklik": 0.25,
-    "ece_kalibrasyon_sonrasi": 0.0081
+    ]
   },
   "secici_tahmin": {
     "esik": 0.6,
-    "kapsama": 0.9038,
+    "kapsama": 0.5,
     "risk": 0.0,
-    "reddedilen": 5,
-    "ortalama_belirsizlik": 0.1676
+    "reddedilen": 8,
+    "ortalama_belirsizlik": 0.3499
   },
   "konformal": {
     "alfa": 0.1,
     "hedef_kapsama": 0.9,
-    "esik": 0.408,
+    "esik": 1.0,
     "ampirik_kapsama": 1.0,
-    "ortalama_kume_boyutu": 1.0,
-    "tekil_kume_orani": 1.0,
-    "n": 52
+    "ortalama_kume_boyutu": 9.0,
+    "tekil_kume_orani": 0.0,
+    "n": 16
   },
   "kvkk": {
-    "degerlendirilen": 52,
+    "degerlendirilen": 16,
     "toplam_kacak": 0,
     "sizintili_evrak": 0,
     "sizintisiz_oran": 1.0
   },
   "guven_araliklari": {
     "siniflandirma": {
-      "nokta": 1.0,
-      "basari": 52,
-      "toplam": 52,
+      "nokta": 0.9375,
+      "basari": 15,
+      "toplam": 16,
       "wilson_95": [
-        0.9312,
-        1.0
+        0.7167,
+        0.9889
       ],
       "bootstrap_95": [
-        1.0,
+        0.8125,
         1.0
       ]
     },
     "yonlendirme": {
-      "nokta": 0.9615,
-      "basari": 50,
-      "toplam": 52,
+      "nokta": 0.9375,
+      "basari": 15,
+      "toplam": 16,
       "wilson_95": [
-        0.8702,
-        0.9894
+        0.7167,
+        0.9889
       ],
       "bootstrap_95": [
-        0.9038,
+        0.8125,
         1.0
       ]
     }
   },
   "ablasyon": {
-    "tam_sistem_accuracy": 1.0,
-    "baseline_accuracy": 0.5385,
+    "tam_sistem_accuracy": 0.9375,
+    "baseline_accuracy": 0.5,
     "mcnemar_tam_vs_baseline": {
-      "b": 24,
+      "b": 7,
       "c": 0,
-      "istatistik": 22.0417,
-      "p_deger": 0.0,
+      "istatistik": 5.1429,
+      "p_deger": 0.0233,
       "anlamli_0_05": true
     }
   },
   "ozet_kalitesi": {
-    "n": 52,
-    "sadakat": 1.0,
-    "kaynak_kapsama": 0.2984,
-    "sikistirma_orani": 0.3941
+    "n": 16,
+    "sadakat": 0.9688,
+    "kaynak_kapsama": 0.4803,
+    "sikistirma_orani": 0.5581
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.2278,
-    "evrak_basina_medyan_sure_saniye": 0.1355,
+    "evrak_basina_ortalama_sure_saniye": 0.5065,
+    "evrak_basina_medyan_sure_saniye": 0.0815,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0311,
-      "classification": 0.0138,
-      "info_extraction": 0.1057,
-      "missing_info": 0.0064,
-      "legislation": 0.0117,
-      "triage": 0.0038,
-      "summarization": 0.0099,
-      "anonimlestirme": 0.0087,
-      "draft_writer": 0.0088,
-      "routing": 0.0279,
+      "ocr": 0.001,
+      "classification": 0.3965,
+      "info_extraction": 0.0114,
+      "missing_info": 0.0049,
+      "legislation": 0.0384,
+      "triage": 0.0027,
+      "summarization": 0.0079,
+      "anonimlestirme": 0.0056,
+      "draft_writer": 0.0149,
+      "routing": 0.0233,
       "user_info": 0.0
     }
   },

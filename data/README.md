@@ -19,7 +19,7 @@ Aynı ilke evraklardaki diğer tanımlayıcı görünümlü değerler için de g
   kurumun haberleşme koduyla eşleşme amaçlanmamıştır (tüm antetler kurgu kurumlara
   aittir).
 - **Yer adları** ağırlıklı olarak kurgu evrenlere aittir (Akçova, Bozkırova,
-  Denizova, Doğuşehir vb.); geliştirme setindeki iki dosyada yalnızca bağlam amaçlı
+  Denizova, Doğuşehir, Puslupınar/Kavakdüzü, Deniztepe/Fenerburnu vb.); geliştirme setindeki iki dosyada yalnızca bağlam amaçlı
   genel gerçek ilçe adları geçer, adreslerin kendileri (mahalle/cadde/kapı) kurgudur.
 - Değerlerden herhangi birinin gerçek bir kişi/kurum kaydıyla çakıştığı fark edilirse
   bu tesadüfidir; bildirim üzerine derhal değiştirilir (bkz. kökteki `SECURITY.md`).
@@ -142,6 +142,26 @@ python3 scripts/evaluate.py \
     --rapor-dosyasi data/processed/eval_report_heldout_v3.json
 ```
 
+### 2d. İyileştirme Sonrası Temiz Adversarial Set v4 (`raw/kurgu_evraklar_heldout_v4/`)
+
+v3'ün (§2c) ortaya koyduğu üç sınırlılık **ilkesel olarak giderildikten** sonra (yapısal İlgi denetimi, sözel tarih çözümü, KVKK veri-sinyali köprüsü; bkz. `docs/teknik_rapor.md` §5.1.1), düzeltmeler v3 hata analizinden türediğinden v3 *geliştirme-bilgili* hale gelmiştir. İyileştirilmiş sistemin **dokunulmamış** başarımını ölçmek için tamamen yeni bir adversarial tutulmuş set oluşturulmuştur.
+
+- **Amaç:** İyileştirilmiş sistemin görülmemiş, zorlayıcı evraklara genelleme başarımını taraf tutmadan ölçmek. Kod bu set üzerinde HİÇ kalibre edilmemiştir; tek seferlik ölçümdür.
+- **Boyut:** 16 evrak (8 tür × 2). **Adlandırma:** `<tur>_b1.txt`, `<tur>_b2.txt`.
+- **Kurgu evren (beşinci):** sahil/liman/balıkçılık/turizm ekonomili "Deniztepe" ili / "Fenerburnu" ilçesi (valilik, kaymakamlık, belediye, il sağlık/kültür-turizm/mali hizmetler müdürlükleri, kurgu "Fenerburnu Deniz Bilimleri MYO"); yer adları (Balıkçıbarınağı, Yalıköy, Tuzla Mah., Gümrükönü) kurgudur.
+- **Adversarial eksenler:** düzeltilen üç desenin TAZE örnekleri — kopuk İlgi zinciri ("İlgi (a)'da" gövde atfı, blok yok), tamamen sözel tarih ("Ağustos ayının üçüncü günü"), KVKK-yoğun ama sözcüksüz üçüncü-şahıs verisi (tutanak/rapor) — artı yeni tuzaklar: yönetmelik-dışı bozuk sayı bloğu ("FB-2026/--"), çift-doğalı makam oluru (2 dosya), karışık/yanlış maddeleme ("A)","c."), çok konulu tek evrak, aşırı kısaltmalı muhatap, yanlış "rica ederim" bitişi, kısa-yıl tarih biçimi; ve 2 temiz kontrol. Kasıtlı eksik alanlar: cevap yazısında ilgi (kopuk zincir), genelgede dağıtım, olurda tarih, raporda hazırlayan. 9 hedef birimin her biri en az 1 evrakta doğru yönlendirme hedefidir.
+- **Üretim ve bağımsız çift-etiketleme:** Evraklar spesifikasyona göre üretilmiş; etiketler (`tur`, `birim_kodu`, `eksik_alanlar`, `mevzuat_beklenen`) sistem çıktısına bakılmadan içerik + hukuki rehberle atanmış, ardından **bağımsız ikinci bir etiketleyici** aynı evrakları körlemesine (mevcut etiketleri ve sistem çıktısını görmeden) etiketlemiştir. Uyum: tür 16/16, eksik_alanlar 16/16, mevzuat çekirdeği 16/16 birebir; birim_kodu 15/16. Tek itiraz `dilekce_b1` biriminde çıkmıştır (birincil etiketleyici `basin_halkla_iliskiler` — "kamuoyuna duyurulması" talebi + v3 `dilekce_a1` emsali; ikinci etiketleyici havale gerekçesiyle `yazi_isleri`); v3 emsaline göre `basin_halkla_iliskiler` benimsenmiş ve bu bilinen sınır durumu etiket açıklamasına işlenmiştir.
+- **Ölçüm (temiz):** sınıflandırma 0,938; yönlendirme 0,938; eksik bilgi micro-F1 **1,000** (FP 0, FN 0); mevzuat isabet@3 0,938; taslak kalitesi 94,7. Üç düzeltme de bağımsız evrende genelledi; kalan 3 hata v3 §6'daki dokümante sınırlılıklarla (cevap/üst-yazı ayrımı, çok konulu yönlendirme, rapor-5018 kaçağı) örtüşür ve dürüstçe raporlanır (`docs/teknik_rapor.md` §5.1.1).
+- **Kaynak:** Takım üretimi. **Lisans:** Apache 2.0.
+
+v4 ölçümü çalıştırma:
+
+```bash
+python3 scripts/evaluate.py \
+    --veri-dizini data/raw/kurgu_evraklar_heldout_v4 \
+    --rapor-dosyasi data/processed/eval_report_heldout_v4.json
+```
+
 ### 3. Mevzuat Metinleri (`raw/mevzuat_metinleri/`)
 - Kamuya açık mevzuat metinleri
 - **Kaynak:** [mevzuat.gov.tr](https://mevzuat.gov.tr)
@@ -150,7 +170,7 @@ python3 scripts/evaluate.py \
 ### 4. İşlenmiş Veriler (`processed/`)
 - Ham verilerin temizlenmiş ve yapılandırılmış halleri
 - Sınıflandırma etiketleri ve metadata
-- Değerlendirme raporları: `eval_report.json` (geliştirme seti), `eval_report_heldout.json` (held-out set), `eval_report_heldout_v2.json` (tutulmuş set v2), `eval_report_heldout_v3.json` (adversarial tutulmuş set v3)
+- Değerlendirme raporları: `eval_report.json` (geliştirme seti), `eval_report_heldout.json` (held-out set), `eval_report_heldout_v2.json` (tutulmuş set v2), `eval_report_heldout_v3.json` (adversarial tutulmuş set v3), `eval_report_heldout_v4.json` (iyileştirme sonrası temiz adversarial set v4)
 
 ## Kullanım Hakları
 
