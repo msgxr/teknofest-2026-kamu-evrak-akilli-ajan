@@ -224,33 +224,23 @@ mimarinin merkezine koyar:
 ## ✨ Öne Çıkan Özellikler
 
 ```mermaid
-mindmap
-  root(("🏛️ Kamu Evrak Akıllı Ajan"))
-    ("📋 Görev 1")
-      ("🔤 OCR / Metin Okuma")
-      ("🏷️ Sınıflandırma<br/>kural+ML+LLM")
-      ("🔍 Bilgi Çıkarımı")
-      ("⚠️ Eksik Bilgi Tespiti")
-      ("📚 Mevzuat RAG")
-      ("⏱️ Önceliklendirme")
-      ("📝 Özetleme")
-      ("🔒 KVKK Maskeleme")
-    ("✍️ Görev 2")
-      ("📄 Taslak Yazımı")
-      ("✅ Format Denetimi")
-      ("🏢 Birim Yönlendirme")
-      ("💬 Bilgilendirme")
-      ("❓ Eksik Bilgi Talebi")
-    ("🎓 Ölçüm Katmanı")
-      ("Kalibrasyon ECE")
-      ("Conformal Prediction")
-      ("Seçici Tahmin")
-      ("Metamorfik Test")
-    ("🖥️ Arayüzler")
-      ("Streamlit Web")
-      ("REST API")
-      ("MCP Sunucusu")
-      ("CLI")
+flowchart LR
+    ROOT["🏛️ Kamu Evrak<br/>Akıllı Ajan"]
+    ROOT --> G1["📋 Görev 1"]
+    ROOT --> G2["✍️ Görev 2"]
+    ROOT --> L["🎓 Ölçüm Katmanı"]
+    ROOT --> UI["🖥️ Arayüzler"]
+    G1 --> G1a["🔤 OCR · 🏷️ Sınıflandırma<br/>🔍 Bilgi · ⚠️ Eksik Bilgi"]
+    G1 --> G1b["📚 Mevzuat RAG · ⏱️ Önceliklendirme<br/>📝 Özet · 🔒 KVKK Maskeleme"]
+    G2 --> G2a["📄 Taslak · ✅ Format Denetimi<br/>🏢 Yönlendirme"]
+    G2 --> G2b["💬 Bilgilendirme<br/>❓ Eksik Bilgi Talebi"]
+    L --> La["Kalibrasyon · Conformal<br/>Seçici Tahmin · Metamorfik"]
+    UI --> UIa["Streamlit · REST API<br/>MCP · CLI"]
+    style ROOT fill:#7048e8,color:#fff
+    style G1 fill:#1971c2,color:#fff
+    style G2 fill:#e8590c,color:#fff
+    style L fill:#2f9e44,color:#fff
+    style UI fill:#495057,color:#fff
 ```
 
 | Özellik | Açıklama |
@@ -293,7 +283,8 @@ mindmap
 </div>
 
 ```mermaid
-pie showData title Kod Tabanı Dağılımı (dosya/bileşen)
+pie showData
+    title Kod Tabanı Bileşen Dağılımı
     "Uzman Ajan (src/agents)" : 12
     "Yardımcı Modül (src/utils)" : 29
     "Model Katmanı (src/models)" : 3
@@ -399,7 +390,7 @@ sonlandırabilir, adımları atlayabilir veya insan onayı işaretleyebilir. Bu,
 
 ```mermaid
 flowchart TD
-    START(["📥 Evrak Girişi"]) --> OCR["🔤 OCR / Metin Okuma"]
+    BASLA(["📥 Evrak Girişi"]) --> OCR["🔤 OCR / Metin Okuma"]
     OCR --> GATE1{"🚪 KAPI 1<br/>Metin okunabilir mi?<br/>(≥ 30 anlamlı karakter)"}
 
     GATE1 -->|"Hayır"| STOP1["⛔ Süreç erken sonlanır<br/>classification = bilinmiyor<br/>👤 insan onayı iste"]
@@ -424,7 +415,7 @@ flowchart TD
     GATE3B -->|"Evet"| CONT2["✅ Devam"]
     HUMAN2 --> INFO["💬 Kullanıcı Bilgilendirme"]
     CONT2 --> INFO
-    INFO --> END(["📤 Sonuç Derleme"])
+    INFO --> SONUC(["📤 Sonuç Derleme"])
 
     style GATE1 fill:#ffd43b
     style GATE2 fill:#ffd43b
@@ -433,7 +424,7 @@ flowchart TD
     style STOP1 fill:#ff6b6b,color:#fff
     style HUMAN1 fill:#ff922b,color:#fff
     style HUMAN2 fill:#ff922b,color:#fff
-    style END fill:#2f9e44,color:#fff
+    style SONUC fill:#2f9e44,color:#fff
 ```
 
 ### Kritik Eşik Değerleri (tek referans)
@@ -788,7 +779,7 @@ flowchart TD
     IN["📄 Sınıflandırma + Bilgi + Mevzuat"] --> TYPE["Yazı türü belirle<br/>(kritik eksik varsa → talep yazısı)"]
     TYPE --> C1["Aday A: Kural tabanlı şablon"]
     TYPE --> C2["Aday B: LLM taslağı<br/>(LLM varsa)"]
-    C2 --> REFLEX{"Format skoru < 0.85 ?"}
+    C2 --> REFLEX{"Format skoru &lt; 0.85 ?"}
     REFLEX -->|"Evet"| REFINE["🔄 Reflexion: yapısal geri bildirim<br/>→ 1 tur daha"]
     REFLEX -->|"Hayır"| VAL
     REFINE --> VAL["✅ _validate_format<br/>madde-referanslı kontroller"]
@@ -843,7 +834,7 @@ flowchart LR
     IN["📄 metin + konu + muhatap"] --> SCORE["Her birim için skor:<br/>ağırlıklı kelime + konumsal bonus<br/>(muhatap +4 · Konu +3 · gövde +2)"]
     SCORE --> BONUS["+ Tür bonusları"]
     BONUS --> CONF["Güven = ayrışma × (0.6 + 0.4×kapsam)"]
-    CONF --> TIE{"İlk-ikinci fark < %15<br/>ve LLM var ?"}
+    CONF --> TIE{"İlk-ikinci fark &lt; %15<br/>ve LLM var ?"}
     TIE -->|"Evet"| LLM["🤝 LLM ayrıştırma<br/>(ilk 3 aday)"]
     TIE -->|"Hayır"| OUT["🏢 birim + gerekçe + alternatifler"]
     LLM --> OUT
@@ -887,12 +878,12 @@ flowchart TD
     RERANK -->|"Hayır"| SIM
     BGE --> SIM["Mutlak benzerlik<br/>min(1, skor / 1.5·Σidf)"]
 
-    SIM --> LOW{"İlk benzerlik < 0.15 ?"}
+    SIM --> LOW{"İlk benzerlik &lt; 0.15 ?"}
     LOW -->|"Evet"| EXPAND["🔄 Düzeltici döngü:<br/>tür söz dağarcığıyla<br/>sorgu genişlet → yeniden ara<br/>(yalnız iyileşirse benimse)"]
     LOW -->|"Hayır"| GUARANTEE
     EXPAND --> GUARANTEE["Usul mevzuatı garantisi<br/>+ KVKK köprüsü (TCKN/IBAN)"]
 
-    GUARANTEE --> WEAK{"En iyi < 0.5 ?"}
+    GUARANTEE --> WEAK{"En iyi &lt; 0.5 ?"}
     WEAK -->|"Evet"| FLAG["⚠️ zayıf_eşleşme işaretle"]
     WEAK -->|"Hayır"| OUT
     FLAG --> OUT["📚 İlk 5 + madde referansı + gerekçe"]
@@ -1015,13 +1006,13 @@ flowchart TD
 
     L1 --> MAX["Skor = max(tüm sinyaller)"]
     L2 --> MAX
-    TABLE --> ESC["Süre eskalasyonu:<br/>kalan<0 → 1.0 · ≤3 → 0.85 · ≤7 → 0.7"]
+    TABLE --> ESC["Süre eskalasyonu:<br/>kalan&lt;0 → 1.0 · ≤3 → 0.85 · ≤7 → 0.7"]
     ESC --> MAX
 
     MAX --> PRI{"Öncelik"}
     PRI -->|"≥ 0.8"| P1["🔴 İVEDİ"]
     PRI -->|"≥ 0.55"| P2["🟠 YÜKSEK"]
-    PRI -->|"< 0.55"| P3["🟢 NORMAL"]
+    PRI -->|"&lt; 0.55"| P3["🟢 NORMAL"]
 
     MAX --> DATE["📅 Son işlem tarihi<br/>iş günü + 7 sabit resmî tatil<br/>(en erken bağlayıcı)"]
 
@@ -1438,7 +1429,8 @@ resmî checksum'ı geçer ama gerçek bir kişiye ait olamaz (KVKK ilkesi). Tele
 kalıbındadır; il/ilçe adları kurgu evrenlerdendir (Akçova, Bozkırova, Puslupınar...).
 
 ```mermaid
-pie showData title Etiketli Kurgu Evrak Dağılımı (116 evrak)
+pie showData
+    title Etiketli Kurgu Evrak Dağılımı
     "Geliştirme (kalibrasyon)" : 52
     "Tutulmuş v1" : 16
     "Tutulmuş v2" : 16
@@ -1538,7 +1530,8 @@ evrende genelledi.
 ## 🧪 Test ve CI
 
 ```mermaid
-pie showData title Test Kapsamı (38 modül, 508 test)
+pie showData
+    title Test Kapsamı Dağılımı
     "Ajanlar (11)" : 11
     "Ölçüm/Güven Katmanı" : 13
     "Arayüz/API/MCP" : 5
@@ -1767,10 +1760,10 @@ kuyruğuna düşer. Nihai karar **her zaman insandadır**.
 ```mermaid
 stateDiagram-v2
     [*] --> İşleniyor
-    İşleniyor --> Otomatik_Onay: güven ≥ 0.6<br/>ve tutarlı
-    İşleniyor --> Kuyrukta: güven < 0.6<br/>veya gizlilik damgası<br/>veya çelişki
-    Kuyrukta --> Onaylandı: 👤 "Kararı Onayla"
-    Kuyrukta --> Düzeltildi: 👤 "Düzelterek Kaydet"
+    İşleniyor --> Otomatik_Onay: güven ≥ 0.6 ve tutarlı
+    İşleniyor --> Kuyrukta: güven 0.6 altında · gizlilik · çelişki
+    Kuyrukta --> Onaylandı: 👤 Kararı Onayla
+    Kuyrukta --> Düzeltildi: 👤 Düzelterek Kaydet
     Düzeltildi --> GeriBildirim: geri_bildirim.jsonl
     GeriBildirim --> Kalibrasyon: kalibrasyon_onerisi.py
     Otomatik_Onay --> [*]
@@ -1872,14 +1865,26 @@ Ayrıntılı gereksinim → kanıt haritası: [docs/sartname_uyum_matrisi.md](do
 ## 🛣️ Yol Haritası
 
 ```mermaid
-timeline
-    title Proje Zaman Çizelgesi
-    section Geliştirme
-        Temmuz 2026 : İskelet (v0.1.0) : Uçtan uca iki görev (v0.2.0) : 9→11 ajan (v0.3.0) : Kalite + üçlü ensemble + entegrasyon (v0.4.0)
-    section Ön Değerlendirme
-        12 Temmuz 2026 : Ön değerlendirme sunumu : Adversarial v4 temiz ölçüm : 508 test
-    section Final
-        Ağustos 2026 : Final yarışması : Canlı demo : Jüri sunumu
+flowchart LR
+    subgraph DEV["🛠️ Geliştirme · Temmuz 2026"]
+        direction TB
+        V01["v0.1.0 — İskelet"] --> V02["v0.2.0 — Uçtan uca iki görev"]
+        V02 --> V03["v0.3.0 — 9 → 11 ajan"]
+        V03 --> V04["v0.4.0 — Kalite + üçlü ensemble + entegrasyon"]
+    end
+    subgraph ON["🎯 Ön Değerlendirme · 12 Temmuz 2026"]
+        direction TB
+        P1["Ön değerlendirme sunumu"] --> P2["Adversarial v4 temiz ölçüm"]
+        P2 --> P3["508 test yeşil"]
+    end
+    subgraph FIN["🏆 Final · Ağustos 2026"]
+        direction TB
+        F1["Final yarışması"] --> F2["Canlı demo"] --> F3["Jüri sunumu"]
+    end
+    DEV --> ON --> FIN
+    style DEV fill:#e7f5ff
+    style ON fill:#fff4e6
+    style FIN fill:#ebfbee
 ```
 
 **Planlanan geliştirmeler:** kalıcı ChromaDB semantik indeks, çok-dilli girdi desteği, EBYS canlı
