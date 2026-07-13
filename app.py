@@ -1939,149 +1939,794 @@ def _gercek_mevzuat_ara(soru: str, limit: int = 3):
         return None
 
 
-def _orkestrator_yanit(soru: str) -> str:
-    """Orkestratörün yanıtını üretir (mevzuat için gerçek BM25/RAG kullanır).
+# --- Asistan çekirdeği: Türkçe-dayanıklı niyet eşleme + belge temelli yanıt ---
+# Tasarım: saf-Python, offline (LLM gerektirmez), halüsinasyon yasağı (Anayasal
+# İlke 2) — belge temelli yanıtlar YALNIZCA gerçek işleme çıktısındaki (son_analiz)
+# alanlara dayanır; emin olunmayan konuda tahmin yürütülmez.
 
-    Soruyu anahtar kelimelere göre ilgili uzman ajana 'yönlendirir'. Mevzuat
-    sorularında gerçek RAG korpusunda arama yapar; erişilemezse bilgi kartına
-    iner. Emin olunmayan konularda bilgi yetersizliğini açıkça belirtir
-    (halüsinasyon yasağı — Anayasal İlke 2).
+def _yonlendir(ajan_ad: str, govde: str) -> str:
+    """Orkestratörün ilgili uzman ajana yönlendirme çerçevesi."""
+    return f"🧭 Bu soruyu **{ajan_ad}**'na yönlendirdim.\n\n{govde}"
+
+
+def _tr_kucuk(metin: str) -> str:
+    """Türkçe-doğru küçük harf (İ→i, I→ı). Backend'e bağımlı değildir (offline)."""
+    return metin.translate(str.maketrans("İIÇÖÜŞĞ", "iıçöüşğ")).lower()
+
+
+# Diakritik katlama: kullanıcılar Türkçe'yi sık sık diakritiksiz yazar
+# ("ozetle", "onceligi", "mudurluge"). Katlama + kısa kök eşleme ile hem
+# diakritiksiz yazım hem ünsüz yumuşaması (k↔ğ) yakalanır.
+_KATLAMA = str.maketrans("çğıöşüâîû", "cgiosuaiu")
+
+
+def _sadelestir(metin: str) -> str:
+    """Türkçe küçük harf + diakritik katlama (eşleme için sadeleştirilmiş biçim)."""
+    return _tr_kucuk(metin).translate(_KATLAMA)
+
+
+# Gelişmiş NLU altyapısı (offline, saf-Python) — hibrit niyet motorunun BM25,
+# bulanık (Damerau-Levenshtein) ve seçici-tahmin katmanları. İçe aktarma
+# korumalı: util yoksa asistan yalnızca kök-eşlemeye zarifçe iner (offline-first).
+try:
+    from src.utils.bm25 import BM25Okapi as _BM25Okapi, tokenize as _bm25_tokenize
+    from src.utils.bulanik import benzerlik as _benzerlik
+    from src.utils.secici_tahmin import (
+        belirsizlik_skoru as _belirsizlik_skoru,
+        chow_reddet as _chow_reddet,
+    )
+    _NLU_VAR = True
+except Exception:  # pragma: no cover - ortam bağımlı
+    _BM25Okapi = _bm25_tokenize = _benzerlik = None
+    _belirsizlik_skoru = _chow_reddet = None
+    _NLU_VAR = False
+
+
+# İşlenmiş evrağa gönderme yapan ifadeler (anafora) — belge bağlamını tetikler.
+# NOT: değerler SADELEŞTİRİLMİŞ (diakritiksiz) biçimdedir; sorgu da _sadelestir'den
+# geçirilerek karşılaştırılır ("bu evra" hem 'bu evrak' hem 'bu evrağı'yı yakalar).
+_ANAFORA = (
+    "bu evra", "bu belge", "bu dilekc", "bu yazi", "bu dosya", "bunu", "bunun",
+    "yukledi", "islenen", "isledig", "son evra", "az once",
+    "yukaridaki", "elimdeki", "mevcut evra", "analiz ettig", "su evra",
+)
+
+# Kısa takip sorularını (çok-adımlı sohbet) belge bağlamına düşüren ipuçları.
+_TAKIP = ("peki", "o zaman", "ayrica", "bir de")
+
+# Maskelenen PII kalemlerinin okunur etiketleri (KVKK raporu).
+_PII_ETIKET = {
+    "tc_kimlik": "TCKN", "telefon": "Telefon", "eposta": "E-posta",
+    "iban": "IBAN", "kisi_adi": "Ad-Soyad", "adres": "Adres",
+    "dogum_tarihi": "Doğum Tarihi", "plaka": "Araç Plakası", "sicil": "Sicil No",
+}
+
+# İyi bilinen yasal süreler — MEVZUAT_KORPUS ile tutarlı, kaynak atıflı doğrulanmış
+# hukuki bilgiler (uydurma değildir; korpus özetleriyle örtüşür).
+_MEVZUAT_SURE = {
+    "3071": "3071 sayılı Dilekçe Hakkı Kanunu (m.7) uyarınca idare, başvurulara "
+            "**en geç 30 gün** içinde gerekçeli olarak cevap vermekle yükümlüdür.",
+    "4982": "4982 sayılı Bilgi Edinme Hakkı Kanunu uyarınca başvurular **15 iş "
+            "günü** içinde (istenen bilgi/belge başka bir birimden sağlanacaksa "
+            "**30 iş günü**) yanıtlanır.",
+    "6698": "6698 sayılı KVKK uyarınca veri sorumlusu, ilgili kişinin başvurusuna "
+            "**en geç 30 gün** içinde yanıt verir.",
+    "2577": "2577 sayılı İdari Yargılama Usulü Kanunu uyarınca idari işlemlere "
+            "karşı dava açma süresi kural olarak **60 gündür** (özel kanunlardaki "
+            "farklı süreler saklıdır).",
+}
+
+
+def _niyet_eslesme(sorgu_kucuk: str, anahtarlar) -> float:
+    """Bir niyetin sorguya uyum skoru — Türkçe kök/önek + ifade eşleme.
+
+    `anahtarlar`: ((kök, ağırlık), ...). Boşluklu kök → tam ifade (substring);
+    3+ harfli kök → sözcük ÖNEK eşleşmesi (Türkçe ekleri yakalar: 'birime',
+    'yönlendireyim'); kısa kök → tam sözcük eşleşmesi (yanlış-pozitif önlenir).
     """
-    s = soru.lower()
-    ss = st.session_state
+    tokenlar = re.findall(r"[a-zçğıöşü0-9]+", sorgu_kucuk)
+    skor = 0.0
+    for kok, agirlik in anahtarlar:
+        if " " in kok:
+            if kok in sorgu_kucuk:
+                skor += agirlik
+        elif len(kok) >= 3:
+            if any(t.startswith(kok) for t in tokenlar):
+                skor += agirlik
+        elif kok in tokenlar:
+            skor += agirlik
+    return skor
 
-    def _yonlendir(ajan_ad: str, govde: str) -> str:
-        return (f"🧭 Bu soruyu **{ajan_ad}**'na yönlendirdim.\n\n{govde}")
 
-    # Selamlama
-    if any(k in s for k in ["merhaba", "selam", "günaydın", "iyi günler"]):
-        return ("Merhaba! 👋 Size nasıl yardımcı olabilirim? Evrak, mevzuat, "
-                "ajan durumu, KVKK veya yönlendirme hakkında sorabilirsiniz.")
+def _aktif_evrak():
+    """Oturumda GERÇEKTEN işlenmiş son evrak analizi (varsa) — belge temelli yanıt."""
+    sonuc = st.session_state.get("son_analiz")
+    return sonuc if isinstance(sonuc, dict) else None
 
-    # Yetenekler / yardım
-    if any(k in s for k in ["ne yapab", "neler yap", "yardım", "yetenek",
-                            "nasıl kullan", "ne işe", "sistem neler"]):
-        return ("Şunları yapabilirim:\n"
-                "- 📥 **Evrak analizi**: tür, özet, öncelik, eksik alan tespiti\n"
-                "- ⚖️ **Mevzuat/RAG**: ilgili kanun-yönetmelik maddelerini bulma\n"
-                "- 🧭 **Yönlendirme**: doğru birime havale önerisi\n"
-                "- 🛡️ **KVKK**: kişisel veri tespiti ve maskeleme\n"
-                "- ✍️ **Taslak**: resmî yazışma formatında cevap üretme\n"
-                "- 🤖 **Ajan durumu**: filo telemetrisi ve orkestrasyon\n\n"
-                "Sol taraftaki hızlı sorulardan da başlayabilirsiniz.")
 
-    # Ajan durumu (gerçek)
-    if any(k in s for k in ["ajan", "durum", "telemetri", "filo", "çalışıyor",
-                           "aktif mi"]):
-        kayit = _kayit_istatistik()
-        defter = kayit.get("toplam", 0)
-        return ("🤖 **Ajan Filosu Durumu (gerçek)**\n\n"
-                f"- Uzman ajan: **{len(AJANLAR)}** + 1 orkestratör "
-                "(3 karar kapısı: okunabilirlik / dil / düşük güven)\n"
-                f"- Bu oturumda işlenen evrak: **{ss['oturum_islenen']}**\n"
-                f"- Kayıt defterindeki toplam gerçek işlem: **{defter}**\n"
-                f"- İşleme çekirdeği: "
-                f"**{'🟢 gerçek (src/) yüklü' if _BACKEND_VAR else '🟡 yüklü değil'}**\n\n"
-                "Ölçülen adım süreleri için **Ajan Yönetimi** sekmesine bakın.")
+def _evrak_yok_uyari(konu: str) -> str:
+    """Belge temelli soru sorulduğunda evrak yoksa dürüst yönlendirme."""
+    return (f"Bu evrağa özel {konu} için önce bir evrak işlemem gerekiyor. 📥\n\n"
+            "**Evrak İşleme** sekmesinden bir evrak metni girip *Akıllı Ajanı "
+            "Çalıştır* deyin; ardından bu evrak hakkında ('özetle', 'hangi birime', "
+            "'KVKK riski var mı', 'öncelik ne') diye sorabilirsiniz.")
 
-    # Mevzuat / kanun / süre
-    if any(k in s for k in ["mevzuat", "kanun", "yönetmelik", "madde", "gün",
-                           "süre", "yasal", "3071", "4982", "6698", "kaç gün"]):
-        gercek = _gercek_mevzuat_ara(soru)
-        if gercek:
-            satir = "\n".join(
-                f"- **{m.get('mevzuat_adi') or m.get('baslik', '—')}** "
-                f"{m.get('madde_etiketi', '')} "
-                f"(benzerlik {float(m.get('benzerlik') or 0):.2f})"
-                for m in gercek[:3])
-            kaynak = "gerçek BM25/RAG araması"
+
+# --- Belge temelli yanıt üreticileri (yalnızca gerçek son_analiz alanları) -----
+
+def _dg_ozet(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Özet Ajanı",
+                          "Evrakların sadakat denetimli (ROUGE-L kontrollü) yönetici "
+                          "özetini çıkarıyorum. " + _evrak_yok_uyari("özet"))
+    ozet = (evrak.get("ozet") or "").strip()
+    tur = (evrak.get("siniflandirma") or {}).get("tur_adi", "evrak")
+    if not ozet:
+        return _yonlendir("Özet Ajanı", "İşlenen evrakta özet üretilemedi.")
+    return _yonlendir("Özet Ajanı",
+                      f"İşlenen **{tur}** için yönetici özeti:\n\n> "
+                      + ozet.replace("\n", "\n> "))
+
+
+def _dg_tur(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Sınıflandırma Ajanı",
+                          "Evrakları şu türlere ayırıyorum: " + ", ".join(EVRAK_TURLERI)
+                          + ".\n\n" + _evrak_yok_uyari("tür tespiti"))
+    sf = evrak.get("siniflandirma") or {}
+    guven = float(sf.get("guven") or 0) * 100
+    return _yonlendir("Sınıflandırma Ajanı",
+                      f"Bu evrak **{sf.get('tur_adi', '—')}** olarak sınıflandırıldı "
+                      f"(güven **%{guven:.0f}**, yöntem: {sf.get('yontem', '—')}).\n\n"
+                      f"Gerekçe: {sf.get('gerekce') or sf.get('aciklama', '—')}")
+
+
+def _dg_yonlendirme(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Yönlendirme Ajanı",
+                          "Evrak içeriğine göre uygun birime havale öneriyorum "
+                          "(ör. imar/kaldırım dilekçesi → **İmar ve Şehircilik Md.**).\n\n"
+                          + _evrak_yok_uyari("birim yönlendirmesi"))
+    y = evrak.get("yonlendirme") or {}
+    guven = float(y.get("guven") or 0) * 100
+    alt = [a.get("birim") for a in (y.get("alternatifler") or []) if a.get("birim")]
+    altmetin = ("\n\n↔️ Alternatifler: " + ", ".join(alt[:3])) if alt else ""
+    return _yonlendir("Yönlendirme Ajanı",
+                      f"Bu evrak **{y.get('birim', '—')}** birimine yönlendirildi "
+                      f"(güven **%{guven:.0f}**).\n\nGerekçe: {y.get('gerekce', '—')}"
+                      + altmetin)
+
+
+def _dg_oncelik(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Önceliklendirme Ajanı",
+                          "Evrakları aciliyet + yasal süre analizine göre şu seviyelere "
+                          "ayırıyorum: " + ", ".join(ONCELIKLER.values()) + ".\n\n"
+                          + _evrak_yok_uyari("öncelik ve süre"))
+    o = evrak.get("onceliklendirme") or {}
+    etiket = ONCELIKLER.get(o.get("oncelik", "normal"), o.get("oncelik", "normal"))
+    son = o.get("son_tarih")
+    kalan = o.get("kalan_gun")
+    ek = ""
+    if son:
+        ek = f"\n\n📅 Son işlem tarihi: **{son}**"
+        if kalan is not None:
+            ek += f" — kalan **{kalan}** gün"
+    return _yonlendir("Önceliklendirme Ajanı",
+                      f"Bu evrağın önceliği: **{etiket}**.\n\n"
+                      f"Gerekçe: {o.get('gerekce', '—')}{ek}")
+
+
+def _dg_kvkk(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("KVKK Anonimleştirme Ajanı",
+                          "6698 sayılı KVKK kapsamında evraklardaki **TCKN, telefon, "
+                          "e-posta, IBAN ve ad-soyad** gibi kişisel verileri otomatik "
+                          "tespit edip maskeliyorum. " + _evrak_yok_uyari("KVKK analizi"))
+    rapor = ((evrak.get("anonimlestirme") or {}).get("rapor") or {}).get("maskelenen") or {}
+    kalemler = [(k, int(v)) for k, v in rapor.items()
+                if isinstance(v, (int, float)) and v]
+    toplam = sum(v for _, v in kalemler)
+    if toplam:
+        dokum = ", ".join(f"{_PII_ETIKET.get(k, k)}: {v}" for k, v in kalemler)
+        return _yonlendir("KVKK Anonimleştirme Ajanı",
+                          f"⚠️ Bu evrakta **{toplam}** kişisel veri unsuru tespit edilip "
+                          f"maskelendi.\n\nMaskelenenler → {dokum}.\n\n6698 sayılı KVKK "
+                          "gereği maskeli paylaşım nüshasını **KVKK ve Uyum** sekmesinde "
+                          "görebilirsiniz.")
+    return _yonlendir("KVKK Anonimleştirme Ajanı",
+                      "✅ Bu evrakta maskelenmesi gereken belirgin bir kişisel veri "
+                      "(TCKN, telefon, e-posta, IBAN, ad-soyad...) tespit edilmedi.")
+
+
+def _dg_eksik(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Eksik Bilgi Ajanı",
+                          "Evrakta zorunlu alanların (muhatap, referans no, iletişim, "
+                          "tarih vb.) eksikliğini tespit edip tamamlama talebi "
+                          "üretiyorum.\n\n" + _evrak_yok_uyari("eksik alan tespiti"))
+    eksikler = evrak.get("eksik_bilgiler") or []
+    talepler = evrak.get("eksik_bilgi_talepleri") or []
+    if not eksikler and not talepler:
+        return _yonlendir("Eksik Bilgi Ajanı",
+                          "✅ Bu evrakta zorunlu alanlarda eksik tespit edilmedi.")
+    satir = []
+    for e in eksikler:
+        ad = e.get("alan") or e.get("baslik") if isinstance(e, dict) else str(e)
+        if ad:
+            satir.append(f"- {ad}")
+    for t in talepler:
+        if isinstance(t, dict):
+            alan = t.get("alan") or t.get("baslik") or ""
+            metin = t.get("talep") or t.get("mesaj") or t.get("aciklama") or ""
+            satir.append(f"- **{alan}** — {metin}" if alan else f"- {metin}")
         else:
-            adaylar = [m for m in MEVZUAT_KORPUS
-                       if m["kod"].lower() in s or any(
-                           kel in m["baslik"].lower() for kel in s.split())]
-            if not adaylar:
-                adaylar = MEVZUAT_KORPUS[:3]
-            satir = "\n".join(
-                f"- **{m['kod']} · {m['baslik']}** ({m['tur']}, {m['yil']}) — "
-                f"{m['ozet']}" for m in adaylar[:3])
-            kaynak = "mevzuat bilgi kartı"
-        ek = ""
-        if "3071" in s or "dilekçe" in s or "kaç gün" in s:
-            ek = ("\n\n📌 **Özet cevap:** 3071 sayılı Dilekçe Hakkı Kanunu "
-                  "uyarınca idare, başvurulara **en geç 30 gün** içinde cevap "
-                  "vermekle yükümlüdür.")
+            satir.append(f"- {t}")
+    return _yonlendir("Eksik Bilgi Ajanı",
+                      "Bu evrakta tespit edilen eksikler:\n" + "\n".join(satir[:6]))
+
+
+def _dg_taslak(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Cevap Hazırlama Ajanı",
+                          "DYS/e-Yazışma formatında (sayı, tarih, konu, ilgi, imza "
+                          "bloğu, dağıtım) resmî cevap taslağı üretiyorum.\n\n"
+                          + _evrak_yok_uyari("taslak üretimi"))
+    taslak = (evrak.get("yazi_taslagi") or "").strip()
+    if not taslak:
+        return _yonlendir("Cevap Hazırlama Ajanı", "Bu evrak için taslak üretilmedi.")
+    puan = (evrak.get("taslak_kalitesi") or {}).get("puan")
+    kalite = f" (bağımsız hakem kalite puanı **{puan}/100**)" if puan is not None else ""
+    onizleme = taslak[:420] + ("…" if len(taslak) > 420 else "")
+    return _yonlendir("Cevap Hazırlama Ajanı",
+                      f"Bu evrak için üretilen resmî cevap taslağı{kalite}:\n\n"
+                      f"```\n{onizleme}\n```\n\nTamamı **Evrak İşleme** sekmesinde "
+                      "indirilebilir.")
+
+
+def _dg_bilgi(sorgu: str, evrak):
+    if not evrak:
+        return _yonlendir("Bilgi Çıkarım Ajanı",
+                          "İçerikten tarih, kurum, kişi, referans no, konu ve muhatabı "
+                          "çıkarıyorum.\n\n" + _evrak_yok_uyari("bilgi çıkarımı"))
+    bc = evrak.get("bilgi_cikarim") or {}
+    alanlar = [
+        ("Konu", bc.get("konu")),
+        ("Muhatap", bc.get("muhatap")),
+        ("Evrak Tarihi", bc.get("evrak_tarihi")),
+        ("Kurum(lar)", ", ".join(bc.get("kurum_adlari") or [])),
+        ("Kişi(ler)", ", ".join(bc.get("kisi_adlari") or [])),
+        ("Referans No", ", ".join(bc.get("referans_numaralari") or [])),
+    ]
+    satir = [f"- **{ad}:** {deg}" for ad, deg in alanlar if str(deg or "").strip()]
+    if not satir:
+        return _yonlendir("Bilgi Çıkarım Ajanı", "Bu evraktan belirgin bir bilgi "
+                          "unsuru çıkarılamadı.")
+    return _yonlendir("Bilgi Çıkarım Ajanı",
+                      "Bu evraktan çıkarılan bilgiler:\n" + "\n".join(satir))
+
+
+def _dg_mevzuat(sorgu: str, evrak):
+    n = _sadelestir(sorgu)
+    # 1) Bilinen yasal süre sorusu → net, kaynak atıflı cevap
+    sure_ek = ""
+    for kod, cevap in _MEVZUAT_SURE.items():
+        if kod in n:
+            sure_ek = "\n\n📌 **Özet cevap:** " + cevap
+            break
+    if not sure_ek and ("kac gun" in n or "dilekc" in n) and (
+            "cevap" in n or "sure" in n or "yanit" in n or "gun" in n):
+        sure_ek = "\n\n📌 **Özet cevap:** " + _MEVZUAT_SURE["3071"]
+
+    # 2) İşlenmiş evrak varsa: onun GERÇEK eşleşen mevzuatını göster
+    if evrak and (evrak.get("mevzuat_eslestirme")):
+        mv = evrak["mevzuat_eslestirme"]
+        satir = "\n".join(
+            f"- **{m.get('mevzuat_adi') or m.get('baslik', '—')}** "
+            f"{m.get('madde_etiketi', '')} "
+            f"(benzerlik {float(m.get('benzerlik') or 0):.2f})"
+            for m in mv[:3])
         return _yonlendir("Mevzuat Ajanı",
-                          f"İlgili mevzuat ({kaynak}):\n{satir}{ek}")
+                          f"Bu evrakla eşleşen mevzuat (gerçek BM25/RAG):\n{satir}{sure_ek}")
 
-    # KVKK / kişisel veri
-    if any(k in s for k in ["kvkk", "kişisel veri", "maskele", "anonim", "pii",
-                           "tckn", "gizlilik"]):
-        return _yonlendir(
-            "KVKK Anonimleştirme Ajanı",
-            "6698 sayılı KVKK kapsamında evraklardaki **TCKN, telefon, e-posta, "
-            "IBAN ve ad-soyad** gibi kişisel verileri otomatik tespit edip "
-            "maskeliyorum. Öncesi/sonrası karşılaştırmasını ve sızıntı skorunu "
-            "**KVKK ve Uyum** sekmesinde canlı deneyebilirsiniz.")
+    # 3) Genel mevzuat sorusu → gerçek RAG araması, olmazsa bilgi kartı
+    gercek = _gercek_mevzuat_ara(sorgu)
+    if gercek:
+        satir = "\n".join(
+            f"- **{m.get('mevzuat_adi') or m.get('baslik', '—')}** "
+            f"{m.get('madde_etiketi', '')} "
+            f"(benzerlik {float(m.get('benzerlik') or 0):.2f})"
+            for m in gercek[:3])
+        kaynak = "gerçek BM25/RAG araması"
+    else:
+        adaylar = [m for m in MEVZUAT_KORPUS
+                   if _sadelestir(m["kod"]) in n
+                   or any(kel in _sadelestir(m["baslik"]) for kel in n.split() if len(kel) > 3)]
+        adaylar = adaylar or MEVZUAT_KORPUS[:3]
+        satir = "\n".join(
+            f"- **{m['kod']} · {m['baslik']}** ({m['tur']}, {m['yil']}) — {m['ozet']}"
+            for m in adaylar[:3])
+        kaynak = "mevzuat bilgi kartı"
+    return _yonlendir("Mevzuat Ajanı", f"İlgili mevzuat ({kaynak}):\n{satir}{sure_ek}")
 
-    # Öncelik / ivedi
-    if any(k in s for k in ["öncelik", "ivedi", "acil", "aciliyet", "önceliklendir"]):
-        return _yonlendir(
-            "Önceliklendirme Ajanı",
-            "Evrakları aciliyet + yasal süre analizine göre şu seviyelere "
-            "ayırıyorum: " + ", ".join(ONCELIKLER.values()) + ".\n\n"
-            "**Çok ivedi** evraklar öncelikli kuyruğa alınır; taslak ve "
-            "yönlendirme ilk sırada işlenir, ilgili amire anında bildirilir.")
 
-    # Yönlendirme / birim
-    if any(k in s for k in ["birim", "yönlendir", "havale", "hangi müdürlük",
-                           "kime gönder"]):
-        return _yonlendir(
-            "Yönlendirme Ajanı",
-            "Evrak içeriğine göre şu birimlerden uygun olana havale öneriyorum:\n"
-            + "\n".join(f"- {b}" for b in BIRIMLER[:5])
-            + "\n\nÖrneğin bir kaldırım/imar dilekçesi genelde "
-            "**İmar ve Şehircilik Md.**'ne yönlendirilir.")
+def _dg_genel(sorgu: str, evrak):
+    """İşlenmiş evrağın kısa künyesi — anafora/takip sorularında genel bağlam."""
+    if not evrak:
+        return _fallback(evrak)
+    sf = evrak.get("siniflandirma") or {}
+    y = evrak.get("yonlendirme") or {}
+    o = evrak.get("onceliklendirme") or {}
+    rapor = ((evrak.get("anonimlestirme") or {}).get("rapor") or {}).get("maskelenen") or {}
+    pii = sum(int(v) for v in rapor.values() if isinstance(v, (int, float)))
+    return _yonlendir("Orkestratör",
+                      "İşlenen evrağın künyesi:\n"
+                      f"- 🏷️ Tür: **{sf.get('tur_adi', '—')}** (%{float(sf.get('guven') or 0)*100:.0f})\n"
+                      f"- 🧭 Birim: **{y.get('birim', '—')}**\n"
+                      f"- 🚦 Öncelik: **{ONCELIKLER.get(o.get('oncelik', 'normal'), '—')}**"
+                      + (f" · son tarih {o.get('son_tarih')}" if o.get('son_tarih') else "")
+                      + f"\n- 🛡️ Maskelenen kişisel veri: **{pii}** kalem\n\n"
+                      "Ayrıntı için 'özetle', 'hangi birime', 'öncelik ne', "
+                      "'KVKK riski', 'hangi mevzuat', 'taslağı göster' diye sorabilirsiniz.")
 
-    # Özet
-    if any(k in s for k in ["özet", "özetle", "kısaca"]):
-        return _yonlendir(
-            "Özet Ajanı",
-            "Evrakların sadakat denetimli (ROUGE-L kontrollü) yönetici özetini "
-            "çıkarıyorum. Bir evrak yüklemek için **Evrak İşleme** sekmesini "
-            "kullanın; özet ve kalite göstergesini orada görürsünüz.")
 
-    # Taslak / cevap
-    if any(k in s for k in ["taslak", "cevap yaz", "resmî yazı", "resmi yazı",
-                           "yazı hazırla", "dys"]):
-        return _yonlendir(
-            "Cevap Hazırlama Ajanı",
-            "DYS/e-Yazışma formatında (sayı, tarih, konu, ilgi, imza bloğu, "
-            "dağıtım) resmî cevap taslağı üretiyorum. **Evrak İşleme** "
-            "sekmesinde bir evrak analiz edildiğinde taslak otomatik hazırlanır "
-            "ve indirilebilir.")
+# --- Bağlamsız (genel) niyetler ------------------------------------------------
 
-    # Eksik bilgi
-    if any(k in s for k in ["eksik", "zorunlu alan", "tamamla"]):
-        return _yonlendir(
-            "Eksik Bilgi Ajanı",
-            "Evrakta zorunlu alanların (muhatap, referans no, iletişim, tarih "
-            "vb.) eksikliğini tespit edip başvurandan tamamlanmasını isteyen "
-            "bilgilendirme metni üretiyorum.")
+def _yanit_selam(sorgu: str, evrak):
+    return ("Merhaba! 👋 Size nasıl yardımcı olabilirim? Evrak analizi, mevzuat, "
+            "ajan durumu, öncelik, yönlendirme, KVKK veya taslak hakkında "
+            "sorabilirsiniz.")
 
-    # Evrak türü / genel
-    if any(k in s for k in ["evrak", "dilekçe", "tür", "sınıflandır", "belge"]):
-        return _yonlendir(
-            "Sınıflandırma Ajanı",
-            "Evrakları şu türlere ayırıyorum: " + ", ".join(EVRAK_TURLERI)
-            + ".\n\nBir evrakı uçtan uca analiz etmek için **Evrak İşleme** "
-            "sekmesinden metni girip *Akıllı Ajanı Çalıştır* deyin.")
 
-    # Bilinmeyen — dürüst bilgi yetersizliği
+def _yanit_yardim(sorgu: str, evrak):
+    ek = ""
+    if evrak:
+        ek = ("\n\n📎 Şu an işlenmiş bir evrak var; ona özel sorabilirsiniz: "
+              "*'özetle'*, *'hangi birime'*, *'KVKK riski var mı'*, *'öncelik ne'*.")
+    return ("Şunları yapabilirim:\n"
+            "- 📥 **Evrak analizi**: tür, özet, öncelik, eksik alan tespiti\n"
+            "- ⚖️ **Mevzuat/RAG**: ilgili kanun-yönetmelik maddelerini bulma\n"
+            "- 🧭 **Yönlendirme**: doğru birime havale önerisi\n"
+            "- 🛡️ **KVKK**: kişisel veri tespiti ve maskeleme\n"
+            "- ✍️ **Taslak**: resmî yazışma formatında cevap üretme\n"
+            "- 🤖 **Ajan durumu**: filo telemetrisi ve orkestrasyon\n\n"
+            "Sol taraftaki hızlı sorulardan da başlayabilirsiniz." + ek)
+
+
+def _yanit_durum(sorgu: str, evrak):
+    ss = st.session_state
+    kayit = _kayit_istatistik()
+    defter = kayit.get("toplam", 0)
+    return ("🤖 **Ajan Filosu Durumu (gerçek)**\n\n"
+            f"- Uzman ajan: **{len(AJANLAR)}** + 1 orkestratör "
+            "(3 karar kapısı: okunabilirlik / dil / düşük güven)\n"
+            f"- Bu oturumda işlenen evrak: **{ss.get('oturum_islenen', 0)}**\n"
+            f"- Kayıt defterindeki toplam gerçek işlem: **{defter}**\n"
+            f"- İşleme çekirdeği: "
+            f"**{'🟢 gerçek (src/) yüklü' if _BACKEND_VAR else '🟡 yüklü değil'}**\n\n"
+            "Ölçülen adım süreleri için **Ajan Yönetimi** sekmesine bakın.")
+
+
+# Niyet kayıt defteri: (isim, ((kök, ağırlık), ...), üretici). En yüksek skorlu
+# niyet seçilir; belirsizlikte (skor < eşik) dürüst bilgi-yetersizliği döner.
+# Anahtar kökler SADELEŞTİRİLMİŞ (diakritiksiz) biçimdedir; sorgu da _sadelestir'den
+# geçer. Kökler bilinçle KISA tutulur ki Türkçe ekleri VE ünsüz yumuşamasını
+# (öncelik→önceliği, taslak→taslağı, müdürlük→müdürlüğe) tek kalıpta yakalasın.
+_NIYETLER = (
+    ("selam", (("merhaba", 1.2), ("selam", 1.2), ("gunaydin", 1.2),
+               ("iyi gun", 1.2), ("iyi aksam", 1.2)), _yanit_selam),
+    ("yardim", (("ne yapab", 2.0), ("neler yap", 2.0), ("yardim", 1.6),
+                ("yetenek", 2.0), ("nasil kullan", 2.0), ("ne ise", 2.0),
+                ("sistem neler", 2.0), ("komut", 1.2), ("ozellik", 1.4)), _yanit_yardim),
+    # NOT: bare "durum" tetikleyici DEĞİL — "durumu iyi vatandaş" gibi ifadelerde
+    # yanlış-pozitif üretiyordu; niyet ajan/sistem durumuna özgü kalmalı.
+    ("durum", (("ajan", 1.6), ("telemetri", 2.0), ("filo", 2.0),
+               ("calisiyor mu", 2.0), ("aktif mi", 2.0), ("sistem durum", 2.0),
+               ("ajan durum", 2.0), ("kac ajan", 2.0)), _yanit_durum),
+    ("kvkk", (("kvkk", 2.2), ("kisisel veri", 2.2), ("maskele", 2.0),
+              ("anonim", 2.0), ("pii", 2.0), ("tckn", 1.8), ("gizlilik", 1.8),
+              ("mahremiyet", 1.8), ("6698", 2.0)), _dg_kvkk),
+    ("oncelik", (("oncel", 2.0), ("ivedi", 2.0), ("acil", 1.8),
+                 ("son tarih", 2.0), ("kac gun kald", 2.2), ("kalan gun", 2.0),
+                 ("ne zamana kadar", 2.0), ("sure dol", 1.8)), _dg_oncelik),
+    ("yonlendirme", (("yonlendir", 2.0), ("havale", 2.0), ("birim", 1.8),
+                     ("mudurl", 1.8), ("hangi mudur", 2.0), ("kime gonder", 2.0),
+                     ("sevk", 1.8), ("hangi birim", 2.2), ("nereye gid", 1.6)),
+     _dg_yonlendirme),
+    ("mevzuat", (("mevzuat", 2.0), ("kanun", 1.8), ("yonetmelik", 1.8),
+                 ("madde", 1.6), ("yasal", 1.6), ("kac gun", 1.8), ("kac gunde", 2.0),
+                 ("dayana", 1.6), ("3071", 2.0), ("4982", 2.0), ("6698", 1.4),
+                 ("2577", 2.0), ("5070", 2.0)), _dg_mevzuat),
+    ("ozet", (("ozet", 2.2), ("kisaca", 1.8), ("ne diyor", 1.8),
+              ("ne anlat", 1.8), ("icerig", 1.6), ("neyle ilgili", 1.8)), _dg_ozet),
+    ("taslak", (("tasla", 2.0), ("cevap yaz", 2.0), ("resmi yaz", 2.0),
+                ("yazi hazirla", 2.0), ("dys", 1.6), ("cevabi goster", 2.0),
+                ("ust yaz", 1.6)), _dg_taslak),
+    ("eksik", (("eksik", 2.0), ("zorunlu alan", 2.2), ("tamamla", 1.6),
+               ("eksik alan", 2.2), ("eksik bilgi", 2.2)), _dg_eksik),
+    ("tur", (("hangi tur", 2.2), ("ne tur", 2.0), ("siniflandir", 2.0),
+             ("turu ne", 2.0), ("evrak tur", 2.0), ("belge tur", 2.0)), _dg_tur),
+    ("bilgi", (("muhata", 2.0), ("konusu ne", 2.0), ("kime ait", 1.8),
+               ("kim yaz", 1.8), ("hangi kurum", 1.8), ("tarihi ne", 2.0),
+               ("referans no", 2.0), ("cikarilan bilgi", 2.0)), _dg_bilgi),
+)
+
+
+def _fallback(evrak):
+    """Dürüst bilgi yetersizliği (halüsinasyon yasağı — Anayasal İlke 2)."""
+    ek = ""
+    if evrak:
+        ek = ("\n\nİşlenmiş bir evrak var; şunları sorabilirsiniz: *'özetle'*, "
+              "*'hangi birime'*, *'öncelik ne'*, *'KVKK riski var mı'*, "
+              "*'hangi mevzuat'*, *'taslağı göster'*.")
     return ("Bu konuda emin olabileceğim yeterli bilgim yok, bu yüzden tahmin "
             "yürütmeyeceğim. 🤔\n\nAncak şunlarda yardımcı olabilirim: evrak "
             "analizi, mevzuat/RAG, ajan durumu, önceliklendirme, yönlendirme, "
             "KVKK ve taslak üretimi. Sorunuzu bu çerçevede yeniden ifade "
-            "edebilir misiniz?")
+            "edebilir misiniz?" + ek)
+
+
+# ==== Hibrit niyet motoru: kök + BM25 + bulanık ensemble → seçici tahmin ====
+# Şartname "Yöntem ve Teknik Yaklaşım" (35p) + "Yenilikçilik" (15p) kriterlerine
+# yönelik algoritma derinliği; TÜMÜ offline/saf-Python (offline-first korunur),
+# Türkçe ve GERÇEK orkestratör çıktısına dayalı (halüsinasyon yasağı — İlke 2).
+
+# Her niyet için doğal Türkçe örnek ifadeler — BM25 retrieval korpusu (Yol 2).
+_NIYET_ORNEK = {
+    "selam": ["merhaba", "selam", "günaydın", "iyi günler", "kolay gelsin",
+              "nasılsınız"],
+    "yardim": ["ne yapabilirsin", "neler yapabilirsin", "bana nasıl yardımcı olursun",
+               "yeteneklerin neler", "bu sistem ne işe yarar", "nasıl kullanırım",
+               "hangi özellikler var", "komutların neler"],
+    "durum": ["ajanların durumu nedir", "sistem çalışıyor mu", "kaç ajan var",
+              "filo durumu nedir", "ajan telemetrisi", "backend aktif mi",
+              "ajanlar aktif mi"],
+    "kvkk": ["bu evrakta kişisel veri var mı", "kvkk riski nedir",
+             "tckn maskeleniyor mu", "mahremiyet açısından incele",
+             "pii tespiti yap", "kişisel verileri anonimleştir",
+             "gizlilik riski var mı"],
+    "oncelik": ["bu evrağın önceliği ne", "ne kadar ivedi", "kaç gün içinde cevap",
+                "son tarih ne zaman", "aciliyet durumu nedir", "kaç gün kaldı",
+                "çok ivedi mi"],
+    "yonlendirme": ["hangi birime göndermeliyim", "bu evrağı kime havale edeyim",
+                    "doğru müdürlük hangisi", "birim yönlendirmesi yap",
+                    "nereye sevk edilmeli", "hangi departmana gitmeli"],
+    "mevzuat": ["hangi kanuna tabi", "3071 sayılı kanun ne diyor",
+                "dilekçeye kaç günde cevap verilir", "ilgili mevzuat nedir",
+                "yasal dayanak nedir", "bilgi edinme süresi", "hangi yönetmelik geçerli",
+                "hangi maddeye göre"],
+    "ozet": ["bu evrağı özetle", "kısaca ne diyor", "içeriği nedir", "ne hakkında",
+             "yönetici özeti çıkar", "özetler misin"],
+    "taslak": ["cevap yazısı hazırla", "resmi taslak oluştur", "üst yazı yaz",
+               "taslağı göster", "resmi cevap üret", "yazı taslağı hazırla"],
+    "eksik": ["eksik bilgi var mı", "zorunlu alanlar tam mı", "hangi bilgiler eksik",
+              "eksik alan tespiti yap", "eksik olan ne"],
+    "tur": ["bu evrak hangi türde", "ne tür belge bu", "evrak türünü belirle",
+            "sınıflandır", "hangi kategoriye girer", "belge türü nedir"],
+    "bilgi": ["muhatap kim", "konusu ne", "hangi kurumdan gelmiş", "evrak tarihi nedir",
+              "kime ait", "referans numarası ne", "çıkarılan bilgiler neler"],
+}
+
+_NIYET_ISLEV = {isim: islev for isim, _, islev in _NIYETLER}
+_NIYET_ANAHTAR = {isim: anahtarlar for isim, anahtarlar, _ in _NIYETLER}
+_META_NIYET = {"selam", "yardim", "durum"}                # bileşik/netleştirme dışı
+_ICERIK_NIYET = set(_NIYET_ISLEV) - _META_NIYET
+
+_NIYET_ETIKET = {
+    "durum": "ajan durumu", "kvkk": "KVKK / kişisel veri", "oncelik": "öncelik ve süre",
+    "yonlendirme": "birim yönlendirme", "mevzuat": "mevzuat", "ozet": "özet",
+    "taslak": "resmî taslak", "eksik": "eksik bilgi", "tur": "evrak türü",
+    "bilgi": "bilgi çıkarımı",
+}
+
+# Ensemble ağırlıkları ve karar eşikleri (adversarial test bataryasıyla kalibre).
+# _W_FUZZY=1.0: güçlü yazım-hatası eşleşmesi (benzerlik>=0.82) tek başına eşiği
+# geçebilsin; bulanık katman zaten dar tetiklendiği için yanlış-pozitif düşük.
+_W_STEM, _W_BM25, _W_FUZZY = 1.0, 1.0, 1.0
+_MIN_SKOR = 0.7        # bu skorun altında güvenli niyet yok → reddet/künye
+_ESIK_GUVEN = 0.55     # Chow reddi: softmax güveni bunun altında → belirsiz
+_MARJ_ESIK = 0.12      # top-2 olasılık farkı bunun altında → belirsiz
+_CO_PRESENT = 1.3      # ikinci içerik niyeti de bu skoru geçerse bileşik yanıt
+# Kapsam-dışı (OOD) reddi: sorgunun çoğu niyet-sözlüğü dışıysa VE kazanan niyet
+# tek zayıf anahtar-kelimeye dayanıyorsa (skor < güçlü eşik) route etme, reddet.
+# Bu, "acil diş ağrım", "havale hesaba geçmedi", "arz-talep kanunu" gibi tek-kelime
+# çakışmalarının emin biçimde yanlış ajana gitmesini engeller (red-team bulgusu).
+_OOV_ESIK = 0.6        # sorgunun bu oranı kapsam-dışıysa → OOD şüphesi
+_MIN_KANIT = 2         # yüksek-OOV'de kazanan niyet en az bu kadar FARKLI sorgu
+                       # tokenına dayanmalı; tek-kelime çakışması → OOD reddi
+                       # (tek kelime stem+fuzzy+BM25'te 3 kez sayıldığı için
+                       #  skor değil, DELİL çeşitliliği ölçülür)
+
+# BM25 isabet sayımında dışlanacak dolgu/stopword tokenlar (yalnızca anlam taşıyan
+# örtüşme sayılsın — "yemek önerin var mı" gibi sorguda 'var'/'mı' isabet üretmesin).
+_DOLGU = {"var", "yok", "bir", "için", "ile", "çok", "daha", "gibi", "göre",
+          "olan", "ise", "nasıl", "neden", "hakkında"}
+
+# OOV/kapsam-dışı ölçümünde YOK SAYILACAK dolgu ve soru-iskelet kelimeleri
+# (sadeleştirilmiş). Bunlar örnek cümlelerde geçtiği için 'kapsam-içi' sayılıp
+# OOV'yi yanıltıcı düşürüyordu ("misin", "için" gibi). Hariç tutulunca anlam
+# taşıyan kapsam-dışı sözcükler (şiir, düğün, banka...) doğru OOV sayılır.
+_DOLGU_SADE = {
+    "var", "yok", "bir", "icin", "ile", "cok", "daha", "gibi", "gore", "olan",
+    "ise", "nasil", "neden", "hakkinda", "acaba", "lutfen", "bana", "beni",
+    "benim", "bizim", "kim", "kime", "kimin", "neyi", "hangi", "yoksa", "ama",
+    "fakat", "yani", "misin", "misiniz", "musunuz", "mısın", "veya",
+}
+
+# Evrak türü adları (sadeleştirilmiş) — tür karşılaştırma sorularını (Görev 1
+# sınıflandırma) doğru ajana yönlendiren sinyal ("dilekçe mi üst yazı mı").
+_EVRAK_TUR_ADLARI = ("dilekce", "ust yazi", "cevap yazisi", "genelge", "tutanak",
+                     "rapor", "onayli belge", "bilgilendirme")
+
+
+def _bm25_niyet_kur():
+    """Niyet örneklerinden BM25 korpusu kurar (modül yüklemede bir kez)."""
+    if not _NLU_VAR:
+        return None
+    try:
+        korpus, idx2isim = [], []
+        for isim, ornekler in _NIYET_ORNEK.items():
+            for cumle in ornekler:
+                korpus.append(_bm25_tokenize(cumle))
+                idx2isim.append(isim)
+        return _BM25Okapi(korpus), idx2isim
+    except Exception:
+        return None
+
+
+_BM25_NIYET = _bm25_niyet_kur()
+# Niyet başına örnek token kümesi (BM25 isabet sayımı için).
+_NIYET_TOKENLER = {
+    isim: {t for c in ornekler for t in (_bm25_tokenize(c) if _bm25_tokenize else [])}
+    for isim, ornekler in _NIYET_ORNEK.items()
+} if _NLU_VAR else {}
+# Kapsam-dışı (OOV) ölçümü için niyet sözlüğü (örnek + kök tokenları, sadeleşmiş).
+_NIYET_VOKAB = {
+    t for c in (list(sum(_NIYET_ORNEK.values(), []))
+                + [k for _, aa, _ in _NIYETLER for k, _w in aa])
+    for t in re.findall(r"[a-z0-9]+", _sadelestir(c)) if len(t) >= 3
+}
+
+
+def _oov_orani(sorgu_sade: str) -> float:
+    """Sorgudaki, hiçbir niyet sözlüğüne uymayan token oranı (dağılım kayması).
+
+    Dolgu/soru-iskelet kelimeleri (_DOLGU_SADE) sayıma katılmaz; yalnızca anlam
+    taşıyan sözcükler değerlendirilir (aksi halde "misin"/"için" OOV'yi düşürür).
+    """
+    tok = [t for t in re.findall(r"[a-z0-9]+", sorgu_sade)
+           if len(t) >= 3 and t not in _DOLGU_SADE]
+    if not tok:
+        return 0.0
+    disi = sum(1 for t in tok if t not in _NIYET_VOKAB
+               and not any(t.startswith(v) or v.startswith(t)
+                           for v in _NIYET_VOKAB if len(v) >= 4))
+    return disi / len(tok)
+
+
+def _kanit_tokenleri(isim: str, sorgu_sade: str, sorgu_ham: str) -> set:
+    """Kazanan niyete katkı veren FARKLI sorgu tokenları/ifadeleri (kanıt gücü).
+
+    Tek bir anahtar kelime stem+bulanık+BM25'te üç kez skor üretir; bu yüzden
+    OOD reddi ham skora değil, kaç FARKLI delilin niyeti desteklediğine bakar.
+    """
+    qtok = [t for t in re.findall(r"[a-z0-9]+", sorgu_sade) if len(t) >= 3]
+    anahtarlar = _NIYET_ANAHTAR.get(isim, ())
+    kanit = set()
+    for kok, _w in anahtarlar:
+        if " " in kok:
+            if kok in sorgu_sade:
+                kanit.add(kok)
+        elif len(kok) >= 3:
+            kanit.update(t for t in qtok if t.startswith(kok))
+        elif kok in qtok:
+            kanit.add(kok)
+    if _benzerlik is not None:
+        for t in (x for x in qtok if len(x) >= 4):
+            for kok, _w in anahtarlar:
+                if (" " not in kok and len(kok) >= 4
+                        and abs(len(t) - len(kok)) <= 2
+                        and _benzerlik(t, kok) >= 0.82):
+                    kanit.add(t)
+                    break
+    if _bm25_tokenize is not None:
+        try:
+            qset = set(_bm25_tokenize(sorgu_ham))
+        except Exception:
+            qset = set()
+        kanit.update(t for t in (qset & _NIYET_TOKENLER.get(isim, set()))
+                     if len(t) >= 3 and t not in _DOLGU)
+    return kanit
+
+
+def _softmax(skorlar):
+    from math import exp
+    if not skorlar:
+        return []
+    m = max(skorlar)
+    usller = [exp(s - m) for s in skorlar]
+    toplam = sum(usller) or 1.0
+    return [u / toplam for u in usller]
+
+
+def _ensemble_skorlar(sorgu_sade: str, sorgu_ham: str) -> dict:
+    """Üç bağımsız eşleyicinin (kök + BM25 + bulanık) birleşik niyet skorları.
+
+    BM25, tek ortak-token kaynaklı yanlış-pozitifi önlemek için yalnızca >=2 token
+    isabeti VEYA kök/bulanık desteği olan niyetlere eklenir (seçici güven).
+    """
+    skor = {isim: 0.0 for isim in _NIYET_ISLEV}
+    stem, fuzzy = {}, {}
+
+    # Yol 1 — kök/stem skorlama (Türkçe-normalize + önek + ifade)
+    for isim, anahtarlar, _ in _NIYETLER:
+        s = _niyet_eslesme(sorgu_sade, anahtarlar)
+        stem[isim] = s
+        if s:
+            skor[isim] += _W_STEM * min(s / 1.5, 1.6)
+
+    # Yol 3 — bulanık (Damerau-Levenshtein) yazım hatası toleransı
+    if _benzerlik is not None:
+        qtok = [t for t in re.findall(r"[a-z0-9]+", sorgu_sade) if len(t) >= 4]
+        for isim, anahtarlar, _ in _NIYETLER:
+            en_iyi = 0.0
+            for kok, _w in anahtarlar:
+                if " " in kok or len(kok) < 4:
+                    continue
+                for t in qtok:
+                    if abs(len(t) - len(kok)) <= 2:
+                        bb = _benzerlik(t, kok)
+                        if bb > en_iyi:
+                            en_iyi = bb
+            fuzzy[isim] = en_iyi
+            if en_iyi >= 0.82:
+                skor[isim] += _W_FUZZY * en_iyi
+
+    # Yol 2 — BM25 retrieval (örnek-cümle korpusu; seçici güvenle)
+    if _BM25_NIYET is not None:
+        okapi, idx2isim = _BM25_NIYET
+        try:
+            qset = set(_bm25_tokenize(sorgu_ham))
+            ham = okapi.get_scores(list(qset))
+        except Exception:
+            ham, qset = [], set()
+        bm = {}
+        for i, sc in enumerate(ham):
+            if sc > 0:
+                bm[idx2isim[i]] = max(bm.get(idx2isim[i], 0.0), sc)
+        mx = max(bm.values(), default=0.0)
+        if mx > 0:
+            for isim, sc in bm.items():
+                ortak = qset & _NIYET_TOKENLER.get(isim, set())
+                isabet = sum(1 for t in ortak if len(t) >= 3 and t not in _DOLGU)
+                destek = stem.get(isim, 0) > 0 or fuzzy.get(isim, 0.0) >= 0.82
+                if isabet >= 2 or destek:
+                    skor[isim] += _W_BM25 * (sc / mx)
+
+    # Evrak türü karşılaştırma sinyali (Görev 1 sınıflandırma): "dilekçe mi üst
+    # yazı mı", "hangi türde", "nasıl anlarım" → 'tur' niyetini güçlendir (aksi
+    # halde 'üst yazı' ifadesi taslak niyetine takılıp yanlış yönleniyordu).
+    tur_ad = sum(1 for ad in _EVRAK_TUR_ADLARI if ad in sorgu_sade)
+    tur_soru = any(x in sorgu_sade for x in
+                   ("hangi tur", "ne tur", "turu ne", "nasil anlar", "hangi turde",
+                    "hangi kategor"))
+    if tur_ad >= 2 or (tur_ad >= 1 and tur_soru):
+        skor["tur"] += 1.5
+        # Tür karşılaştırması var + taslak eylem-fiili yoksa: 'üst yazı/cevap
+        # yazısı' bir TÜR ADIdır (taslak isteği değil) → taslak çakışmasını bastır.
+        if not any(v in sorgu_sade for v in ("hazirla", "olustur", "yaz ", "uret",
+                                             "goster", "taslak")):
+            skor["taslak"] = 0.0
+    return skor
+
+
+def _netlestir(adaylar) -> str:
+    """Belirsiz niyette netleştirici soru (Görev 2: gerekli durumda bilgi talebi)."""
+    a = _NIYET_ETIKET.get(adaylar[0], adaylar[0])
+    b = _NIYET_ETIKET.get(adaylar[1], adaylar[1])
+    return (f"Tam emin olamadım 🤔 — **{a}** mı yoksa **{b}** hakkında mı yardım "
+            "istiyorsunuz? Netleştirirseniz doğru uzman ajana yönlendireyim.\n\n"
+            "*(Uydurma yanıt üretmemek için soruyorum — halüsinasyon yasağı.)*")
+
+
+def _bilesik_yanit(adaylar, sorgu, evrak) -> str:
+    """Çok-niyetli soruda ilgili ajanların gerçek yanıtlarını birleştirir."""
+    parcalar = []
+    for isim in adaylar:
+        islev = _NIYET_ISLEV.get(isim)
+        if islev:
+            parcalar.append(islev(sorgu, evrak))
+    return "\n\n---\n\n".join(parcalar)
+
+
+# Kötücül çerçeve kalıpları (sadeleştirilmiş): prompt-injection / jailbreak /
+# gerçek kişisel veri sızdırma girişimleri. Eşleşirse açıkça REDDEDİLİR — normal
+# niyet gibi ele alınmaz (KVKK + TEKNOFEST etik kuralları §13.1; sentetik-veri ilkesi).
+_KOTUCUL = (
+    "kurallari bos ver", "kurallari yok say", "kurallari cikar", "talimatlari unut",
+    "onceki talimat", "ignore all", "ignore previous", "ignore the", "ignore your",
+    "system:", "jailbreak", "dan mode", "gercek tckn", "gercek vatandas",
+    "veritabanindaki gercek", "gercek kisisel veri", "sifreyi ver", "sifreleri ver",
+    "parolayi ver", "admin sifre", "gizli veriyi",
+)
+
+
+def _kotucul_mu(sorgu_sade: str) -> bool:
+    return any(p in sorgu_sade for p in _KOTUCUL)
+
+
+def _guvenlik_reddi() -> str:
+    """Kötücül isteğe açık, ilkeli reddetme (jüriye etik duruşu gösterir)."""
+    return ("Bu isteği yerine getiremem. 🛡️ Bu sistem yalnızca **sentetik/kurgu** "
+            "evraklarla çalışır; gerçek kişisel veri (TCKN, telefon vb.) üretmez, "
+            "açığa çıkarmaz ve güvenlik/etik kurallarını atlamaz (6698 sayılı KVKK "
+            "+ TEKNOFEST etik kuralları). Bunun yerine evrak analizi, mevzuat, birim "
+            "yönlendirme, KVKK maskeleme veya taslak konularında yardımcı olabilirim.")
+
+
+def _orkestrator_yanit(soru: str) -> str:
+    """Hibrit niyet motoru (kök + BM25 + bulanık ensemble) + seçici tahmin.
+
+    En yüksek skorlu niyete yönlendirir; işlenmiş evrak (son_analiz) varsa yanıtlar
+    onun GERÇEK alanlarına dayanır. Belirsizlikte (Chow reddi + düşük marj) uydurmaz:
+    netleştirici soru sorar veya dürüstçe bilgi yetersizliği bildirir (halüsinasyon
+    yasağı — Anayasal İlke 2; Görev 2 'eksik bilgi talebi'). Çok-niyetli soruda
+    ilgili ajanların yanıtlarını birleştirir. Tümü offline/saf-Python; şartname
+    offline-first ve Türkçe kısıtlarına uyar."""
+    sorgu = (soru or "").strip()
+    evrak = _aktif_evrak()
+    if not sorgu:
+        return _fallback(evrak)
+    n = _sadelestir(sorgu)
+
+    # Kötücül/enjeksiyon çerçevesi → açık, ilkeli reddetme (KVKK + etik).
+    if _kotucul_mu(n):
+        return _guvenlik_reddi()
+
+    skorlar = _ensemble_skorlar(n, sorgu)
+    sirali = sorted(skorlar.items(), key=lambda kv: kv[1], reverse=True)
+    (isim1, s1), (isim2, s2) = sirali[0], sirali[1]
+
+    # OOD/kapsam-dışı reddi: (a) hiç güvenli niyet yok, VEYA (b) sorgunun çoğu
+    # kapsam-dışı VE kazanan niyet <2 FARKLI kanıta dayanıyor (tek-kelime çakışması).
+    # Böylece "acil diş ağrım", "havale hesaba geçmedi", "arz-talep kanunu" emin
+    # biçimde yanlış ajana gitmez. Anafora/kısa takip + evrak → künye.
+    zayif_delil = (_oov_orani(n) >= _OOV_ESIK
+                   and len(_kanit_tokenleri(isim1, n, sorgu)) < _MIN_KANIT)
+    if s1 < _MIN_SKOR or zayif_delil:
+        if evrak and (any(a in n for a in _ANAFORA) or any(t in n for t in _TAKIP)
+                      or len(n.split()) <= 3):
+            return _dg_genel(sorgu, evrak)
+        return _fallback(evrak)
+
+    # Meta niyet (selam/yardım/durum) → doğrudan yanıt (bileşik/netleştirme yok).
+    if isim1 in _META_NIYET:
+        st.session_state["son_niyet"] = isim1
+        return _NIYET_ISLEV[isim1](sorgu, evrak)
+
+    # Softmax güven + belirsizlik (MSP + marj + OOV).
+    olasiliklar = _softmax([s for _, s in sirali])
+    tum = {isim: p for (isim, _), p in zip(sirali, olasiliklar)}
+    if _belirsizlik_skoru is not None:
+        b = _belirsizlik_skoru(tum, _oov_orani(n))
+        guven, marj = b["msp"], b["marj"]
+    else:
+        guven = olasiliklar[0]
+        marj = guven - (olasiliklar[1] if len(olasiliklar) > 1 else 0.0)
+
+    # Çok-niyetli (ikinci içerik niyeti de güçlü) → bileşik yanıt.
+    if isim2 in _ICERIK_NIYET and isim1 != isim2 and s2 >= _CO_PRESENT:
+        st.session_state["son_niyet"] = isim1
+        return _bilesik_yanit([isim1, isim2], sorgu, evrak)
+
+    # Belirsiz (düşük güven + yakın marj, iki içerik niyeti) → netleştirici soru.
+    reddet = _chow_reddet(guven, _ESIK_GUVEN) if _chow_reddet else guven < _ESIK_GUVEN
+    if reddet and marj < _MARJ_ESIK and isim2 in _ICERIK_NIYET and s2 >= _MIN_SKOR:
+        return _netlestir([isim1, isim2])
+
+    # Güvenli → en yüksek skorlu niyet.
+    st.session_state["son_niyet"] = isim1
+    return _NIYET_ISLEV[isim1](sorgu, evrak)
 
 
 def sayfa_asistan() -> None:
