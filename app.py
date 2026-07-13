@@ -197,6 +197,22 @@ def _kurgu_evrak_yollari(alt_dizin: str) -> list:
         return []
 
 
+@st.cache_data(show_spinner=False)
+def _taslak_pdf(taslak: str):
+    """Resmî yazı taslağını Resmî Yazışma Yönetmeliği görsel formatında PDF
+    üretir. (pdf_bytes, hata) döndürür: başarıda (bytes, None); reportlab yoksa
+    (None, "reportlab"); üretim hatasında (None, mesaj). Böylece arayüz "kütüphane
+    yok" ile "üretim hatası"nı dürüstçe ayırt eder (yanıltıcı etiket yok).
+    .txt yolu her koşulda bozulmaz (offline-first). Aynı taslak için önbelleklenir."""
+    try:
+        from src.utils.resmi_pdf import PDF_KULLANILABILIR, taslak_pdf_uret
+        if not PDF_KULLANILABILIR:
+            return None, "reportlab"
+        return taslak_pdf_uret(taslak), None
+    except Exception as e:
+        return None, f"{type(e).__name__}: {e}"
+
+
 # Ölçülen metrik değerini yüzde-metne çevirir (None → "—").
 def _yzd(deger, ondalik: int = 1) -> str:
     """0-1 arası oranı '%xx,x' biçimine getirir; None/eksikse '—'."""
@@ -1453,9 +1469,32 @@ def _gercek_sonuc_goster(sonuc: dict) -> None:
         st.markdown("#### 📄 Resmî Cevap Taslağı (gerçek üretim)")
         if taslak:
             st.code(taslak, language="text")
-            st.download_button("⬇️ Taslağı İndir (.txt)", data=taslak,
-                               file_name="resmi_cevap_taslak.txt",
-                               mime="text/plain", width="stretch")
+            _s_txt, _s_pdf = st.columns(2)
+            with _s_txt:
+                st.download_button("⬇️ Taslağı İndir (.txt)", data=taslak,
+                                   file_name="resmi_cevap_taslak.txt",
+                                   mime="text/plain", width="stretch")
+            with _s_pdf:
+                _pdf, _pdf_hata = _taslak_pdf(taslak)
+                if _pdf:
+                    st.download_button(
+                        "⬇️ Taslağı İndir (.pdf · resmî format)", data=_pdf,
+                        file_name="resmi_cevap_taslak.pdf",
+                        mime="application/pdf", width="stretch",
+                        help="Resmî Yazışma Yönetmeliği (RG 10.06.2020/31151) "
+                             "görsel formatında; A4, Times New Roman 12, antet "
+                             "ortalı, metin iki yana yaslı, imza bloğu sağda.")
+                elif _pdf_hata == "reportlab":
+                    st.button("⬇️ PDF (reportlab gerekli)", disabled=True,
+                              width="stretch",
+                              help="PDF çıktısı için: pip install -r "
+                                   "requirements-optional.txt (reportlab).")
+                else:
+                    st.button("⬇️ PDF üretilemedi", disabled=True,
+                              width="stretch",
+                              help=f"PDF üretiminde hata: {_pdf_hata}")
+            st.caption("PDF içeriği .txt ile birebir aynıdır; yalnızca dizgi "
+                       "resmî yazışma formatına göre yeniden hizalanır.")
         else:
             st.info("Bu evrak için taslak üretilmedi (ör. dil kapısı: metin "
                     "Türkçe görünmüyor, veya okunabilirlik kapısı).")

@@ -28,3 +28,11 @@ numpy>=1.24.0
 
 # --- Sunum üretimi (presentations/*.pptx) ---
 python-pptx>=1.0.0
+
+# --- Resmî yazı PDF çıktısı (taslağı Yönetmelik görsel formatında dışa aktarma) ---
+# src/utils/resmi_pdf.py: cevap taslağını A4 / Times New Roman 12 / iki yana yaslı
+# resmî yazışma formatında PDF'e döker. Kurulu değilse .txt çıktısı bozulmadan
+# çalışır (arayüz PDF butonunu zarifçe devre dışı bırakır). Türkçe font olarak
+# Times New Roman (Windows) → Liberation Serif (Linux) → DejaVuSerif (matplotlib
+# ile paketli) zinciri kullanılır; ek font indirmesi gerekmez.
+reportlab>=4.0.0
