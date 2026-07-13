@@ -23,9 +23,11 @@ Not (şartname uyumu):
 
 from __future__ import annotations
 
+import ast
 import html as _html
 import io
 import json
+import operator as _operator
 import os
 import re
 import sys
@@ -2664,6 +2666,126 @@ def _guvenlik_reddi() -> str:
             "yönlendirme, KVKK maskeleme veya taslak konularında yardımcı olabilirim.")
 
 
+# ==== Alan-dışı yardımcılar: güvenli hesap makinesi + genel LLM fallback ====
+# Hibrit niyet motoru bilinen niyetleri eşler; kapsam-dışı iki yaygın soru tipi
+# kalır: (1) saf aritmetik ('2+2'), (2) genel bilgi/sohbet. Aşağıdakiler bu
+# boşluğu doldurur — aritmetik offline çalışır; genel sorular yalnızca bir LLM
+# YAPILANDIRILMIŞSA (Ollama/OpenAI-uyumlu) yanıtlanır, aksi halde dürüst
+# bilgi-yetersizliği korunur (offline-first + halüsinasyon yasağı — İlke 2).
+
+# Güvenli aritmetik değerlendirme (eval YOK — kod enjeksiyonu imkânsız).
+_ARITMETIK_OP = {
+    ast.Add: _operator.add, ast.Sub: _operator.sub, ast.Mult: _operator.mul,
+    ast.Div: _operator.truediv, ast.Mod: _operator.mod, ast.Pow: _operator.pow,
+    ast.FloorDiv: _operator.floordiv, ast.USub: _operator.neg,
+    ast.UAdd: _operator.pos,
+}
+
+
+def _guvenli_aritmetik(ifade: str):
+    """'2+2' gibi basit aritmetik ifadeyi güvenle değerlendirir (eval yok).
+
+    AST üzerinden yalnızca sayı ve aritmetik operatör düğümlerine izin verir;
+    her türlü isim/çağrı/öznitelik düğümü ValueError doğurur → None döner.
+    """
+    def _degerlendir(dugum):
+        if isinstance(dugum, ast.Constant) and isinstance(dugum.value, (int, float)):
+            return dugum.value
+        if isinstance(dugum, ast.BinOp) and type(dugum.op) in _ARITMETIK_OP:
+            sol = _degerlendir(dugum.left)
+            sag = _degerlendir(dugum.right)
+            # DoS koruması: '9**9**9' gibi ifadeler devasa tamsayı üretip
+            # belleği/CPU'yu tüketebilir. Tam sayı kuvvetinde üssü ve tahmini
+            # sonuç boyutunu sınırla; aşılırsa reddet (offline hesap makinesi
+            # için 100k bit fazlasıyla yeterli).
+            if isinstance(dugum.op, ast.Pow) and isinstance(sol, int) and isinstance(sag, int):
+                if abs(sag) > 10_000 or (abs(sol).bit_length() or 1) * abs(sag) > 100_000:
+                    raise ValueError("aşırı büyük kuvvet (DoS koruması)")
+            return _ARITMETIK_OP[type(dugum.op)](sol, sag)
+        if isinstance(dugum, ast.UnaryOp) and type(dugum.op) in _ARITMETIK_OP:
+            return _ARITMETIK_OP[type(dugum.op)](_degerlendir(dugum.operand))
+        raise ValueError("izin verilmeyen ifade")
+    try:
+        return _degerlendir(ast.parse(ifade.strip(), mode="eval").body)
+    except Exception:
+        return None
+
+
+def _matematik_dene(soru: str):
+    """'2+2', '12 çarpı 3 kaç eder?', '2^10 nedir' gibi soruları yanıtlar.
+
+    Offline'da bile çalışır (en temel 'hesap makinesi' güveni). En az bir
+    operatör içermeyen (yalnızca sayı/tarih/telefon/mevzuat no) girdiler None
+    döner — böylece '3071', '12.06.2020' gibi ifadeler yanlışlıkla yakalanmaz.
+    """
+    temiz = soru.lower()
+    # Türkçe sözel operatörleri sembole çevir ('12 çarpı 3' → '12 * 3').
+    for sozel, sembol in (("çarpı", "*"), ("bölü", "/"), ("üzeri", "**"),
+                          ("artı", "+"), ("eksi", "-")):
+        temiz = re.sub(rf"\b{sozel}\b", sembol, temiz)
+    for gurultu in ("kaç eder", "kaçtır", "kaç yapar", "sonucu", "sonuç",
+                    "toplamı", "çarpımı", "hesapla", "ne kadar", "nedir",
+                    "kaç", "eder", "yapar", "=", "?"):
+        temiz = temiz.replace(gurultu, " ")
+    temiz = temiz.strip()
+    if not temiz or not re.fullmatch(r"[\d\s+\-*/%×xX().,^]+", temiz):
+        return None
+    if not any(op in temiz for op in "+-*/%×xX^"):
+        return None  # operatör yok → aritmetik değil
+    temiz = (temiz.replace("×", "*").replace("x", "*").replace("X", "*")
+                  .replace("^", "**").replace(",", "."))
+    sonuc = _guvenli_aritmetik(temiz)
+    if sonuc is None:
+        return None
+    if isinstance(sonuc, float) and sonuc.is_integer():
+        sonuc = int(sonuc)
+    return f"🧮 **{soru.strip()}** = **{sonuc}**"
+
+
+# Asistan LLM fallback: alan-dışı/genel sorular için (LLM yapılandırılmışsa).
+_ASISTAN_LLM_SISTEM = (
+    "Sen 'Evrak Zekâ' kamu evrak yönetim sisteminin Orkestratör Asistanısın. "
+    "Her zaman Türkçe, kısa ve yardımcı yanıt ver. Kamu evrak/yazışma, mevzuat, "
+    "KVKK, önceliklendirme, birim yönlendirme ve süreç konularında uzmansın; "
+    "genel sorulara (matematik, tanım, kavram vb.) da doğru ve net cevap "
+    "verirsin. Emin olmadığın hukuki ayrıntıda tahmin yürütmez, ilgili uzman "
+    "ajana yönlendirir ve belirsizliği açıkça söylersin. Bilgi uydurma."
+)
+
+
+@st.cache_resource(show_spinner=False)
+def _llm_durum() -> tuple:
+    """(kullanılabilir?, 'backend · model') — kart rozetinde gerçek durumu gösterir.
+
+    Bir kez tespit edilir (Ollama probe'u dahil) ve önbelleğe alınır.
+    """
+    try:
+        from src.models.llm_wrapper import get_default_llm
+        llm = get_default_llm()
+        return llm.is_available(), f"{llm.backend} · {llm.model_name}"
+    except Exception:
+        return False, "offline"
+
+
+def _llm_genel_yanit(soru: str):
+    """Alan-dışı soruyu gerçek LLM'e (varsa) yönlendirir; yoksa None döner.
+
+    Offline modda (LLM yok) ASLA dış ağ çağrısı yapılmaz — is_available()
+    kilidi offline-first garantisini korur (Anayasal İlke 3 / KVKK).
+    """
+    try:
+        from src.models.llm_wrapper import get_default_llm
+        llm = get_default_llm()
+        if not llm.is_available():
+            return None
+        cevap = (llm.generate(soru, system_prompt=_ASISTAN_LLM_SISTEM) or "").strip()
+        if not cevap:
+            return None
+        return f"{cevap}\n\n_🧠 Yanıt: bağlı dil modeli ({llm.model_name})_"
+    except Exception:
+        return None
+
+
 def _orkestrator_yanit(soru: str) -> str:
     """Hibrit niyet motoru (kök + BM25 + bulanık ensemble) + seçici tahmin.
 
@@ -2683,6 +2805,13 @@ def _orkestrator_yanit(soru: str) -> str:
     if _kotucul_mu(n):
         return _guvenlik_reddi()
 
+    # Alan-dışı ama kesin: saf aritmetik ('2+2', '12 çarpı 3 kaç eder') →
+    # offline hesap makinesi. Domain sorguları operatör+sayı deseninden geçmez,
+    # bu yüzden yanlışlıkla yakalanmaz (niyet motorundan ÖNCE, kesinlik nedeniyle).
+    mat = _matematik_dene(sorgu)
+    if mat is not None:
+        return mat
+
     skorlar = _ensemble_skorlar(n, sorgu)
     sirali = sorted(skorlar.items(), key=lambda kv: kv[1], reverse=True)
     (isim1, s1), (isim2, s2) = sirali[0], sirali[1]
@@ -2697,6 +2826,11 @@ def _orkestrator_yanit(soru: str) -> str:
         if evrak and (any(a in n for a in _ANAFORA) or any(t in n for t in _TAKIP)
                       or len(n.split()) <= 3):
             return _dg_genel(sorgu, evrak)
+        # Kapsam-dışı genel soru → LLM yapılandırılmışsa gerçek yanıt üret;
+        # yoksa dürüst bilgi-yetersizliğine düş (offline-first korunur).
+        llm = _llm_genel_yanit(sorgu)
+        if llm is not None:
+            return llm
         return _fallback(evrak)
 
     # Meta niyet (selam/yardım/durum) → doğrudan yanıt (bileşik/netleştirme yok).
@@ -2741,7 +2875,11 @@ def sayfa_asistan() -> None:
     with sol:
         with st.container(border=True):
             st.markdown(f"### 🧠 {ORKESTRATOR['ad']}")
-            st.write("🟢 Çevrimiçi · kural çekirdeği")
+            _llm_var, _llm_ad = _llm_durum()
+            if _llm_var:
+                st.write(f"🟢 Çevrimiçi · hibrit niyet motoru + LLM ({_llm_ad})")
+            else:
+                st.write("🟢 Çevrimiçi · hibrit niyet motoru (LLM bağlı değil)")
             st.caption(ORKESTRATOR["rol"])
             c1, c2 = st.columns(2)
             c1.metric("Yönetilen Ajan", len(AJANLAR))
