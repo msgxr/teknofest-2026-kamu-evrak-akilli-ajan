@@ -110,6 +110,94 @@ def tanzim_tarihi_bul(text: str) -> str:
                 return match.group(0)
     return ""
 
+
+# ----------------------------------------------------------------------
+# Sözel (yazıyla) tarih çözümü
+#
+# Tutanak/olur kapanışlarında tarih rakamsız, tamamen yazıyla verilebilir:
+# "İki bin yirmi altı yılı Temmuz ayının on ikinci günü …". Rakamsal tarih
+# desenleri bu biçimi kaçırır. Gün adı birler/onlar ve sıra biçimleriyle
+# 1-31 aralığında, ay adı ile birleştirilerek çözülür.
+# ----------------------------------------------------------------------
+_YAZI_GUN_BIRLER = {
+    "bir": 1, "iki": 2, "üç": 3, "uc": 3, "dört": 4, "dort": 4,
+    "beş": 5, "bes": 5, "altı": 6, "alti": 6, "yedi": 7, "sekiz": 8, "dokuz": 9,
+}
+_YAZI_GUN_BIRLER_SIRA = {
+    "birinci": 1, "ikinci": 2, "üçüncü": 3, "ucuncu": 3, "dördüncü": 4,
+    "dorduncu": 4, "beşinci": 5, "besinci": 5, "altıncı": 6, "altinci": 6,
+    "yedinci": 7, "sekizinci": 8, "dokuzuncu": 9,
+}
+_YAZI_GUN_ONLAR = {"on": 10, "yirmi": 20, "otuz": 30}
+_YAZI_GUN_ONLAR_SIRA = {"onuncu": 10, "yirminci": 20, "otuzuncu": 30}
+
+# "<Ay> ayının <gün-yazı> günü" (turkish_lower uygulanmış metinde aranır)
+_SOZEL_TARIH_DESEN = re.compile(
+    _AY_ADLARI + r"\s+ayının\s+([a-zçğıöşü]+(?:\s+[a-zçğıöşü]+){0,2})\s+günü"
+)
+
+
+def _yazi_gun_coz(ifade: str):
+    """'on ikinci' → 12 gibi yazıyla gün ifadesini 1-31 aralığında çözer.
+
+    Bilinmeyen bir sözcük görülürse (ör. "on ikinci iş") None döner; böylece
+    yalnızca gerçek gün ifadeleri tarih üretir.
+    """
+    toplam = 0
+    for w in ifade.split():
+        if w in _YAZI_GUN_ONLAR:
+            toplam += _YAZI_GUN_ONLAR[w]
+        elif w in _YAZI_GUN_ONLAR_SIRA:
+            toplam += _YAZI_GUN_ONLAR_SIRA[w]
+        elif w in _YAZI_GUN_BIRLER:
+            toplam += _YAZI_GUN_BIRLER[w]
+        elif w in _YAZI_GUN_BIRLER_SIRA:
+            toplam += _YAZI_GUN_BIRLER_SIRA[w]
+        else:
+            return None
+    return toplam if 1 <= toplam <= 31 else None
+
+
+def _yazi_yil_coz(onceki: str) -> str:
+    """Kalıptan önceki metinde yıl arar: rakamsal '20xx' ya da 'iki bin …'
+    (2000-2099) biçimi; bulunamazsa boş dize."""
+    ry = re.search(r"\b(20\d{2})\b", onceki)
+    if ry:
+        return ry.group(1)
+    idx = onceki.rfind("iki bin")
+    if idx < 0:
+        return ""
+    ek = 0
+    for w in onceki[idx + len("iki bin"):].split()[:2]:
+        if w in _YAZI_GUN_ONLAR:
+            ek += _YAZI_GUN_ONLAR[w]
+        elif w in _YAZI_GUN_BIRLER:
+            ek += _YAZI_GUN_BIRLER[w]
+        else:
+            break
+    return str(2000 + ek)
+
+
+def sozel_tarih_bul(text: str) -> str:
+    """
+    "<Ay> ayının <gün-yazı> günü" kalıbındaki sözel tarihi "GG Ay YYYY"
+    (yıl bulunabilirse) biçiminde döndürür; yoksa boş dize.
+
+    Rakamsal tarih içermeyen tutanak/olur belgelerinde evrak tarihinin
+    tespiti için kullanılır (rakamsal desenleri tamamlar, ezmez).
+    """
+    tl = turkish_lower(text)
+    m = _SOZEL_TARIH_DESEN.search(tl)
+    if not m:
+        return ""
+    gun = _yazi_gun_coz(m.group(1).strip())
+    if gun is None:
+        return ""
+    ay_adi = tl[m.start():m.end()].split()[0]
+    yil = _yazi_yil_coz(tl[max(0, m.start() - 60):m.start()])
+    return f"{gun:02d} {ay_adi.capitalize()} {yil}".strip()
+
+
 _REFERANS_DESENLERI = [
     re.compile(r"^\s*Say[ıi]\s*:\s*([A-Za-z0-9ÇĞİÖŞÜçğıöşü][\w.\-/]*)", re.MULTILINE),
     re.compile(r"\bE-\d{5,}(?:-[\w.]+)*\b"),
@@ -153,7 +241,13 @@ _PARA_DESENLERI = [
 
 _ALAN_SATIRI = re.compile(r"^\s*[\wÇĞİÖŞÜçğıöşü.]{1,25}\s*:")
 
-_ILGI_SATIRI = re.compile(r"^\s*[İI]lgi\s*:?\s*(.*)$")
+# İlgi ALAN ETİKETİ: resmî yazışmada "İlgi" bir başlık/alan olarak DAİMA
+# iki nokta ile yazılır ("İlgi : a) …", "İlgi: 12.06.2026 tarihli yazı").
+# İki nokta ZORUNLUdur — gövde metnindeki "İlgi (b)'de kayıtlı yazınız",
+# "İlgi yazı ile", "İlgili eylem planı…" gibi düz cümle atıfları alan
+# etiketi DEĞİLDİR ve İlgi bloğu sayılmaz (kopuk İlgi zincirinin yapısal
+# tespiti; aksi hâlde var olmayan bir İlgi bloğu "var" sanılır).
+_ILGI_SATIRI = re.compile(r"^\s*[İI]lgi\s*:\s*(.*)$")
 _ILGI_MADDE = re.compile(r"^\s*([a-zçğıöşü])\)\s*(.+)$")
 
 # Dağıtım bölümü satırları (turkish_lower uygulanmış satırda aranır):
@@ -299,6 +393,12 @@ class InfoExtractionAgent:
         for pattern in _TARIH_DESENLERI[1:]:
             dates.extend(m.group(0) for m in pattern.finditer(text))
 
+        # Sözel (yazıyla) tarih — rakamsal tarih içermeyen belgelerde de
+        # tarih listesi boş kalmasın (özet/telemetri bu tarihi gösterebilsin)
+        sozel = sozel_tarih_bul(text)
+        if sozel:
+            dates.append(sozel)
+
         dates = _benzersiz(dates)
 
         # "Tarih :" alanındaki tarihi (evrak tarihi) listenin başına al
@@ -393,7 +493,13 @@ class InfoExtractionAgent:
                 return match.group(1)
 
         # 4) Düzenlenme kalıbı ("<tarih> günü ... tanzim edilmiştir")
-        return tanzim_tarihi_bul(text)
+        tanzim = tanzim_tarihi_bul(text)
+        if tanzim:
+            return tanzim
+
+        # 5) Sözel (yazıyla) tarih ("<Ay> ayının <gün-yazı> günü") — rakamsal
+        #    tarih içermeyen tutanak/olur belgelerinin kendi tarihi
+        return sozel_tarih_bul(text)
 
     def _extract_document_number(self, text: str) -> str:
         """

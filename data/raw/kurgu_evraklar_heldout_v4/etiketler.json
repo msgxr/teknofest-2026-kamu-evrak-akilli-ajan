@@ -1,0 +1,114 @@
+{
+  "bilgilendirme_b1.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "yazi_isleri",
+    "eksik_alanlar": [],
+    "aciklama": "Gelen evrakın taranması, EBYS kaydı ve sistem üzerinden havale usulünü duyuran bilgilendirme yazısı; sayı, tarih, konu, gövde, dağıtım ve imza tam. ADVERSARIAL: muhatap makam adı aşırı ve hatalı kısaltmayla bozuk ('DNZ. İL SAĞ. MD.V.LİĞİNE') — muhatap mevcut ama biçimsiz, ayrıştırma tolerans testi.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "e_yazisma_teknik_rehberi_bilgi_notu"]
+  },
+  "bilgilendirme_b2.txt": {
+    "tur": "bilgilendirme",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Temiz kontrol örneği (adversarial değil): deniz ve balıkçılık festivalini duyuran kamuoyu bilgilendirme yazısı. Etkinlik/festival/duyuru dili basın ve halkla ilişkiler yönlendirme sinyalidir. Sayı, tarih, konu, gövde, dağıtım ve imza tamdır.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
+  },
+  "cevap_yazisi_b1.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": ["ilgi"],
+    "aciklama": "Kaymakamlığın ek ödenek talebine kısmi kabul cevabı: 5018 kapsamında 420.000 TL aktarma, kalan tutar üçüncü çeyreğe erteleniyor. ADVERSARIAL: kopuk ilgi zinciri — İlgi bloğu (İlgi : ... alan satırı) hiç yok, ancak gövde 'İlgi (a)'da kayıtlı yazınızla' diyerek var olmayan bir ilgi listesine atıf yapıyor; ilgi alanı gerçekten eksiktir.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kamu_mali_yonetimi_5018"]
+  },
+  "cevap_yazisi_b2.txt": {
+    "tur": "cevap_yazisi",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "İdare aleyhine açılan iptal davasında savunma süresine ilişkin hukuki görüş cevabı; dava/mahkeme/savunma dili hukuk yönlendirme sinyalidir. ADVERSARIAL: İlgi satırında kısa yıllı '12.7.26' biçimi; belgenin kendi Tarih alanı (18.07.2026) normaldir — atıf tarihi ile evrak tarihi ayrımı testi.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "idari_yargilama_usulu_kanunu_2577"]
+  },
+  "dilekce_b1.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "basin_halkla_iliskiler",
+    "eksik_alanlar": [],
+    "aciklama": "Balıkçıbarınağı çevresindeki seyyar satıcı işgali ve gürültüyü şikâyet eden, denetim ve kamuoyu duyurusu talep eden tam alanlı vatandaş dilekçesi (ad-soyad, TC, adres, imza, tarih). ADVERSARIAL: dilekçe 'arz ederim' yerine yanlış bitiş kalıbı 'gereğinin yapılmasını rica ederim' ile bitmiştir (m.16 tolerans testi). ÇİFT-ETİKETLEME NOTU: 'kamuoyuna duyurulması' talebi ve v3 dilekce_a1 emsali gereği birim basin_halkla_iliskiler alınmıştır; bağımsız ikinci etiketleyici havale gerekçesiyle yazi_isleri önerdiğinden bu bilinen bir sınır durumudur.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "kabahatler_kanunu_5326", "belediye_kanunu_5393"]
+  },
+  "dilekce_b2.txt": {
+    "tur": "dilekce",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Mükerrer su faturası tahsilatının iadesi ve ödeme planı düzeltmesi talep eden dilekçe; tahsilat/iade/fatura dili mali hizmetlere yönlendirme sinyalidir. KVKK-yoğun: vatandaşın KENDİ T.C. kimlik numarası, IBAN ve telefonu geçer (maskeleme/veri-tespit testi). Vatandaşın kendi verisi olduğundan mevzuat_beklenen'e 6698 dahil edilmemiştir (usul mevzuatı 3071 esastır). Tüm zorunlu alanlar tamdır.",
+    "mevzuat_beklenen": ["dilekce_hakki_kanunu_3071", "belediye_kanunu_5393"]
+  },
+  "genelge_b1.txt": {
+    "tur": "genelge",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": ["dagitim"],
+    "aciklama": "Vatandaş verilerinin telefonla paylaşılmamasını, 6698 sayılı KVKK'ya uyumu ve itiraz/dava süreçlerinde İl Hukuk İşleri Şb. Md.'ne danışılmasını emreden genelge; sayı, konu, tarih ve imza mevcut. ADVERSARIAL: maddeleme yönetmelik dışı ve karışık ('A)' büyük harfli, 'c.' noktalı, '3)' rakamlı biçimler bir arada, 'A)' mükerrer); Dağıtım bölümü hiç yok — dagitim alanı gerçekten eksiktir.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi", "kvkk_6698"]
+  },
+  "genelge_b2.txt": {
+    "tur": "genelge",
+    "birim_kodu": "mali_hizmetler",
+    "eksik_alanlar": [],
+    "aciklama": "Temiz kontrol örneği (adversarial değil): sezon sonu elektrik/su/kırtasiye tasarruf tedbirleri genelgesi. Bütçe/tasarruf/mali disiplin dili mali hizmetler yönlendirme sinyalidir. Sayı, genelge numarası, tarih, imza ve dağıtım alanları tamdır.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "resmi_yazisma_yonetmeligi"]
+  },
+  "onayli_belge_b1.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "22 sağlık personelinin hizmet içi eğitime görevlendirilmesini makam onayına sunan, tüm alanları tam (sayı, tarih, onaylayan, onay metni) e-imzalı makam oluru. ADVERSARIAL ÇİFT-DOĞA: 'olurlarınıza arz ederim' ve 'O L U R' kalıpları üst yönetim (genel_mudurluk) sinyali verirken, içerik personel görevlendirmesi, idari/yıllık izin planlaması ve özlük dosyası işlemleri (insan_kaynaklari) ağırlıklıdır; işi yürüten birim ilkesi gereği doğru yönlendirme insan_kaynaklari'dır.",
+    "mevzuat_beklenen": ["elektronik_imza_kanunu_5070", "devlet_memurlari_kanunu_657"]
+  },
+  "onayli_belge_b2.txt": {
+    "tur": "onayli_belge",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": ["tarih"],
+    "aciklama": "Yazılım lisansının doğrudan temin usulüyle alımına ilişkin makam oluru; işi destek hizmetleri yürütür ve metin teknik şartname, piyasa fiyat araştırması, yaklaşık maliyet ve bütçe tertibi dili içerir (mali/ihale çeldiricileri). Tarih alanı kasıtlı olarak yoktur; Olur bloğunda da tarih bulunmaz (eksik_alanlar=[tarih]).",
+    "mevzuat_beklenen": ["elektronik_imza_kanunu_5070", "kamu_ihale_kanunu_4734"]
+  },
+  "rapor_b1.txt": {
+    "tur": "rapor",
+    "birim_kodu": "strateji",
+    "eksik_alanlar": ["hazirlayan"],
+    "aciklama": "Turizm sezonu ziyaretçi istatistikleri ile 2024-2028 il stratejik planı performans göstergelerinin ikinci çeyrek gerçekleşmelerini sunan ara dönem izleme raporu; tarih, başlık, bulgular, sonuç ve imza mevcut. ADVERSARIAL: 'Hazırlayan' bölümü hiç yok (imza var ama hazırlayanı açıkça tanımlamıyor) ve bulgular düzensiz, karışık girintili/çift tireli liste biçiminde verilmiştir.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018"]
+  },
+  "rapor_b2.txt": {
+    "tur": "rapor",
+    "birim_kodu": "insan_kaynaklari",
+    "eksik_alanlar": [],
+    "aciklama": "Sahil sağlık istasyonu personelinin devam durumu ve geçici görevlendirmelerini inceleyen rapor; personel/devam/özlük dili insan kaynakları yönlendirme sinyalidir. KVKK: raporda ÜÇÜNCÜ şahsın (memurun) T.C. kimlik numarası geçer, 'kişisel/kvkk' sözcüğü kullanılmaz — veri-tespit sinyaliyle 6698 önerisi beklenir. Tarih, hazırlayan, bulgular, sonuç ve imza tamdır.",
+    "mevzuat_beklenen": ["devlet_memurlari_kanunu_657", "kvkk_6698"]
+  },
+  "tutanak_b1.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "destek_hizmetleri",
+    "eksik_alanlar": [],
+    "aciklama": "Doğrudan temin (4734 md. 22/d) ile alınan cankurtaran ve sahil güvenlik ekipmanının muayene-kabul tutanağı; saat, yer, konu, katılımcılar, kararlar ve imza blokları mevcut. ADVERSARIAL: tarih tamamen sözle ve sıra dışı biçimde verilmiştir ('İki bin yirmi altı yılı Ağustos ayının üçüncü günü'), belgede hiçbir rakamsal tarih yoktur (sözel tarih ayrıştırma tolerans testi).",
+    "mevzuat_beklenen": ["kamu_ihale_kanunu_4734", "kamu_mali_yonetimi_5018"]
+  },
+  "tutanak_b2.txt": {
+    "tur": "tutanak",
+    "birim_kodu": "hukuk",
+    "eksik_alanlar": [],
+    "aciklama": "Belediye hizmet aracına verilen zararın tespiti ve kamu zararının tazmini için dosyanın hukuk birimine devrini konu edinen hasar tespit tutanağı; dava/tazmin/hukuk birimi dili hukuk yönlendirme sinyalidir. KVKK-yoğun: üçüncü şahsın T.C. kimlik numarası, telefonu ve kurgu plakalar geçer, 'kişisel/kvkk' sözcüğü kullanılmaz — veri-tespit sinyaliyle 6698 önerisi beklenir. Tarih, katılımcılar ve imzalar tamdır.",
+    "mevzuat_beklenen": ["kamu_mali_yonetimi_5018", "kvkk_6698"]
+  },
+  "ust_yazi_b1.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "bilgi_islem",
+    "eksik_alanlar": [],
+    "aciklama": "İlçe hükümet konağındaki ağ/internet kesintileri kapsamında sistem odası incelemesi, ağ anahtarı değişimi ve güvenlik duvarı yeniden yapılandırması talep eden üst yazı; ağ/sistem/teknik destek dili bilgi işlem yönlendirme sinyalidir. İlgi bloğu, muhatap, tarih ve imza tam. ADVERSARIAL: sayı bloğu yönetmelik dışı bozuk ('Sayı : FB-2026/--') — sayı alanı mevcut ama biçimsiz, tolerans testi. NOT: İlgi'de 'yazınız' atfı bulunması cevap/üst yazı ayrımında bilinen bir sınır durumu tetikleyebilir.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
+  },
+  "ust_yazi_b2.txt": {
+    "tur": "ust_yazi",
+    "birim_kodu": "genel_mudurluk",
+    "eksik_alanlar": [],
+    "aciklama": "Genel Müdürlük Makamının Oluru'na dayalı sezon sonu değerlendirme talimatının tüm ilçe müdürlüklerine iletilmesi; makam/olur/'Makamca uygun görülmüştür' üst yönetim dili genel müdürlük yönlendirme sinyalidir (makam-olur arketipi). ADVERSARIAL ÇOK KONULU: mesai düzeni, tasarruf gideri (mali) ve memnuniyet anketi (strateji) çeldiricileri; yönlendirme baskın makam-talimat çerçevesine göre genel_mudurluk'tur. Sayı, konu, tarih, muhatap, İlgi ve imza tamdır.",
+    "mevzuat_beklenen": ["resmi_yazisma_yonetmeligi"]
+  }
+}

@@ -34,7 +34,7 @@ her gereksinimin projede nasıl karşılandığını gösteren kanıt haritasıd
 | Süreli evrakın önceliklendirilmesi — aciliyet damgaları ve yasal cevap sürelerinden son işlem tarihi (yenilik, m. 9) | `src/agents/triage_agent.py` (İVEDİ/GÜNLÜDÜR damgaları + metin içi süre kayıtları + 4982/3071/2577/CİMER yasal süre tablosu) + `tests/test_triage.py` | ✅ |
 | Kişisel verilerden arındırılmış paylaşım/arşiv nüshası — KVKK md. 4 ve md. 8 (yenilik, m. 9) | `src/agents/anonimlestirme_agent.py` (checksum doğrulamalı TCKN, telefon, e-posta, IBAN, kişi adı, adres için format koruyan maskeleme) + `tests/test_anonimlestirme.py` | ✅ |
 | Model eğitimi zorunlu değil; hazır/açık kaynak model kullanımı | `src/models/llm_wrapper.py` (OpenAI-uyumlu / Ollama / offline otomatik tespit; eğitim yok) | ✅ |
-| Performans ölçümü (sınıflandırma, yönlendirme, özet, eksik bilgi) | `scripts/evaluate.py` + `data/processed/eval_report*.json` (4 set: geliştirme, tutulmuş, tutulmuş v2, adversarial v3) | ✅ |
+| Performans ölçümü (sınıflandırma, yönlendirme, özet, eksik bilgi) | `scripts/evaluate.py` + `data/processed/eval_report*.json` (5 set: geliştirme, tutulmuş, tutulmuş v2, adversarial v3, adversarial-temiz v4) | ✅ |
 | Gerçek zamana yakın sonuç üretimi | `docs/teknik_rapor.md` §5 — evrak başına medyan ~0,012 sn; arayüzde adım adım süre tablosu | ✅ |
 
 ## Yenilik Modülleri (m. 9 Yenilikçilik)
@@ -55,7 +55,7 @@ ihtiyaçlardan türetilen özgün modüller:
 | Şartname gereksinimi | Kanıt (dosya) | Durum |
 |---|---|---|
 | Gerçek kamu verisi kullanılmaması | `data/README.md` (tamamı sentetik; kurgu TCKN'ler yalnızca checksum geçer) | ✅ |
-| Kurgu evrak örnekleri ve yapay resmî yazışma taslakları | `data/raw/kurgu_evraklar/` (52), `data/raw/kurgu_evraklar_heldout/` (16), `data/raw/kurgu_evraklar_heldout_v2/` (16), `data/raw/kurgu_evraklar_heldout_v3/` (16 adversarial) — tümü etiketli | ✅ |
+| Kurgu evrak örnekleri ve yapay resmî yazışma taslakları | `data/raw/kurgu_evraklar/` (52), `data/raw/kurgu_evraklar_heldout/` (16), `data/raw/kurgu_evraklar_heldout_v2/` (16), `data/raw/kurgu_evraklar_heldout_v3/` (16 adversarial), `data/raw/kurgu_evraklar_heldout_v4/` (16 adversarial-temiz) — tümü etiketli | ✅ |
 | Kamuya açık mevzuat metinleri | `data/raw/mevzuat_metinleri/` (15 belge; kaynak: mevzuat.gov.tr) | ✅ |
 | Veri seti çeşitliliği | 8 evrak türü × 3 farklı kurgu kurum evreni ve üslup dokusu | ✅ |
 | Demo verisinin kaynağı ve kullanım haklarının beyanı | `data/README.md` (kaynak + Apache 2.0), `src/app.py` "Hakkında" sekmesi | ✅ |

@@ -38,6 +38,7 @@ python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar --rapor-dosyasi
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout --rapor-dosyasi data/processed/eval_report_heldout.json
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v2 --rapor-dosyasi data/processed/eval_report_heldout_v2.json
 python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v3 --rapor-dosyasi data/processed/eval_report_heldout_v3.json
+python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v4 --rapor-dosyasi data/processed/eval_report_heldout_v4.json
 
 python scripts/dayaniklilik_testi.py                 # metamorfik dayanıklılık (CheckList-INV; tür/birim invaryansı)
 
@@ -62,7 +63,7 @@ python scripts/build_presentation.py                 # sunum PPTX üretimi
 | `src/app.py` | Klasik işlevsel web arayüzü (canlı ajan hattı — streaming) |
 | `src/templates/` | 5 resmi yazı şablonu |
 | `scripts/evaluate.py` | Saf Python metrikler (sınıflandırma, yönlendirme, eksik bilgi, süreler) |
-| `data/raw/` | Etiketli sentetik setler: geliştirme (52), tutulmuş (16), tutulmuş v2 (16), tutulmuş v3 adversarial (16) + 15 mevzuat metni |
+| `data/raw/` | Etiketli sentetik setler: geliştirme (52), tutulmuş (16), tutulmuş v2 (16), tutulmuş v3 adversarial (16), tutulmuş v4 adversarial-temiz (16) + 15 mevzuat metni |
 | `docs/` | Teknik rapor, model bilgileri, şartname uyum matrisi |
 | `presentations/` | Sunum kaynakları (md) ve üretilen PPTX'ler |
 

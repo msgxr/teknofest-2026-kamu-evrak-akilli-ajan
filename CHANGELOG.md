@@ -12,8 +12,40 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ## [Yayınlanmamış]
 
+### Düzeltildi
+
+- **Adversarial (v3) sınırlılıklarından üçü ilkesel olarak giderildi (şartname izi: Uygulama-35 / G1):**
+  Held-out hatasına dosyaya özel kural yazılmadan, genel kurallarla:
+  (1) **Yapısal İlgi denetimi** — "İlgi" alan etiketi yalnızca iki noktalı
+  başlıkla (`^\s*İlgi\s*:`) tanınır; gövdedeki düz cümle atıfları
+  ("İlgi (b)'de kayıtlı yazınız") artık İlgi bloğu sayılmaz, kopuk zincir
+  yapısal olarak tespit edilir (`info_extraction_agent`). (2) **Sözel tarih
+  çözümü** — rakamsal tarih içermeyen belgelerde `"<Ay> ayının <gün-yazı>
+  günü"` kalıbı evrak tarihi olarak çözülür (`sozel_tarih_bul`). (3) **KVKK
+  veri-sinyali köprüsü** — belge doğrulanmış T.C. kimlik/IBAN içeriyorsa
+  6698, "kişisel/kvkk" sözcükleri geçmese bile veri-tespit sinyaliyle
+  önerilir; enjekte edilen öneri metinsel eşleşme iddia etmez (benzerlik
+  taslak atıf eşiğinin altında, `eklenme_nedeni="kvkk_veri_sinyali"` ile
+  şeffaf; `legislation_agent._ensure_kvkk_mevzuati`). Dev/tutulmuş/v2'de
+  **sıfır regresyon** (metrikler birebir); v3 yeniden ölçümde eksik-bilgi
+  F1 0,667→**0,833**, isabet@3 0,875→**0,9375**. 19 yeni birim testi
+  (`test_ilgi_sozel_tarih_kvkk.py`); toplam 489 → **508** test yeşil.
+
 ### Eklendi
 
+- **İyileştirme sonrası temiz adversarial set v4: +16 evrak (`kurgu_evraklar_heldout_v4`):**
+  v3 düzeltmeleri v3 hata analizinden türediğinden v3 *geliştirme-bilgili*
+  hale geldi; iyileştirilmiş sistemin **dokunulmamış** başarımını ölçmek için
+  beşinci kurgu evrende (sahil/liman "Deniztepe"/"Fenerburnu") 16 evraklık
+  yeni adversarial set üretildi. Düzeltilen üç desenin taze örnekleri +
+  yeni tuzaklar (bozuk sayı bloğu, çift-doğalı olur, karışık maddeleme, çok
+  konulu evrak) + 2 temiz kontrol. **Bağımsız çift-etiketleme:** ikinci bir
+  etiketleyici körlemesine etiketledi; uyum tür 16/16, eksik_alanlar 16/16,
+  mevzuat çekirdeği 16/16, birim 15/16 (tek itiraz `dilekce_b1`, v3 emsaline
+  göre çözüldü). Temiz ölçüm: sınıflandırma 0,938, yönlendirme 0,938,
+  eksik bilgi micro-F1 **1,000** (FP 0/FN 0), mevzuat isabet@3 0,938, taslak
+  94,7. Üç düzeltme de bağımsız evrende genelledi; kalan 3 hata v3 §6'daki
+  dokümante sınırlılıklarla örtüşür (`docs/teknik_rapor.md` §5.1.1).
 - **Geliştirme seti genişletildi: 35 → 52 evrak (+17, şartname izi: Uygulama-35 / Yöntem-35):**
   Gerçek kamu süreçlerinde sık ancak ilk sette az temsil edilen desenler
   eklendi — CİMER kaynaklı başvurular (3), `DAĞITIM YERLERİNE` muhataplı

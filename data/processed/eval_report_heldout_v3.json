@@ -1,14 +1,14 @@
 {
-  "zaman_damgasi": "2026-07-12T23:45:58",
+  "zaman_damgasi": "2026-07-13T12:29:44",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v3",
   "set_adi": "kurgu_evraklar_heldout_v3",
   "tekrarlanabilirlik": {
-    "git_commit": "451a65841af070152b876143543afcc54bd2e666",
+    "git_commit": "08616ffdb097147f2675f7383018947bcc6de7c5",
     "calisma_agaci_kirli": true,
-    "python": "3.9.6",
-    "platform": "macOS-14.6-arm64-arm-64bit",
-    "requirements_sha256": "e2115bf6d8282fa5",
-    "set_icerik_hash": "52b2dc5ab35774a1"
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "requirements_sha256": "bb75d4cfed1b8383",
+    "set_icerik_hash": "d548acada9570e9f"
   },
   "llm": {
     "backend": "offline",
@@ -178,19 +178,19 @@
     "yanlis_yonlendirilenler": []
   },
   "eksik_bilgi_tespiti": {
-    "micro_precision": 0.5714,
-    "micro_recall": 0.8,
-    "micro_f1": 0.6667,
-    "tp": 4,
-    "fp": 3,
-    "fn": 1
+    "micro_precision": 0.7143,
+    "micro_recall": 1.0,
+    "micro_f1": 0.8333,
+    "tp": 5,
+    "fp": 2,
+    "fn": 0
   },
   "mevzuat_onerisi": {
     "isabet_at_3": {
       "k": 3,
       "etiketli_evrak": 16,
-      "isabet": 14,
-      "isabet_orani": 0.875
+      "isabet": 15,
+      "isabet_orani": 0.9375
     },
     "isabet_at_1": {
       "k": 1,
@@ -201,10 +201,10 @@
     "siralama": {
       "k": 3,
       "etiketli_evrak": 16,
-      "mrr": 0.875,
-      "ndcg": 0.7733,
+      "mrr": 0.8958,
+      "ndcg": 0.7778,
       "context_precision": 0.4583,
-      "context_recall": 0.75
+      "context_recall": 0.7604
     },
     "isabetsizler": [
       {
@@ -216,18 +216,6 @@
           "devlet_arsiv_hizmetleri_yonetmeligi",
           "kvkk_6698",
           "resmi_yazisma_yonetmeligi"
-        ]
-      },
-      {
-        "dosya": "tutanak_a2.txt",
-        "beklenen": [
-          "kamu_mali_yonetimi_5018",
-          "kvkk_6698"
-        ],
-        "tahmin": [
-          "belediye_kanunu_5393",
-          "devlet_memurlari_kanunu_657",
-          "elektronik_imza_kanunu_5070"
         ]
       }
     ]
@@ -402,25 +390,25 @@
   },
   "ozet_kalitesi": {
     "n": 16,
-    "sadakat": 1.0,
+    "sadakat": 0.9688,
     "kaynak_kapsama": 0.414,
-    "sikistirma_orani": 0.4731
+    "sikistirma_orani": 0.4749
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0174,
-    "evrak_basina_medyan_sure_saniye": 0.012,
+    "evrak_basina_ortalama_sure_saniye": 0.8362,
+    "evrak_basina_medyan_sure_saniye": 0.156,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0,
-      "classification": 0.0061,
-      "info_extraction": 0.0019,
-      "missing_info": 0.0004,
-      "legislation": 0.0014,
-      "triage": 0.0002,
-      "summarization": 0.0011,
-      "anonimlestirme": 0.0011,
-      "draft_writer": 0.0011,
-      "routing": 0.0041,
-      "user_info": 0.0
+      "ocr": 0.066,
+      "classification": 0.5456,
+      "info_extraction": 0.0577,
+      "missing_info": 0.0247,
+      "legislation": 0.0299,
+      "triage": 0.0057,
+      "summarization": 0.0239,
+      "anonimlestirme": 0.0153,
+      "draft_writer": 0.0135,
+      "routing": 0.0538,
+      "user_info": 0.0002
     }
   },
   "islenemeyen_dosyalar": []

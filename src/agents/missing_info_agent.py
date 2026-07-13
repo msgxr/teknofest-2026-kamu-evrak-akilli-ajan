@@ -16,7 +16,7 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from src.agents.info_extraction_agent import tanzim_tarihi_bul
+from src.agents.info_extraction_agent import sozel_tarih_bul, tanzim_tarihi_bul
 from src.utils.turkish_nlp import govde_desen, turkish_lower, turkish_upper
 
 if TYPE_CHECKING:
@@ -241,7 +241,10 @@ class MissingInfoAgent:
             # gösterirken eksik listesinin "tarih yok" demesi önlenir.
             # Anahtar yoksa (eski çağrılar) genel tarih listesine düşülür.
             "tarih": lambda: bool(extracted.get("evrak_tarihi"))
-            or (evrak_turu == "tutanak" and bool(tanzim_tarihi_bul(text)))
+            or (
+                evrak_turu == "tutanak"
+                and (bool(tanzim_tarihi_bul(text)) or bool(sozel_tarih_bul(text)))
+            )
             or ("evrak_tarihi" not in extracted and bool(extracted.get("tarihler"))),
             "saat": lambda: bool(re.search(r"\b\d{1,2}[:.][0-5]\d\b", text)),
             # Evrak sayısı: belgenin KENDİ "Sayı :" alanı aranır (İlgi
