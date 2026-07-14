@@ -76,7 +76,16 @@ def _deskew(arr, cv2, np):
     if len(koordinatlar) < 20:
         return arr
     aci = cv2.minAreaRect(koordinatlar)[-1]
-    aci = -(90 + aci) if aci < -45 else -aci
+    # DÜZELTME: minAreaRect açısı OpenCV sürümüne göre eski [-90,0) VEYA yeni
+    # (0,90] (>=4.5.1) döner. Eski tek-dallı ifade, yeni sürümde neredeyse dik
+    # bir sayfayı (~90°) -90° döndürüp OCR'ı bozuyordu. Her iki konvansiyonu da
+    # küçük düzeltme açısına (-45,45] indir (sürümden bağımsız).
+    if aci < -45:
+        aci = -(90 + aci)      # eski OpenCV konvansiyonu
+    elif aci > 45:
+        aci = -(aci - 90)      # yeni OpenCV konvansiyonu (>=4.5.1)
+    else:
+        aci = -aci
     if abs(aci) < 0.5:
         return arr
     h, w = arr.shape

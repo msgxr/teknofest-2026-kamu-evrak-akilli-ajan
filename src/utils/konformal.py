@@ -44,7 +44,12 @@ def konformal_esik(skorlar: Sequence[float], alfa: float = 0.1) -> float:
     if n == 0:
         return 1.0
     k = math.ceil((n + 1) * (1 - alfa))
-    if k >= n:
+    # DÜZELTME: doygunluk koşulu `k > n` (standart split-conformal; k == n
+    # durumunda sonlu eşik sorted[n-1] = maksimum kalibrasyon skoru kullanılır).
+    # Eski `k >= n`, n=16'lık held-out setlerde (k=16) eşiği gereksiz yere 1.0'a
+    # doyurup konformal metriğini dejenere ediyordu (tüm sınıflar kümede,
+    # ampirik_kapsama trivial 1.0). Kapsama garantisi (≥ 1−α) korunur.
+    if k > n:
         return 1.0  # düzeltme n'i aşıyor → tam kapsama (muhafazakâr)
     return sorted(skorlar)[k - 1]
 

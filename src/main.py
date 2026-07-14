@@ -42,7 +42,9 @@ console = Console()
 
 # Loglama yapılandırması
 logging.basicConfig(
-    level=getattr(logging, settings.app.log_level),
+    # DÜZELTME: geçersiz/küçük harfli seviye (APP_LOG_LEVEL=debug/foo) import
+    # anında çökertmesin — normalize et, tanınmazsa INFO'ya düş.
+    level=getattr(logging, str(settings.app.log_level).upper(), logging.INFO),
     format="%(message)s",
     datefmt="[%X]",
     handlers=[RichHandler(rich_tracebacks=True)],

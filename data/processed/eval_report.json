@@ -1,9 +1,9 @@
 {
-  "zaman_damgasi": "2026-07-14T13:02:25",
+  "zaman_damgasi": "2026-07-14T14:14:11",
   "veri_dizini": "data/raw/kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "tekrarlanabilirlik": {
-    "git_commit": "50bca149e5e8f43b04a2c86af4d3769d5b235332",
+    "git_commit": "10d6775380a085d2ad1a600f55eda42b289e503d",
     "calisma_agaci_kirli": true,
     "python": "3.12.10",
     "platform": "Windows-11-10.0.26200-SP0",
@@ -413,19 +413,19 @@
     "sikistirma_orani": 0.3913
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0507,
-    "evrak_basina_medyan_sure_saniye": 0.028,
+    "evrak_basina_ortalama_sure_saniye": 0.0336,
+    "evrak_basina_medyan_sure_saniye": 0.014,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0002,
-      "classification": 0.0046,
-      "info_extraction": 0.0254,
-      "missing_info": 0.0016,
-      "legislation": 0.0032,
-      "triage": 0.0011,
-      "summarization": 0.0032,
-      "anonimlestirme": 0.0024,
-      "draft_writer": 0.0024,
-      "routing": 0.0066,
+      "ocr": 0.0,
+      "classification": 0.0024,
+      "info_extraction": 0.0203,
+      "missing_info": 0.0011,
+      "legislation": 0.0018,
+      "triage": 0.0006,
+      "summarization": 0.0015,
+      "anonimlestirme": 0.0012,
+      "draft_writer": 0.0012,
+      "routing": 0.0036,
       "user_info": 0.0
     }
   },

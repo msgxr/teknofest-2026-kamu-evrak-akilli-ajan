@@ -117,8 +117,13 @@ _ACIK_SON_TARIH_DESENLERI = [
 # Göreli süre: "15 gün içinde", "5 iş günü içerisinde", "on beş gün içinde".
 # Sayı rakamla (1-999) veya yazıyla (bir-iki kelime; sayı sözlüğüyle
 # çözülür, çözülemeyen sözcükler — "birkaç gün içinde" — elenir).
+# DÜZELTME: `sayi` grubunun ikinci (opsiyonel) sözcüğü, tek sözcüklü yazıyla
+# sayıdan sonra gelen 'iş'/'takvim' niteleyicisini YUTMASIN diye negatif
+# ileri-bakış eklendi. Eski desen "beş iş günü içinde"yi sayi='beş iş' olarak
+# eşleştirip _sayi_coz'u None'a düşürüyor ve göreli süre tamamen kayboluyordu
+# (yasal süre/eskalasyon sinyali sessizce yok oluyordu).
 _GORELI_SURE = re.compile(
-    r"\b(?P<sayi>\d{1,3}(?!\d)|[a-zçğıöşü]+(?:\s+[a-zçğıöşü]+)?)\s+"
+    r"\b(?P<sayi>\d{1,3}(?!\d)|[a-zçğıöşü]+(?:\s+(?!iş\b|takvim\b)[a-zçğıöşü]+)?)\s+"
     r"(?P<is>iş\s+)?(?:takvim\s+)?gün[üu]?\s+iç(?:inde|erisinde)\b"
 )
 
