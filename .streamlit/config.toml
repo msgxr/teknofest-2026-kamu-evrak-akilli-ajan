@@ -23,10 +23,10 @@ enableXsrfProtection = true
 # Kamu kurumu ciddiyetine uygun, yüksek kontrastlı bir palet hedeflenmiştir.
 [theme]
 base = "light"
-primaryColor = "#1f3a5f"
-backgroundColor = "#f7f8fa"
-secondaryBackgroundColor = "#eceff4"
-textColor = "#1a2332"
+primaryColor = "#1D4ED8"
+backgroundColor = "#F4F6FA"
+secondaryBackgroundColor = "#EDF1F7"
+textColor = "#0F1E33"
 font = "sans serif"
 
 [client]

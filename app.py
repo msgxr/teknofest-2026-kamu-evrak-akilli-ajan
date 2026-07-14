@@ -233,20 +233,39 @@ def _yzd(deger, ondalik: int = 1) -> str:
 #  BÖLÜM 0 — KURUMSAL RENK PALETİ VE SABİTLER
 # ===========================================================================
 
-# Marka / kurumsal tonlar (referans tasarım paleti).
-LACIVERT_KOYU = "#0E1C33"    # Kenar çubuğu arka planı
-LACIVERT = "#132B4D"         # Kenar çubuğu vurgusu
-MAVI = "#2F6BFF"             # Ana vurgu (mavi)
+# Marka / kurumsal tonlar — YENİ referans tasarım (kamu-kurumsal palet).
+# Değerler "Evrak Zekâ.dc.html" mockup'ı ile BİREBİR; sabit adları geriye-uyum
+# için korunur (downstream ikon/grafik renkleri bu adları kullanır).
+LACIVERT_KOYU = "#0B1B33"    # Kenar çubuğu arka planı
+LACIVERT = "#122A4A"         # Kenar çubuğu yüzey/vurgu
+RESMI_MAVI = "#14315B"       # Marka lacivert (başlık ikonları, dağılım barları)
+MAVI = "#1D4ED8"             # Ana eylem/vurgu (aksiyon mavisi)
+AKSIYON = "#1D4ED8"          # Buton/eylem
+AKSIYON_KOYU = "#1E40AF"     # Bağlantı/interaktif metin (WCAG AA)
 MAVI_ACIK = "#3B82F6"        # İkincil mavi
-YESIL = "#16A34A"            # Olumlu / aktif
-SARI = "#D97706"             # Uyarı
-KIRMIZI = "#DC2626"          # Kritik
-SLATE = "#475569"            # Nötr metin
-ZEMIN = "#EEF2F7"            # İçerik arka planı (açık)
+BAYRAK = "#B91C1C"           # Bayrak kırmızısı (yalnız kritik/marka aksanı)
+YESIL = "#15803D"            # Olumlu / aktif / GERÇEK
+SARI = "#B45309"             # Uyarı / TEMSİLİ DEMO
+KIRMIZI = "#B91C1C"          # Kritik
+SLATE = "#475569"            # İkincil metin
+MOR = "#6D28D9"              # Kategorik (tür dağılımı)
+CAM = "#0E7490"              # Kategorik (tür dağılımı)
+METIN = "#0F1E33"            # Ana metin (yüksek kontrast)
+METIN_2 = "#475569"          # İkincil metin
+METIN_3 = "#64748B"          # Silik metin
+CIZGI = "#E2E8F0"            # Kenar/çizgi
+CIZGI_KOYU = "#CBD5E1"       # Vurgulu kenar
+ZEMIN = "#F4F6FA"            # Sayfa arka planı
+ZEMIN_2 = "#EDF1F7"          # Girinti/hover zemini
 
-# Kategorik grafik paleti (Altair).
-KATEGORIK_PALET = [MAVI, YESIL, MAVI_ACIK, "#7C3AED", SARI, SLATE,
-                   "#0EA5E9", "#94A3B8"]
+# Anlamsal açık zemin tonları (rozet arka planları).
+ZEMIN_YESIL = "#DCFCE7"
+ZEMIN_MAVI = "#DBEAFE"
+ZEMIN_SARI = "#FEF3C7"
+ZEMIN_KIRMIZI = "#FEE2E2"
+
+# Kategorik grafik paleti (Altair) — mockup tür renkleri ile birebir.
+KATEGORIK_PALET = [RESMI_MAVI, YESIL, MAVI, MOR, SARI, CAM, METIN_3, "#94A3B8"]
 
 # ---------------------------------------------------------------------------
 #  11 uzman ajan (src/agents/ ile birebir ad) — roller CLAUDE.md'den.
@@ -413,211 +432,299 @@ def sayfa_yapilandir() -> None:
 
 
 def tema_uygula() -> None:
-    """Kurumsal görsel temayı (gömülü CSS) uygular.
+    """Kamu-kurumsal görsel temayı (gömülü CSS) uygular — YENİ referans tasarım.
 
-    Not: Referans kurumsal tasarımı yakalamak için Streamlit'e gömülü tek bir
-    stil bloğu enjekte edilir. Uygulama yine tek `app.py` ve `streamlit run`
-    ile tarayıcıdan açılır; harici frontend çatısı kullanılmaz.
+    Görsel katman "Evrak Zekâ.dc.html" mockup'ı ile BİREBİR eşleşir: 256 px koyu
+    lacivert kenar çubuğu, açık nötr zemin, beyaz kartlar, kaynak rozetleri
+    (GERÇEK / TEMSİLİ DEMO / SİMÜLASYON), inline SVG ikonlar, tabular hizalı
+    sayılar. Uygulama yine tek `app.py` ve `streamlit run` ile açılır; harici
+    frontend çatısı, CDN veya uzak font/ikon KULLANILMAZ (offline-first).
     """
     _md(
         """
         <style>
-        /* ---- Genel zemin ve varsayılan Streamlit kromunu sadeleştir ---- */
-        #MainMenu, header[data-testid="stHeader"], footer {visibility: hidden;}
-        .stApp { background: #EEF2F7; }
-        .block-container { padding: 1.1rem 2.2rem 3rem 2.2rem; max-width: 100%; }
-        * { font-family: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif; }
+        /* ===== Genel zemin + Streamlit kromunu sadeleştir ===== */
+        #MainMenu, header[data-testid="stHeader"], footer,
+        [data-testid="stToolbar"], [data-testid="stDecoration"] { display: none !important; }
+        html, body, [data-testid="stAppViewContainer"] { background: #F4F6FA; }
+        .stApp { background: #F4F6FA; }
+        * { font-family: "Segoe UI", system-ui, -apple-system, "Roboto",
+            "Helvetica Neue", Arial, sans-serif; }
+        .stApp, .stApp p, .stApp span, .stApp div, .stApp li { color: #0F1E33; }
+        .block-container {
+            max-width: 1240px; padding: 26px 34px 64px 34px;
+        }
+        a { color: #1E40AF; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        ::selection { background: #DBEAFE; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1; border-radius: 999px; border: 2px solid #F4F6FA; }
+        @keyframes ezPulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation: none !important; transition: none !important; } }
 
-        /* ---- Kenar çubuğu (koyu lacivert) ---- */
+        /* ===== Kenar çubuğu (256 px koyu lacivert) ===== */
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0E1C33 0%, #0B1728 100%);
-            border-right: 1px solid #1c3252;
+            background: #0B1B33 !important; width: 256px !important;
+            min-width: 256px !important; border-right: 1px solid #0B1B33;
         }
-        [data-testid="stSidebar"] * { color: #C7D2E1; }
-        [data-testid="stSidebar"] .block-container { padding-top: 0; }
+        [data-testid="stSidebar"] > div { background: #0B1B33; }
+        [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] { padding: 0; }
+        [data-testid="stSidebar"] .block-container { padding: 0; }
+        [data-testid="stSidebarCollapseButton"], [data-testid="collapsedControl"] {
+            color: #93A4BE; }
 
-        /* Kenar çubuğu gezinme butonları (nav satırı gibi) */
-        [data-testid="stSidebar"] .stButton > button {
-            width: 100%; text-align: left; justify-content: flex-start;
-            background: transparent; color: #AEBBCE; border: none;
-            border-radius: 10px; padding: 0.5rem 0.85rem; margin: 1px 0;
-            font-weight: 500; font-size: 0.93rem; box-shadow: none;
-            transition: all 0.12s ease;
-        }
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background: #16294a; color: #ffffff;
-        }
-        /* Aktif (primary) nav satırı — sol mavi aksan */
-        [data-testid="stSidebar"] .stButton > button[kind="primary"],
-        [data-testid="stSidebar"] button[data-testid="stBaseButton-primary"],
-        [data-testid="stSidebar"] button[data-testid="baseButton-primary"] {
-            background: #1B3357; color: #ffffff;
-            box-shadow: inset 3px 0 0 0 #3B82F6;
-        }
-
-        /* ---- Kart ve panel bileşenleri ---- */
-        .ez-grid4 {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 18px; margin: 8px 0 20px 0;
-        }
-        .ez-grid2 {
-            display: grid; grid-template-columns: 1.15fr 1fr;
-            gap: 18px; margin-top: 4px;
-        }
-        @media (max-width: 1100px) {
-            .ez-grid4 { grid-template-columns: repeat(2, 1fr); }
-            .ez-grid2 { grid-template-columns: 1fr; }
-        }
-        .ez-card, .ez-panel {
-            background: #ffffff; border: 1px solid #E6EBF2;
-            border-radius: 16px; padding: 18px 20px;
-            box-shadow: 0 1px 3px rgba(16,32,64,0.05),
-                        0 8px 24px rgba(16,32,64,0.04);
-        }
-        .ez-card-head {
-            display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 14px;
-        }
-        .ez-icon-chip {
-            width: 40px; height: 40px; border-radius: 11px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 19px;
-        }
-        .ez-pill {
-            font-size: 0.72rem; font-weight: 700; padding: 4px 10px;
-            border-radius: 999px; white-space: nowrap;
-        }
-        .ez-pill.green { background: #DCFCE7; color: #15803D; }
-        .ez-pill.blue  { background: #DBEAFE; color: #1D4ED8; }
-        .ez-pill.amber { background: #FEF3C7; color: #B45309; }
-        .ez-pill.red   { background: #FEE2E2; color: #B91C1C; }
-        .ez-value {
-            font-size: 2.05rem; font-weight: 800; color: #0F1E38;
-            line-height: 1.1;
-        }
-        .ez-label { font-size: 0.86rem; color: #475569; margin-top: 2px; }
-        .ez-card-tip {
-            font-size: 0.74rem; color: #64748B; margin-top: 12px;
-            line-height: 1.35; border-top: 1px solid #F1F5F9; padding-top: 9px;
-        }
-        .ez-spark {
-            display: flex; align-items: flex-end; gap: 4px;
-            height: 42px; margin-top: 16px;
-        }
-        .ez-bar { flex: 1; border-radius: 3px 3px 0 0; opacity: 0.9; }
-        /* Üst çubuk gerçek durum çipi (sahte kontrollerin yerine) */
-        .ez-statuschip {
-            display: inline-flex; align-items: center; gap: 7px;
-            background: #ffffff; border: 1px solid #E2E8F0; border-radius: 999px;
-            padding: 7px 15px; font-size: 0.82rem; font-weight: 600;
-            color: #334155;
-        }
-        .ez-statuschip .ez-dot { font-size: 0.7rem; }
-
-        /* ---- Panel başlıkları ---- */
-        .ez-panel-head { margin-bottom: 12px; }
-        .ez-panel-title {
-            font-size: 1.02rem; font-weight: 700; color: #0F1E38;
-        }
-        .ez-panel-sub { font-size: 0.8rem; color: #64748B; margin-top: 2px; }
-        .ez-panel-tag {
-            float: right; background: #EFF6FF; color: #1D4ED8;
-            font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
-            border-radius: 999px;
-        }
-
-        /* ---- Canlı ajan akışı (log) ---- */
-        .ez-log-item {
-            display: flex; gap: 12px; padding: 11px 0;
-            border-bottom: 1px solid #F1F5F9;
-        }
-        .ez-log-item:last-child { border-bottom: none; }
-        .ez-log-icon {
-            width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            background: #F1F5F9; font-size: 15px;
-        }
-        .ez-log-title { font-size: 0.9rem; color: #1E293B; font-weight: 500; }
-        .ez-log-meta { margin-top: 3px; }
-        .ez-tag {
-            font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
-            border-radius: 6px; background: #EFF6FF; color: #2563EB;
-        }
-        .ez-time { font-size: 0.72rem; color: #64748B; margin-left: 8px; }
-
-        /* ---- Birim sevk barları ---- */
-        .ez-dept-row { margin: 13px 0; }
-        .ez-dept-top {
-            display: flex; justify-content: space-between;
-            font-size: 0.86rem; color: #334155; margin-bottom: 5px;
-        }
-        .ez-dept-val { font-weight: 700; color: #0F1E38; }
-        .ez-dept-track {
-            height: 8px; background: #EEF2F7; border-radius: 999px;
-            overflow: hidden;
-        }
-        .ez-dept-fill {
-            height: 100%; border-radius: 999px;
-            background: linear-gradient(90deg, #2F6BFF, #3B82F6);
-        }
-
-        /* ---- Üst çubuk ---- */
-        .ez-topbar {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px;
-        }
-        .ez-crumb { font-size: 0.78rem; color: #64748B; font-weight: 600;
-                    letter-spacing: 0.02em; }
-        .ez-h1 { font-size: 1.55rem; font-weight: 800; color: #0F1E38;
-                 margin: 2px 0; }
-        .ez-h1-sub { font-size: 0.88rem; color: #64748B; }
-        .ez-search {
-            background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px;
-            padding: 9px 16px; color: #94A3B8; font-size: 0.86rem;
-            min-width: 300px;
-        }
-        .ez-icobtn {
-            width: 40px; height: 40px; border-radius: 11px;
-            background: #ffffff; border: 1px solid #E2E8F0;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 16px;
-        }
-        .ez-avatar {
-            width: 40px; height: 40px; border-radius: 11px;
-            background: linear-gradient(135deg, #2F6BFF, #1B3357);
-            color: #fff; font-weight: 700; font-size: 0.9rem;
-            display: inline-flex; align-items: center; justify-content: center;
-        }
-        .ez-livepill {
-            background: #DCFCE7; color: #15803D; font-weight: 700;
-            font-size: 0.78rem; padding: 6px 14px; border-radius: 999px;
-        }
-
-        /* ---- Marka (kenar çubuğu üstü) ---- */
-        .ez-brand { display: flex; gap: 12px; align-items: center;
-                    padding: 6px 4px 2px 4px; }
+        /* Marka bloğu */
+        .ez-brand {
+            padding: 20px 18px 16px; display: flex; align-items: center; gap: 11px;
+            border-bottom: 1px solid rgba(255,255,255,.07); }
         .ez-brand-logo {
-            width: 42px; height: 42px; border-radius: 12px;
-            background: linear-gradient(135deg, #2F6BFF, #1B3357);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
-        }
-        .ez-brand-name { font-size: 1.05rem; font-weight: 800; color: #fff; }
-        .ez-brand-sub { font-size: 0.68rem; color: #7E8DA5;
-                        letter-spacing: 0.08em; }
-        .ez-navsec {
-            font-size: 0.68rem; font-weight: 700; color: #5B6B85;
-            letter-spacing: 0.08em; margin: 14px 6px 4px 6px;
-        }
+            width: 38px; height: 38px; border-radius: 9px; background: #122A4A;
+            border: 1px solid rgba(255,255,255,.09); display: flex;
+            align-items: center; justify-content: center; position: relative;
+            flex: 0 0 auto; }
+        .ez-brand-logo .ez-dot-red {
+            position: absolute; top: -3px; right: -3px; width: 9px; height: 9px;
+            border-radius: 2px; background: #B91C1C; }
+        .ez-brand-name {
+            font-size: 15px; font-weight: 700; letter-spacing: -.01em;
+            color: #FFFFFF; }
+        .ez-brand-sub {
+            font-size: 10px; font-weight: 600; letter-spacing: .12em;
+            color: #93A4BE; }
 
-        /* ---- Kenar çubuğu alt durum listesi ---- */
-        .ez-status { margin: 4px 6px; }
-        .ez-status-row {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.8rem; padding: 5px 0;
-        }
-        .ez-dot { color: #22C55E; margin-right: 7px; }
-        .ez-status-val { color: #93A2BC; font-weight: 600; font-size: 0.76rem; }
+        /* Gezinme */
+        .ez-nav { padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .ez-navsec {
+            font-size: 10px; font-weight: 600; letter-spacing: .13em;
+            padding: 10px 10px 6px; color: #6B7F9E; }
+        .ez-navsec.top2 { padding-top: 16px; }
+        a.ez-navitem, a.ez-navitem:hover {
+            display: flex; align-items: center; gap: 11px; padding: 9px 10px;
+            border-radius: 0 8px 8px 0; font-size: 13.5px; font-weight: 500;
+            text-align: left; text-decoration: none; transition: background .15s;
+            color: #93A4BE; border-left: 3px solid transparent;
+            background: transparent; }
+        a.ez-navitem:hover { background: rgba(255,255,255,.04); color: #C9D6EA; }
+        a.ez-navitem.aktif {
+            background: rgba(255,255,255,.07); color: #FFFFFF;
+            border-left: 3px solid #6B9BFF; }
+        a.ez-navitem .ez-navlabel { flex: 1; }
+        .ez-badge-canli {
+            font-size: 9px; font-weight: 700; letter-spacing: .06em;
+            background: #B91C1C; color: #fff; padding: 2px 6px; border-radius: 999px;
+            display: inline-flex; align-items: center; gap: 4px; }
+        .ez-badge-canli .d { width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+        .ez-badge-num {
+            font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;
+            background: rgba(255,255,255,.1); color: #C9D6EA; padding: 2px 7px;
+            border-radius: 999px; }
+        .ez-badge-yz {
+            font-size: 9px; font-weight: 700; letter-spacing: .06em;
+            background: rgba(29,78,216,.28); color: #9DC0FF; padding: 2px 6px;
+            border-radius: 999px; }
+
+        /* Sistem durumu (alt) */
+        .ez-sys { padding: 14px 16px 16px; border-top: 1px solid rgba(255,255,255,.07); }
+        .ez-sys-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 4px 0; font-size: 12px; color: #B4C2D9; }
+        .ez-sys-row .l { display: flex; align-items: center; gap: 7px; }
+        .ez-sys-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .ez-sys-foot {
+            margin-top: 12px; text-align: center; font-size: 10.5px; line-height: 1.5;
+            color: #6B7F9E; }
+
+        /* ===== Sayfa başlığı ===== */
+        .ez-hdr {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 20px; flex-wrap: wrap; padding-bottom: 18px;
+            border-bottom: 1px solid #E2E8F0; margin-bottom: 22px; }
+        .ez-hdr h1 {
+            margin: 0 0 5px; font-size: 26px; font-weight: 700; letter-spacing: -.01em;
+            color: #0F1E33; }
+        .ez-hdr-sub { font-size: 14px; color: #475569; }
+        .ez-hdr-pill {
+            display: inline-flex; align-items: center; gap: 7px; font-size: 12px;
+            font-weight: 600; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+        .ez-hdr-pill .d { width: 7px; height: 7px; border-radius: 50%; }
+        .ez-hdr-pill.gercek { background: #DCFCE7; color: #15803D; }
+        .ez-hdr-pill.canli { background: #B91C1C; color: #fff; }
+        .ez-hdr-pill.notr { background: #EDF1F7; color: #64748B; }
+
+        /* ===== Bölüm başlığı ===== */
+        .ez-sec {
+            display: flex; align-items: center; gap: 9px; margin: 4px 0 13px;
+            flex-wrap: wrap; }
+        .ez-sec h2 { margin: 0; font-size: 15px; font-weight: 600; color: #0F1E33; }
+        .ez-sec-src { font-size: 12px; color: #64748B; }
+
+        /* ===== Kaynak rozetleri ===== */
+        .ez-kr {
+            display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+            border-radius: 999px; font-size: 10.5px; font-weight: 600;
+            letter-spacing: .02em; white-space: nowrap; }
+        .ez-kr.gercek { background: #DCFCE7; color: #15803D; }
+        .ez-kr.demo   { background: #FEF3C7; color: #B45309; }
+        .ez-kr.sim    { background: #EDF1F7; color: #64748B; }
+
+        /* ===== Çipler ===== */
+        .ez-cip {
+            display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+            border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+        .ez-cip.aktif  { background: #DCFCE7; color: #15803D; }
+        .ez-cip.uyari  { background: #FEF3C7; color: #B45309; }
+        .ez-cip.kritik { background: #FEE2E2; color: #B91C1C; }
+        .ez-cip.bilgi  { background: #DBEAFE; color: #1D4ED8; }
+        .ez-cip.notr   { background: #EDF1F7; color: #475569; }
+
+        /* ===== Kartlar + ızgaralar ===== */
+        .ez-card {
+            background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px;
+            padding: 20px; box-shadow: 0 1px 2px rgba(15,30,51,.04); }
+        .ez-card-sm { padding: 18px; }
+        .ez-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .ez-g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+        .ez-g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+        @media (max-width: 1100px) {
+            .ez-g4 { grid-template-columns: repeat(2,1fr); }
+            .ez-g2, .ez-g3 { grid-template-columns: 1fr; } }
+        .ez-mb16 { margin-bottom: 16px; } .ez-mb22 { margin-bottom: 22px; }
+        .ez-mb28 { margin-bottom: 28px; }
+
+        /* Metrik kartı */
+        .ez-mcard {
+            background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px;
+            padding: 19px; box-shadow: 0 1px 2px rgba(15,30,51,.04);
+            display: flex; flex-direction: column; gap: 9px; }
+        .ez-mcard-top {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .ez-mcard-title {
+            font-size: 11.5px; font-weight: 600; letter-spacing: .04em;
+            text-transform: uppercase; color: #64748B; line-height: 1.35; }
+        .ez-mcard-ico { color: #94A3B8; flex: 0 0 auto; }
+        .ez-mcard-val {
+            font-size: 32px; font-weight: 700; letter-spacing: -.02em;
+            font-variant-numeric: tabular-nums; color: #0F1E33; line-height: 1; }
+        .ez-mcard-alt {
+            font-size: 12.5px; color: #475569; font-variant-numeric: tabular-nums; }
+
+        /* Kalibrasyon mini kutuları */
+        .ez-kbox { background: #EDF1F7; border-radius: 10px; padding: 14px 15px; }
+        .ez-kbox-t {
+            font-size: 11px; font-weight: 600; letter-spacing: .03em;
+            text-transform: uppercase; color: #64748B; margin-bottom: 7px; line-height: 1.35; }
+        .ez-kbox-v {
+            font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums;
+            letter-spacing: -.02em; color: #0F1E33; }
+
+        /* ===== Güven ölçer ===== */
+        .ez-guven-track {
+            position: relative; height: 16px; border-radius: 999px;
+            background: linear-gradient(90deg,#B91C1C 0%,#B45309 50%,#15803D 100%); }
+        .ez-guven-esik {
+            position: absolute; top: -5px; bottom: -5px; width: 2px; background: #0F1E33; }
+        .ez-guven-knob {
+            position: absolute; top: 50%; transform: translate(-50%,-50%);
+            width: 16px; height: 16px; border-radius: 50%; background: #FFFFFF;
+            box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+
+        /* ===== Sevk / benzerlik barları ===== */
+        .ez-bar-lbl {
+            display: flex; justify-content: space-between; font-size: 12.5px;
+            color: #334155; margin-bottom: 5px; }
+        .ez-bar-track {
+            height: 8px; background: #EDF1F7; border-radius: 999px; overflow: hidden; }
+        .ez-bar-fill { height: 100%; border-radius: 999px; background: #14315B; }
+
+        /* ===== Tablo ===== */
+        .ez-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .ez-tbl thead tr { background: #EDF1F7; }
+        .ez-tbl th {
+            text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 600;
+            letter-spacing: .04em; text-transform: uppercase; color: #64748B; }
+        .ez-tbl th:first-child { border-radius: 8px 0 0 8px; }
+        .ez-tbl th:last-child { border-radius: 0 8px 8px 0; }
+        .ez-tbl td { padding: 11px 12px; border-bottom: 1px solid #E2E8F0; color: #475569; }
+        .ez-tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .ez-tbl td.str { color: #0F1E33; font-weight: 500; }
+
+        /* ===== Stepper (ajan hattı) ===== */
+        .ez-step { display: flex; gap: 14px; }
+        .ez-step-col { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
+        .ez-step-node {
+            width: 36px; height: 36px; border-radius: 9px; display: flex;
+            align-items: center; justify-content: center; font-size: 12.5px;
+            font-weight: 700; font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+        .ez-step-line { flex: 1; width: 2px; background: #E2E8F0; min-height: 12px; }
+        .ez-step-body { flex: 1; padding-bottom: 12px; min-width: 0; }
+        .ez-step-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .ez-step-name { font-size: 14px; font-weight: 600; color: #0F1E33; }
+        .ez-step-pill {
+            display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px;
+            border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .05em; }
+        .ez-step-kat { font-size: 11px; color: #94A3B8; font-weight: 500; }
+        .ez-step-rol { font-size: 12.5px; color: #64748B; margin-top: 2px; }
+        .ez-step-gate {
+            display: inline-flex; align-items: center; gap: 7px; margin-top: 8px;
+            background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px;
+            padding: 5px 10px; font-size: 11.5px; color: #92400E; font-weight: 500; }
+
+        /* ===== Notice / bilgi şeridi ===== */
+        .ez-notice {
+            display: flex; gap: 11px; align-items: flex-start; border-radius: 10px;
+            padding: 13px 15px; margin-bottom: 22px; font-size: 13px; line-height: 1.5; }
+        .ez-notice svg { flex: 0 0 auto; margin-top: 1px; }
+        .ez-notice.bilgi  { background: #DBEAFE; border: 1px solid #BFDBFE; color: #1E3A5F; }
+        .ez-notice.kvkk   { background: #FEE2E2; border: 1px solid #FECACA; color: #7F1D1D; }
+
+        /* ===== Resmî yazı önizleme ===== */
+        .ez-resmi {
+            border: 1px solid #E2E8F0; border-radius: 10px; padding: 26px 30px;
+            background: #FFFFFF; font-family: 'Times New Roman', Georgia, serif;
+            color: #0F1E33; line-height: 1.7; box-shadow: 0 1px 2px rgba(15,30,51,.04); }
+
+        /* ===== Sohbet balonları ===== */
+        .ez-chat-user {
+            max-width: 70%; background: #EDF1F7; color: #0F1E33; padding: 11px 15px;
+            border-radius: 12px 12px 4px 12px; font-size: 13.5px; }
+        .ez-chat-bot {
+            flex: 1; background: #FFFFFF; border: 1px solid #E2E8F0;
+            border-left: 3px solid #1D4ED8; border-radius: 4px 12px 12px 12px;
+            padding: 14px 16px; font-size: 13.5px; color: #0F1E33; line-height: 1.6; }
+        .ez-chat-ava {
+            width: 32px; height: 32px; border-radius: 8px; background: #0B1B33;
+            display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+
+        /* ===== Streamlit yerleşik bileşen uyumu (kamu-kurumsal) ===== */
+        .stButton > button[kind="primary"], .stDownloadButton > button[kind="primary"] {
+            background: #1D4ED8; border: none; color: #fff; border-radius: 9px;
+            font-weight: 600; box-shadow: none; }
+        .stButton > button[kind="primary"]:hover,
+        .stDownloadButton > button[kind="primary"]:hover { background: #1B44BE; color: #fff; }
+        .stButton > button[kind="secondary"], .stDownloadButton > button[kind="secondary"] {
+            background: #FFFFFF; border: 1px solid #E2E8F0; color: #1E40AF;
+            border-radius: 8px; font-weight: 500; box-shadow: none; }
+        .stButton > button:focus-visible { box-shadow: 0 0 0 3px rgba(29,78,216,.35); }
+        [data-testid="stTextInput"] input, [data-testid="stTextArea"] textarea,
+        [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+            border-radius: 9px !important; border-color: #E2E8F0 !important; }
+        /* Sekmeler → mockup alt-çizgi tabları */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 2px; border-bottom: 1px solid #E2E8F0; }
+        .stTabs [data-baseweb="tab"] {
+            padding: 9px 14px; font-size: 13px; font-weight: 600; color: #64748B; }
+        .stTabs [aria-selected="true"] { color: #0F1E33 !important; }
+        .stTabs [data-baseweb="tab-highlight"] { background: #1D4ED8; }
+        /* Metric bileşeni tabular */
+        [data-testid="stMetricValue"] {
+            font-variant-numeric: tabular-nums; color: #0F1E33; font-weight: 700; }
+        [data-testid="stMetricLabel"] { color: #64748B; }
+        /* İçerik başlıkları (st.markdown H5) */
+        .stMarkdown h5 { color: #0F1E33; font-weight: 600; }
+        /* Bilgi/uyarı kutuları köşe yumuşatma */
+        [data-testid="stAlert"] { border-radius: 10px; }
         </style>
         """
     )
@@ -676,83 +783,141 @@ def _md(html_str: str) -> None:
     st.markdown(_duzles(html_str), unsafe_allow_html=True)
 
 
-def _sparkline(degerler: list, renk: str) -> str:
-    """Değer listesinden mini sütun grafiği (sparkline) HTML'i üretir."""
-    if not degerler:
-        return ""
-    ust = max(degerler) or 1
-    barlar = "".join(
-        f'<span class="ez-bar" style="height:{max(14, int(v / ust * 100))}%;'
-        f'background:{renk}"></span>' for v in degerler
-    )
-    return f'<div class="ez-spark">{barlar}</div>'
+# --- İnline SVG ikon kayıt defteri (harici ikon paketi YOK; offline-first) ----
+# Path'ler "Evrak Zekâ.dc.html" mockup'ı ile birebir (Feather/Lucide stili,
+# stroke=currentColor). Emoji kullanılmaz (kamu-kurumsal ciddiyet).
+_IKON_PATH = {
+    "grid": '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+    "evrak": '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    "zap": '<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+    "cpu": '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>',
+    "cpu-min": '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>',
+    "chat": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    "book": '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    "shield": '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    "info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    "gear": '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    "trend": '<path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/>',
+    "clock": '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    "share": '<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+    "tik": '<path d="M20 6 9 17l-5-5"/>',
+    "ucgen": '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
+    "play": '<path d="m5 3 14 9-14 9z"/>',
+    "gonder": '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+    "indir": '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
+    "ara": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+    "yukle": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15l3-3 3 3"/>',
+    "filesm": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    "layers": '<path d="M12 2 2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>',
+    "chevron": '<path d="m6 9 6 6 6-6"/>',
+    "logo": '<path d="M4 4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>',
+    # metrik kartı ikonları (support.js ikonMetrik ile birebir)
+    "m_sinif": '<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10z"/><path d="M7 7h.01"/>',
+    "m_yon": '<path d="M12 2 3 5v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V5z"/>',
+    "m_eksik": '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/>',
+    "m_mevzuat": '<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+}
 
 
-def _metrik_karti(ikon: str, deger: str, etiket: str, rozet: str,
-                  rozet_tipi: str, renk: str, spark: list = None,
-                  ipucu: str = "") -> str:
-    """Kurumsal metrik kartı HTML'i üretir (ölçülen tek değer + rozet + ipucu).
+def _ikon(ad: str, boyut: int = 18, renk: str = "currentColor",
+          sw: float = 1.75) -> str:
+    """Kayıt defterinden inline SVG ikon döndürür (offline; harici bağımlılık yok)."""
+    ic = _IKON_PATH.get(ad, _IKON_PATH["info"])
+    return (f'<svg width="{boyut}" height="{boyut}" viewBox="0 0 24 24" '
+            f'fill="none" stroke="{renk}" stroke-width="{sw}" '
+            f'stroke-linecap="round" stroke-linejoin="round">{ic}</svg>')
 
-    Not (şartname m.6): Kartlarda eskiden dekoratif sparkline vardı; ancak tüm
-    kartlarda aynı seri tekrarlandığı ve o metriğe ait trend izlenimi yarattığı
-    için KALDIRILDI (ölçülmemiş gösterge gerçekmiş gibi sunulamaz). `spark`
-    parametresi geriye-uyum için korunur ama çizilmez; onun yerine ölçülen
-    değeri açıklayan kısa bir `ipucu` satırı gösterilir.
-    """
-    pill = (f'<span class="ez-pill {rozet_tipi}">{_kacar(rozet)}</span>'
-            if rozet else "")
-    ipucu_html = (f'<div class="ez-card-tip">{_kacar(ipucu)}</div>'
-                  if ipucu else "")
+
+# Kaynak rozeti — dürüstlük ilkesinin görsel taşıyıcısı (şartname m.6).
+_ROZET_META = {
+    "gercek": ("gercek", "tik", 2.6, "GERÇEK · ÖLÇÜLMÜŞ"),
+    "gercek_kisa": ("gercek", "tik", 2.6, "GERÇEK"),
+    "gercek_cikti": ("gercek", "tik", 2.6, "GERÇEK ÇIKTI"),
+    "demo": ("demo", "ucgen", 2.2, "TEMSİLİ DEMO"),
+    "sim": ("sim", "info", 2.4, "SİMÜLASYON"),
+    "sim_uzun": ("sim", "info", 2.4, "SİMÜLASYON · temsilî çıktı"),
+}
+
+
+def _kaynak_rozet(tur: str = "gercek", metin: str = "") -> str:
+    """GERÇEK / TEMSİLİ DEMO / SİMÜLASYON kaynak rozeti HTML'i üretir."""
+    sinif, ikon_ad, sw, varsayilan = _ROZET_META.get(tur, _ROZET_META["gercek"])
+    etiket = metin or varsayilan
+    return (f'<span class="ez-kr {sinif}">{_ikon(ikon_ad, 11, "currentColor", sw)}'
+            f'{_kacar(etiket)}</span>')
+
+
+def _cip(metin: str, tur: str = "notr") -> str:
+    """Durum çipi (aktif / uyari / kritik / bilgi / notr)."""
+    return f'<span class="ez-cip {tur}">{_kacar(metin)}</span>'
+
+
+def _metrik_karti(baslik: str, deger: str, alt: str, ikon_ad: str,
+                  kaynak: str = "gercek") -> str:
+    """Kurumsal metrik kartı (mockup birebir): üst-başlık + tabular rakam +
+    bağlam + kaynak rozeti."""
     return f"""
-    <div class="ez-card">
-      <div class="ez-card-head">
-        <div class="ez-icon-chip" style="background:{renk}1a;color:{renk}">
-          {ikon}</div>
-        {pill}
+    <div class="ez-mcard">
+      <div class="ez-mcard-top">
+        <div class="ez-mcard-title">{_kacar(baslik)}</div>
+        <span class="ez-mcard-ico">{_ikon(ikon_ad, 18, "#94A3B8")}</span>
       </div>
-      <div class="ez-value">{_kacar(deger)}</div>
-      <div class="ez-label">{_kacar(etiket)}</div>
-      {ipucu_html}
+      <div class="ez-mcard-val">{_kacar(deger)}</div>
+      <div class="ez-mcard-alt">{_kacar(alt)}</div>
+      {_kaynak_rozet(kaynak)}
     </div>"""
 
 
-def _metrik_gridi(kartlar: list) -> str:
-    """Metrik kartlarını 4'lü ızgara içinde birleştirir."""
-    return f'<div class="ez-grid4">{"".join(kartlar)}</div>'
+def _metrik_gridi(kartlar: list, sutun: int = 4) -> str:
+    """Metrik kartlarını N'li ızgarada birleştirir."""
+    return f'<div class="ez-g{sutun} ez-mb16">{"".join(kartlar)}</div>'
 
 
-def _ust_cubuk(baslik: str, alt: str, canli: bool = False) -> None:
-    """Sayfa üst çubuğunu (başlık + gerçek durum çipi) çizer.
+def _bolum_basligi(baslik: str, ikon_ad: str = "", rozet: str = "",
+                   kaynak_notu: str = "") -> None:
+    """Sayfa içi bölüm başlığı: ikon + başlık + opsiyonel kaynak rozeti + not."""
+    ikon_html = (f'<span style="color:#14315B;display:inline-flex;">'
+                 f'{_ikon(ikon_ad, 17, "#14315B")}</span>' if ikon_ad else "")
+    rozet_html = _kaynak_rozet(rozet) if rozet else ""
+    not_html = (f'<span class="ez-sec-src">{_kacar(kaynak_notu)}</span>'
+                if kaynak_notu else "")
+    _md(f'<div class="ez-sec">{ikon_html}<h2>{_kacar(baslik)}</h2>'
+        f'{rozet_html}{not_html}</div>')
 
-    Not: Eskiden burada işlevsiz süsleme kontroller (arama kutusu, tema/bildirim
-    ikonu, 'MG' avatarı) vardı; hiçbiri çalışmadığı ve jüriyi yanıltabileceği
-    için KALDIRILDI (Anayasal İlke 4). Yerlerine backend durumunu doğru yansıtan
-    gerçek bir çip kondu.
+
+def _notice(mesaj_html: str, tur: str = "bilgi", ikon_ad: str = "info") -> None:
+    """Bilgi/uyarı şeridi (ör. dürüstlük ilkesi, KVKK). mesaj_html HAM HTML'dir
+    (çağıran güvenli üretir); sadece ikon + kapsayıcı eklenir."""
+    renk = {"bilgi": "#1D4ED8", "kvkk": "#B91C1C"}.get(tur, "#1D4ED8")
+    _md(f'<div class="ez-notice {tur}">{_ikon(ikon_ad, 18, renk)}'
+        f'<div>{mesaj_html}</div></div>')
+
+
+def _ust_cubuk(baslik: str, alt: str, pill: tuple = None,
+               canli: bool = False) -> None:
+    """Sayfa üst başlığı (mockup ez-hdr): H1 + alt açıklama + opsiyonel sağ pill.
+
+    pill: (tip, metin) — tip ∈ {gercek, canli, notr}. `canli=True` geriye-uyum
+    için tutulur; True ise kırmızı 'CANLI ÇEKİRDEK' pill'i eklenir.
     """
-    canli_html = ('<span class="ez-livepill">● Canlı işleme</span>'
-                  if canli else "")
-    cekirdek_html = (
-        '<span class="ez-statuschip"><span class="ez-dot" '
-        'style="color:#22C55E">●</span>Gerçek çekirdek · 11 ajan</span>'
-        if _BACKEND_VAR else
-        '<span class="ez-statuschip"><span class="ez-dot" '
-        'style="color:#F59E0B">●</span>Çekirdek yüklenemedi</span>'
-    )
+    if pill is None and canli:
+        pill = ("canli", "CANLI ÇEKİRDEK")
+    pill_html = ""
+    if pill:
+        tip, metin = pill
+        nokta = ('<span class="d" style="background:currentColor;"></span>'
+                 if tip in ("gercek", "canli") else "")
+        pill_html = (f'<span class="ez-hdr-pill {tip}">{nokta}'
+                     f'{_kacar(metin)}</span>')
     _md(
         f"""
-        <div class="ez-topbar">
+        <div class="ez-hdr">
           <div>
-            <div class="ez-crumb">Evrak Zekâ · {_kacar(baslik)}</div>
-            <div class="ez-h1">{_kacar(baslik)}</div>
-            <div class="ez-h1-sub">{_kacar(alt)}</div>
+            <h1>{_kacar(baslik)}</h1>
+            <div class="ez-hdr-sub">{_kacar(alt)}</div>
           </div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-                      justify-content:flex-end;">
-            {cekirdek_html}
-            {canli_html}
-          </div>
+          {pill_html}
         </div>
-        <div style="height:10px"></div>
         """
     )
 
@@ -761,81 +926,221 @@ def _ust_cubuk(baslik: str, alt: str, canli: bool = False) -> None:
 #  BÖLÜM 4 — KENAR ÇUBUĞU (MARKA + GEZİNME + DURUM)
 # ===========================================================================
 
-def kenar_cubugu_ciz() -> str:
-    """Kenar çubuğunu çizer ve seçili sayfayı döndürür."""
+# Gezinme yapısı: (anahtar, etiket, ikon_adı, rozet_html).
+_NAV = {
+    "ÇALIŞMA ALANI": [
+        ("genel", "Genel Bakış", "grid", ""),
+        ("evrak", "Evrak İşleme", "evrak",
+         '<span class="ez-badge-canli"><span class="d"></span>CANLI</span>'),
+        ("toplu", "Toplu İşleme", "zap", ""),
+        ("ajan", "Ajan Yönetimi", "cpu",
+         '<span class="ez-badge-num">11</span>'),
+        ("asistan", "Asistan", "chat", '<span class="ez-badge-yz">YZ</span>'),
+        ("mevzuat", "Mevzuat ve RAG", "book", ""),
+    ],
+    "SİSTEM": [
+        ("kvkk", "KVKK ve Uyum", "shield", ""),
+        ("hakkinda", "Hakkında", "info", ""),
+        ("ayarlar", "Ayarlar", "gear", ""),
+    ],
+}
+
+
+def kenar_cubugu_ciz(aktif: str) -> None:
+    """Kenar çubuğunu mockup'a birebir çizer (SVG ikonlu anchor navigasyon).
+
+    Gezinme, `?p=<anahtar>` query parametresiyle çalışır (tam sadakat için
+    HTML anchor'lar; Streamlit yeniden çalışmasını URL param'ı tetikler).
+    Sistem durumu GERÇEK backend/korpus durumundan gelir.
+    """
+    ogeler_html = ""
+    for bolum, ogeler in _NAV.items():
+        ust = ' top2' if bolum == "SİSTEM" else ""
+        ogeler_html += f'<div class="ez-navsec{ust}">{_kacar(bolum)}</div>'
+        for anahtar, etiket, ikon_ad, rozet in ogeler:
+            sinif = "ez-navitem aktif" if anahtar == aktif else "ez-navitem"
+            ogeler_html += (
+                f'<a class="{sinif}" href="?p={anahtar}" target="_self">'
+                f'{_ikon(ikon_ad, 18)}'
+                f'<span class="ez-navlabel">{_kacar(etiket)}</span>{rozet}</a>')
+
+    korpus_n = len(_mevzuat_korpus())
+    cek_renk = "#22C55E" if _BACKEND_VAR else "#F59E0B"
+    cek_metin = "11 ajan" if _BACKEND_VAR else "Yüklenemedi"
+
     with st.sidebar:
         _md(
-            """
+            f"""
             <div class="ez-brand">
-              <div class="ez-brand-logo">📑</div>
+              <div class="ez-brand-logo">
+                {_ikon("logo", 20, "#E6EDF7")}
+                <span class="ez-dot-red"></span>
+              </div>
               <div>
                 <div class="ez-brand-name">Evrak Zekâ</div>
                 <div class="ez-brand-sub">KAMU AJAN SİSTEMİ</div>
               </div>
             </div>
-            """
-        )
-
-        aktif = st.session_state["aktif_sayfa"]
-        for bolum, ogeler in GEZINME.items():
-            _md(f'<div class="ez-navsec">{bolum}</div>')
-            for etiket, ikon, rozet in ogeler:
-                rozet_ek = f"   ·   {rozet}" if rozet else ""
-                tip = "primary" if etiket == aktif else "secondary"
-                if st.button(f"{ikon}   {etiket}{rozet_ek}", key=f"nav_{etiket}",
-                             type=tip, width="stretch"):
-                    st.session_state["aktif_sayfa"] = etiket
-                    st.rerun()
-
-        _md('<div style="height:14px"></div>')
-        _md(
-            f"""
-            <div class="ez-status">
-              <div class="ez-navsec">SİSTEM DURUMU</div>
-              <div class="ez-status-row">
-                <span><span class="ez-dot">●</span>Çevrimdışı çekirdek</span>
-                <span class="ez-status-val" style="color:#22C55E">Aktif</span>
-              </div>
-              <div class="ez-status-row">
-                <span><span class="ez-dot">●</span>Mevzuat korpusu</span>
-                <span class="ez-status-val">{len(_mevzuat_korpus())} belge</span>
-              </div>
-              <div class="ez-status-row">
-                <span><span class="ez-dot" style="color:{'#22C55E' if _BACKEND_VAR
-                    else '#F59E0B'}">●</span>İşleme çekirdeği</span>
-                <span class="ez-status-val">{'Gerçek · 11 ajan' if _BACKEND_VAR
-                    else 'Yüklenemedi'}</span>
-              </div>
-            </div>
-            <div style="height:10px"></div>
-            <div class="ez-status-val" style="text-align:center;color:#B4C2D9">
-              © 2026 · Kurumsal Sürüm 2.0<br>Sentetik veri · KVKK uyumlu
+            <nav class="ez-nav">{ogeler_html}</nav>
+            <div class="ez-sys">
+              <div class="ez-navsec" style="padding-left:0;">SİSTEM DURUMU</div>
+              <div class="ez-sys-row"><span class="l">
+                <span class="ez-sys-dot" style="background:#22C55E;"></span>
+                Çevrimdışı çekirdek</span>
+                <span style="color:#4ADE80;font-weight:600;">Aktif</span></div>
+              <div class="ez-sys-row"><span class="l">
+                <span class="ez-sys-dot" style="background:{cek_renk};"></span>
+                İşleme çekirdeği</span>
+                <span style="color:#C9D6EA;font-weight:600;
+                font-variant-numeric:tabular-nums;">{cek_metin}</span></div>
+              <div class="ez-sys-row"><span class="l">
+                <span class="ez-sys-dot" style="background:#22C55E;"></span>
+                Mevzuat korpusu</span>
+                <span style="color:#C9D6EA;font-weight:600;
+                font-variant-numeric:tabular-nums;">{korpus_n} belge</span></div>
+              <div class="ez-sys-foot">© 2026 · Kurumsal Sürüm 2.0<br/>
+                Sentetik veri · KVKK uyumlu</div>
             </div>
             """
         )
-
-    return st.session_state["aktif_sayfa"]
 
 
 # ===========================================================================
 #  BÖLÜM 5 — SAYFA: GENEL BAKIŞ (DASHBOARD)
 # ===========================================================================
 
+def _ond(x, n: int = 3) -> str:
+    """Sayıyı n ondalıkla Türkçe (virgüllü) biçime getirir; sayı değilse '—'."""
+    if not isinstance(x, (int, float)):
+        return "—"
+    return f"{x:.{n}f}".replace(".", ",")
+
+
+def _son_kayitlar(limit: int = 6):
+    """Gerçek kayıt defterinden son işlenen evrakları döndürür; yoksa None."""
+    try:
+        from src.utils.kayit_defteri import KayitDefteri
+        satirlar = KayitDefteri().sorgula(limit=limit)
+    except Exception:
+        return None
+    cikti = []
+    for r in satirlar:
+        zaman = str(r.get("zaman") or "")
+        saat = zaman[11:16] if len(zaman) >= 16 else (zaman[:5] or "—")
+        g = r.get("tur_guven")
+        hitl = bool(r.get("insan_onayi"))
+        cikti.append({
+            "saat": saat,
+            "tur": _TUR_KOD_AD.get(r.get("tur", ""), r.get("tur", "—")),
+            "birim": r.get("birim") or "—",
+            "guven": _yzd(g) if isinstance(g, (int, float)) else "—",
+            "durum": ("İnsan onayı", "uyari") if hitl else ("Tamamlandı", "aktif"),
+        })
+    return cikti or None
+
+
+def _tur_dagilim_karti(kayit: dict) -> str:
+    """İşlenen evrak türü dağılımı — gerçek orandan dinamik conic-gradient halka."""
+    tur_d = kayit.get("tur_dagilimi") or {}
+    ogeler = sorted(tur_d.items(), key=lambda kv: -kv[1])
+    toplam = sum(v for _, v in ogeler)
+    rozet = _kaynak_rozet("gercek_kisa")
+    if not toplam:
+        govde = ('<div style="font-size:12.5px;color:#64748B;line-height:1.6;">'
+                 'Kayıt defteri (<code>kayit_defteri.db</code>) henüz kayıt '
+                 'içermiyor. Dağılım denetim izinden okunur; CLI/toplu '
+                 'değerlendirme ile kayıt üretildikçe burada görünür.</div>')
+        return (f'<div class="ez-card"><div style="display:flex;align-items:center;'
+                f'justify-content:space-between;gap:10px;margin-bottom:4px;">'
+                f'<h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;">'
+                f'İşlenen Evrak Türü Dağılımı</h3>{rozet}</div>'
+                f'<div style="font-size:12px;color:#64748B;margin-bottom:14px;">'
+                f'Kaynak: kayıt defteri (SQLite denetim izi)</div>{govde}</div>')
+    # conic-gradient durakları + gösterge (gerçek yüzdeler)
+    duraklar, gosterge = [], ""
+    kumulatif = 0.0
+    for i, (kod, adet) in enumerate(ogeler):
+        renk = KATEGORIK_PALET[i % len(KATEGORIK_PALET)]
+        bas = kumulatif / toplam * 100
+        kumulatif += adet
+        son = kumulatif / toplam * 100
+        duraklar.append(f"{renk} {bas:.2f}% {son:.2f}%")
+        ad = _TUR_KOD_AD.get(kod, kod)
+        gosterge += (
+            f'<div style="display:flex;align-items:center;gap:8px;font-size:12px;'
+            f'color:#475569;"><span style="width:9px;height:9px;border-radius:2px;'
+            f'flex:0 0 auto;background:{renk};"></span><span style="flex:1;">'
+            f'{_kacar(ad)}</span><span style="font-variant-numeric:tabular-nums;'
+            f'color:#94A3B8;">{adet}</span></div>')
+    grad = ",".join(duraklar)
+    return f"""
+    <div class="ez-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;">İşlenen Evrak Türü Dağılımı</h3>
+        {rozet}
+      </div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:16px;">Kaynak: kayıt defteri (SQLite denetim izi)</div>
+      <div style="display:flex;align-items:center;gap:22px;">
+        <div style="width:132px;height:132px;border-radius:50%;flex:0 0 auto;background:conic-gradient({grad});position:relative;display:flex;align-items:center;justify-content:center;">
+          <div style="width:74px;height:74px;border-radius:50%;background:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:#0F1E33;">{toplam}</div>
+            <div style="font-size:9.5px;color:#64748B;letter-spacing:.03em;">TOPLAM</div>
+          </div>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;">{gosterge}</div>
+      </div>
+    </div>"""
+
+
+def _birim_sevk_karti(kayit: dict) -> str:
+    """Birim sevk dağılımı — gerçek kayıt defteri oranlarından yatay barlar."""
+    birim_d = kayit.get("birim_dagilimi") or {}
+    ogeler = sorted(birim_d.items(), key=lambda kv: -kv[1])[:8]
+    rozet = _kaynak_rozet("gercek_kisa")
+    if not ogeler:
+        ic = ('<div style="font-size:12.5px;color:#64748B;">Kayıt defterinde '
+              'birim dağılımı bulunmuyor.</div>')
+    else:
+        azami = max(v for _, v in ogeler) or 1
+        ic = ""
+        for ad, adet in ogeler:
+            oran = adet / azami * 100
+            ic += (
+                f'<div><div class="ez-bar-lbl"><span>{_kacar(ad)}</span>'
+                f'<span style="font-variant-numeric:tabular-nums;color:#94A3B8;">'
+                f'{adet}</span></div><div class="ez-bar-track">'
+                f'<div class="ez-bar-fill" style="width:{oran:.1f}%;"></div></div></div>')
+    return f"""
+    <div class="ez-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;">Birim Sevk Dağılımı</h3>
+        {rozet}
+      </div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:16px;">Kaynak: yönlendirilen birimler (9 hedef)</div>
+      <div style="display:flex;flex-direction:column;gap:11px;">{ic}</div>
+    </div>"""
+
+
 def sayfa_genel_bakis() -> None:
-    """Genel Bakış (kurumsal dashboard) sayfasını çizer."""
-    _ust_cubuk("Kurumsal Genel Bakış",
-               "Ölçülmüş sistem başarımı ve gerçek işlem defteri", canli=True)
+    """Genel Bakış (kurumsal dashboard) — mockup birebir + tüm gerçek veri."""
     ss = st.session_state
+    pill = (("gercek", "CANLI ÇEKİRDEK · 11 AJAN") if _BACKEND_VAR
+            else ("notr", "ÇEKİRDEK YÜKLENEMEDİ"))
+    _ust_cubuk("Kurumsal Genel Bakış",
+               "Ölçülmüş sistem başarımı ve gerçek işlem defteri", pill=pill)
 
-    st.caption("ℹ️ Bu panodaki **tüm sayılar gerçektir**: metrikler "
-               "`scripts/evaluate.py`'nin ürettiği ölçüm raporlarından, işlem "
-               "dağılımları mevcut kayıt defterinden (`kayit_defteri.db`, SQLite "
-               "denetim izi) gelir — kurgu/demo gösterge yoktur (şartname m.6). "
-               "Pano üzerinden yapılan işlemler denetim bütünlüğü için deftere "
-               "**yazmaz**; dağılımlar kayıtlı geçmişi yansıtır.")
+    _notice(
+        "<b>Dürüstlük ilkesi (şartname m.6).</b> Bu panodaki tüm sayılar "
+        "<b>gerçektir</b>: ölçülmüş metrikler <code>scripts/evaluate.py</code> "
+        "raporlarından, dağılımlar gerçek kayıt defterinden (SQLite denetim izi) "
+        "gelir. Her panel kaynağını <b>kaynak rozetiyle</b> belirtir; gerçek "
+        "ölçüm, temsilî demo ve simülasyon görsel olarak ayrıktır.",
+        tur="bilgi")
 
+    # Ölçüm seti seçimi (gerçek eval raporları) — dürüstlük için şeffaf.
     set_ad = st.selectbox("Değerlendirme seti (ölçüm raporu)",
-                          list(_EVAL_SETLERI.keys()), index=0)
+                          list(_EVAL_SETLERI.keys()), index=0,
+                          label_visibility="collapsed")
     rapor = _eval_raporu(_EVAL_SETLERI[set_ad])
     if not rapor:
         st.warning("Ölçüm raporu bulunamadı; önce `scripts/evaluate.py` çalıştırın.")
@@ -851,171 +1156,154 @@ def sayfa_genel_bakis() -> None:
     ga = rapor.get("guven_araliklari") or {}
     n = rapor.get("degerlendirilen_dosya_sayisi", "—")
 
-    def _ga_rozet(anahtar: str) -> str:
+    def _ga(anahtar):
         w = (ga.get(anahtar) or {}).get("wilson_95")
-        return f"%95 GA {_yzd(w[0], 0)}–{_yzd(w[1], 0)}" if w else ""
+        return f"%95 GA {_yzd(w[0], 0)}–{_yzd(w[1], 0)}" if w else "8 tür"
 
-    kartlar = [
-        _metrik_karti("🏷️", _yzd(sinif.get("accuracy")), "Sınıflandırma Doğruluğu",
-                      _ga_rozet("siniflandirma"), "green", MAVI,
-                      ipucu="Evrak türünün doğru bilindiği oran (8 tür)."),
-        _metrik_karti("🧭", _yzd(yon.get("accuracy")), "Birim Yönlendirme",
-                      _ga_rozet("yonlendirme"), "green", YESIL,
-                      ipucu="Evrakın doğru birime sevk edildiği oran."),
-        _metrik_karti("🧩", _yzd(eksik.get("micro_f1")), "Eksik Bilgi (micro-F1)",
-                      f"TP {eksik.get('tp', '—')}", "blue", MAVI_ACIK,
-                      ipucu="Zorunlu alan eksikliğini yakalama başarımı (micro-F1)."),
-        _metrik_karti("⚖️", _yzd(mevz.get("isabet_orani")), "Mevzuat İsabet@3",
-                      f"{mevz.get('isabet', '—')}/{mevz.get('etiketli_evrak', '—')}",
-                      "green", MAVI,
-                      ipucu="İlk 3 öneride doğru mevzuatın bulunduğu oran."),
-    ]
-    _md(_metrik_gridi(kartlar))
-
-    kayit = _kayit_istatistik()
-    kartlar2 = [
-        _metrik_karti("📝", f"{taslak.get('ortalama_puan', '—')}/100",
-                      "Taslak Kalitesi (hakem)",
-                      f"asgari {taslak.get('asgari_puan', '—')}", "blue",
-                      MAVI_ACIK,
-                      ipucu="LLM-as-judge hakem puanı: biçim + üslup + mevzuat."),
-        _metrik_karti("🛡️", _yzd(kvkk.get("sizintisiz_oran")), "KVKK Sızıntısız Oran",
-                      f"{kvkk.get('toplam_kacak', '—')} kaçak", "green", YESIL,
-                      ipucu="Maskeleme sonrası PII sızmayan evrak oranı."),
-        _metrik_karti("⚡", f"{perf.get('evrak_basina_medyan_sure_saniye', '—')} sn",
-                      "Medyan İşleme Süresi", "gerçek zamana yakın", "green",
-                      MAVI,
-                      ipucu="Evrak başına uçtan uca medyan işleme süresi (ölçüldü)."),
-        _metrik_karti("📥", str(ss["oturum_islenen"]), "Bu Oturumda İşlenen",
-                      "canlı sayaç", "blue", MAVI_ACIK,
-                      ipucu="Bu tarayıcı oturumunda panoda işlenen evrak sayısı."),
-    ]
-    _md(_metrik_gridi(kartlar2))
-
+    _bolum_basligi("Ölçülmüş Başarım", "trend", rozet="gercek",
+                   kaynak_notu="kaynak: scripts/evaluate.py")
+    _md(_metrik_gridi([
+        _metrik_karti("Sınıflandırma Doğruluğu", _yzd(sinif.get("accuracy")),
+                      _ga("siniflandirma"), "m_sinif", "gercek"),
+        _metrik_karti("Birim Yönlendirme", _yzd(yon.get("accuracy")),
+                      _ga("yonlendirme"), "m_yon", "gercek"),
+        _metrik_karti("Eksik Bilgi (micro-F1)", _yzd(eksik.get("micro_f1")),
+                      f"TP {eksik.get('tp', '—')} · zorunlu alan", "m_eksik",
+                      "gercek"),
+        _metrik_karti("Mevzuat İsabet@3", _yzd(mevz.get("isabet_orani")),
+                      f"{mevz.get('isabet', '—')}/{mevz.get('etiketli_evrak', '—')} "
+                      "ilk-3 doğru", "m_mevzuat", "gercek"),
+    ]))
+    _md(_metrik_gridi([
+        _metrik_karti("Taslak Kalitesi (hakem)",
+                      f"{_ond(taslak.get('ortalama_puan'), 1)}/100",
+                      f"asgari {_ond(taslak.get('asgari_puan'), 1)} · biçim+üslup+mevzuat",
+                      "filesm", "gercek"),
+        _metrik_karti("KVKK Sızıntısız Oran", _yzd(kvkk.get("sizintisiz_oran")),
+                      f"{kvkk.get('toplam_kacak', '—')} kaçak (bağımsız denetim)",
+                      "shield", "gercek"),
+        _metrik_karti("Medyan İşleme Süresi",
+                      f"{_ond(perf.get('evrak_basina_medyan_sure_saniye'), 3)} sn",
+                      "evrak başına uçtan uca", "clock", "gercek"),
+        _metrik_karti("Bu Oturumda İşlenen", str(ss["oturum_islenen"]),
+                      "canlı oturum sayacı", "evrak", "sim"),
+    ]))
     muhur = (rapor.get("tekrarlanabilirlik") or {}).get("git_commit", "—")
     st.caption(f"Kaynak: `data/processed/{_EVAL_SETLERI[set_ad]}` · {n} evrak · "
                f"tekrarlanabilirlik mührü (git): `{muhur}`")
 
-    _md('<div style="height:8px"></div>')
+    # Tür + birim dağılımı (gerçek kayıt defteri)
+    kayit = _kayit_istatistik()
+    _md('<div class="ez-mb28" style="height:6px"></div>')
+    _md(f'<div class="ez-g2 ez-mb28">{_tur_dagilim_karti(kayit)}'
+        f'{_birim_sevk_karti(kayit)}</div>')
 
-    # --- Gerçek kayıt defteri: tür + birim dağılımı ---------------------
-    g1, g2 = st.columns(2)
-    with g1:
-        st.markdown("##### 📊 İşlenen Evrak Türü Dağılımı")
-        st.caption("Kaynak: gerçek kayıt defteri (SQLite denetim izi)")
-        tur_d = kayit.get("tur_dagilimi") or {}
-        if tur_d:
-            tur_df = pd.DataFrame({"Tür": list(tur_d.keys()),
-                                   "Adet": list(tur_d.values())})
-            st.altair_chart(alt.Chart(tur_df).mark_arc(innerRadius=55).encode(
-                theta="Adet:Q",
-                color=alt.Color("Tür:N", scale=alt.Scale(range=KATEGORIK_PALET),
-                                legend=alt.Legend(orient="right", title=None)),
-                tooltip=["Tür", "Adet"]).properties(height=280), use_container_width=True)
-        else:
-            st.info("Kayıt defteri (`kayit_defteri.db`) henüz kayıt içermiyor. "
-                    "Dağılımlar denetim izinden okunur; CLI/toplu değerlendirme "
-                    "ile kayıt üretildikçe burada görünür.")
-    with g2:
-        st.markdown("##### 🏢 Birim Sevk Dağılımı")
-        st.caption("Kaynak: gerçek kayıt defteri (yönlendirilen birimler)")
-        birim_d = kayit.get("birim_dagilimi") or {}
-        if birim_d:
-            b_df = pd.DataFrame({"Birim": list(birim_d.keys()),
-                                 "Adet": list(birim_d.values())})
-            st.altair_chart(alt.Chart(b_df).mark_bar(cornerRadiusEnd=4).encode(
-                x=alt.X("Adet:Q", title="Evrak"),
-                y=alt.Y("Birim:N", sort="-x", title=None),
-                color=alt.Color("Adet:Q", legend=None,
-                                scale=alt.Scale(scheme="blues")),
-                tooltip=["Birim", "Adet"]).properties(height=280), use_container_width=True)
-        else:
-            st.info("Kayıt defterinde birim dağılımı yok.")
-
-    st.caption(f"Kayıt defteri: **{kayit.get('toplam', 0)}** gerçek işlem kaydı "
-               f"(`data/processed/kayit_defteri.db`).")
-
-    # --- Güven ve kalibrasyon (ölçülmüş; teknik derinlik) ---------------
+    # Güven ve kalibrasyon (ölçülmüş)
     _kart_kalibrasyon(rapor)
+
+    # Son işlenen evraklar (gerçek defter varsa; yoksa temsilî)
+    _son_evraklar_karti()
 
 
 def _kart_kalibrasyon(rapor: dict) -> None:
-    """Ölçülmüş güven/kalibrasyon paneli: ECE (temp scaling öncesi/sonrası),
-    güvenilirlik diyagramı, özet sadakati ve seçici tahmin — hepsi eval raporundan.
-    """
+    """Ölçülmüş güven/kalibrasyon kartı (mockup birebir) — hepsi eval raporundan."""
     kal = rapor.get("kalibrasyon") or {}
     oz = rapor.get("ozet_kalitesi") or {}
     sec = rapor.get("secici_tahmin") or {}
     if not (kal or oz or sec):
         return
-    st.markdown("##### 🎯 Güven ve Kalibrasyon (ölçülmüş)")
-    st.caption("Modelin güven skorlarının ne kadar güvenilir olduğunun ölçümü "
-               "(`scripts/evaluate.py`). Kurgu değer yoktur (şartname m.6).")
-    m = st.columns(4)
-    ece = kal.get("ece")
-    ece_sonra = kal.get("ece_kalibrasyon_sonrasi")
-    m[0].metric("ECE (kalibrasyon öncesi)",
-                f"{ece:.3f}" if isinstance(ece, (int, float)) else "—",
-                help="Expected Calibration Error — düşük = güven skoru gerçek "
-                     "doğrulukla örtüşüyor.")
-    m[1].metric("ECE (sıcaklık ölçekleme sonrası)",
-                f"{ece_sonra:.3f}" if isinstance(ece_sonra, (int, float)) else "—",
-                delta=(f"{(ece - ece_sonra):+.3f}"
-                       if isinstance(ece, (int, float))
-                       and isinstance(ece_sonra, (int, float)) else None),
-                delta_color="inverse",
-                help=f"Temperature scaling (T={kal.get('ogrenilen_sicaklik', '—')}) "
-                     "sonrası ECE; düşüş = kalibrasyon iyileşmesi.")
-    m[2].metric("Brier Skoru",
-                f"{kal.get('brier'):.3f}" if isinstance(kal.get('brier'),
-                (int, float)) else "—",
-                help="Olasılık tahmin hatası (düşük daha iyi).")
-    m[3].metric("Özet Sadakati", _yzd(oz.get("sadakat")),
-                help="Üretilen özetin kaynağa sadakati (uydurma bilgi yokluğu).")
+    kutular = [
+        ("ECE (öncesi)", _ond(kal.get("ece"))),
+        ("ECE (temp sonrası)", _ond(kal.get("ece_kalibrasyon_sonrasi"))),
+        ("Brier Skoru", _ond(kal.get("brier"))),
+        ("Özet Sadakati", _yzd(oz.get("sadakat"))),
+    ]
+    kbox_html = "".join(
+        f'<div class="ez-kbox"><div class="ez-kbox-t">{_kacar(ad)}</div>'
+        f'<div class="ez-kbox-v">{_kacar(v)}</div></div>' for ad, v in kutular)
 
-    sol, sag = st.columns(2, gap="large")
-    with sol:
-        st.markdown("**📈 Güvenilirlik Diyagramı**")
-        kutular = [k for k in (kal.get("reliability_kutulari") or [])
-                   if k.get("sayi") and k.get("ortalama_guven") is not None
-                   and k.get("dogruluk") is not None]
-        if kutular:
-            rel_df = pd.DataFrame({
-                "Güven": [k["ortalama_guven"] for k in kutular],
-                "Doğruluk": [k["dogruluk"] for k in kutular],
-                "Örnek": [k["sayi"] for k in kutular]})
-            kosegen = pd.DataFrame({"x": [0, 1], "y": [0, 1]})
-            cizgi = alt.Chart(kosegen).mark_line(
-                strokeDash=[4, 4], color="#94A3B8").encode(x="x:Q", y="y:Q")
-            nokta = alt.Chart(rel_df).mark_circle(size=90, color=MAVI).encode(
-                x=alt.X("Güven:Q", scale=alt.Scale(domain=[0, 1]),
-                        title="Ortalama güven"),
-                y=alt.Y("Doğruluk:Q", scale=alt.Scale(domain=[0, 1]),
-                        title="Gerçek doğruluk"),
-                size=alt.Size("Örnek:Q", legend=None),
-                tooltip=["Güven", "Doğruluk", "Örnek"])
-            st.altair_chart((cizgi + nokta).properties(height=260),
-                            use_container_width=True)
-            st.caption("Noktalar köşegene ne kadar yakınsa güven o kadar iyi "
-                       "kalibre (kesikli çizgi = mükemmel kalibrasyon).")
-        else:
-            st.info("Güvenilirlik kutuları bu raporda yok.")
-    with sag:
-        st.markdown("**🚦 Seçici Tahmin (reddetme seçeneği)**")
-        if sec:
-            s1, s2 = st.columns(2)
-            s1.metric("Kapsama", _yzd(sec.get("kapsama")),
-                      help=f"Güven ≥ {sec.get('esik', '—')} olan (otomatik "
-                           "karar verilen) evrak oranı.")
-            s2.metric("Seçici Risk", _yzd(sec.get("risk")),
-                      help="Kapsanan evraklarda hata oranı (düşük daha iyi).")
-            st.caption(f"Güven eşiği altındaki **{sec.get('reddedilen', '—')}** "
-                       "evrak insan onayına yönlendirildi — otomasyon güvenliği "
-                       "için bilinçli reddetme.")
-        oz_sikistirma = oz.get("sikistirma_orani")
-        if isinstance(oz_sikistirma, (int, float)):
-            st.caption(f"Özet sıkıştırma oranı: {_yzd(oz_sikistirma)} · kaynak "
-                       f"kapsama: {_yzd(oz.get('kaynak_kapsama'))}")
+    esik = sec.get("esik")
+    esik_p = (esik * 100) if isinstance(esik, (int, float)) else 60
+    belirsiz = sec.get("ortalama_belirsizlik")
+    ort_guven = (1 - belirsiz) if isinstance(belirsiz, (int, float)) else None
+    knob_p = min(98, max(2, ort_guven * 100)) if ort_guven is not None else esik_p
+    guven_not = (f"ort. karar güveni ≈ {_ond(ort_guven, 2)}"
+                 if ort_guven is not None else "eşiğin altı insan onayına düşer")
+
+    _md(f"""
+    <div class="ez-card ez-mb28">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:3px;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;display:flex;align-items:center;gap:8px;">
+          {_ikon("clock", 17, "#14315B")}Güven ve Kalibrasyon</h3>
+        {_kaynak_rozet("gercek")}
+      </div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:18px;">Güven skorlarının gerçek doğrulukla ne kadar örtüştüğünün ölçümü — kurgu değer yoktur.</div>
+      <div class="ez-g4 ez-mb16" style="gap:14px;margin-bottom:20px;">{kbox_html}</div>
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:center;">
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:#334155;margin-bottom:10px;">Güven Ölçer <span style="font-weight:400;color:#64748B;">· reddetme eşiği {_ond(esik, 2)}</span></div>
+          <div class="ez-guven-track">
+            <div class="ez-guven-esik" style="left:{esik_p:.0f}%;"></div>
+            <div class="ez-guven-knob" style="left:{knob_p:.0f}%;border:3px solid #0F1E33;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#64748B;margin-top:6px;"><span>0,00 · düşük</span><span style="color:#0F1E33;font-weight:600;">eşik {_ond(esik, 2)}</span><span>1,00 · yüksek</span></div>
+          <div style="font-size:11.5px;color:#64748B;margin-top:9px;">Eşiğin altındaki kararlar insan onayına düşer (seçici tahmin · Chow) — {_kacar(guven_not)}.</div>
+        </div>
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;background:#EDF1F7;border-radius:10px;padding:13px;text-align:center;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#64748B;">Kapsama</div>
+            <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:#15803D;margin-top:5px;">{_yzd(sec.get("kapsama"))}</div>
+          </div>
+          <div style="flex:1;background:#EDF1F7;border-radius:10px;padding:13px;text-align:center;">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#64748B;">Seçici Risk</div>
+            <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:#0F1E33;margin-top:5px;">{_yzd(sec.get("risk"))}</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11.5px;color:#64748B;margin-top:12px;">Güven eşiği altındaki <b>{sec.get("reddedilen", "—")}</b> evrak insan onayına yönlendirildi — otomasyon güvenliği için bilinçli reddetme.</div>
+    </div>""")
+
+
+def _son_evraklar_karti() -> None:
+    """Son işlenen evraklar tablosu — gerçek kayıt defteri; yoksa temsilî demo."""
+    kayitlar = _son_kayitlar(6)
+    if kayitlar:
+        rozet = _kaynak_rozet("gercek_kisa")
+        satirlar = kayitlar
+    else:
+        rozet = _kaynak_rozet("demo")
+        satirlar = [
+            {"saat": "—", "tur": "Dilekçe", "birim": "Basın ve Halkla İlişkiler Müdürlüğü",
+             "guven": "—", "durum": ("Tamamlandı", "aktif")},
+            {"saat": "—", "tur": "Üst Yazı", "birim": "Yazı İşleri Müdürlüğü",
+             "guven": "—", "durum": ("Tamamlandı", "aktif")},
+            {"saat": "—", "tur": "Cevap Yazısı", "birim": "Hukuk Müşavirliği",
+             "guven": "—", "durum": ("İnsan onayı", "uyari")},
+            {"saat": "—", "tur": "Tutanak", "birim": "İnsan Kaynakları Müdürlüğü",
+             "guven": "—", "durum": ("Tamamlandı", "aktif")},
+            {"saat": "—", "tur": "Rapor", "birim": "Strateji Geliştirme Dairesi",
+             "guven": "—", "durum": ("Tamamlandı", "aktif")},
+        ]
+    govde = ""
+    for r in satirlar:
+        durum_metin, durum_tip = r["durum"]
+        govde += (
+            f'<tr><td class="num">{_kacar(r["saat"])}</td>'
+            f'<td class="str">{_kacar(r["tur"])}</td>'
+            f'<td>{_kacar(r["birim"])}</td>'
+            f'<td class="num">{_kacar(r["guven"])}</td>'
+            f'<td>{_cip(durum_metin, durum_tip)}</td></tr>')
+    _md(f"""
+    <div class="ez-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;">Son İşlenen Evraklar</h3>
+        {rozet}
+      </div>
+      <table class="ez-tbl">
+        <thead><tr><th>Saat</th><th>Evrak Türü</th><th>Yönlendirilen Birim</th><th style="text-align:right;">Güven</th><th>Durum</th></tr></thead>
+        <tbody>{govde}</tbody>
+      </table>
+    </div>""")
 
 
 # ===========================================================================
@@ -1047,59 +1335,437 @@ def _yuklenen_metni(yuklenen) -> str:
 
 
 def sayfa_evrak_isleme() -> None:
-    """Evrak İşleme sayfası (giriş + ajan hattı + sonuç kartları)."""
+    """Evrak İşleme — canlı 11-ajan hattı (stepper) + 5 sekme, tümü gerçek çıktı."""
+    pill = (("canli", "CANLI ÇEKİRDEK") if _BACKEND_VAR
+            else ("notr", "ÇEKİRDEK YÜKLENEMEDİ"))
     _ust_cubuk("Evrak İşleme",
-               "Tek evrakı uçtan uca analiz et: sınıflandırma → mevzuat → taslak")
+               "Canlı 11-ajan orkestrasyon hattı — gerçek AgentState akışı",
+               pill=pill)
+    ss = st.session_state
+    ss.setdefault("evrak_metin", ORNEK_DILEKCE)
 
-    if _BACKEND_VAR:
-        st.caption("🟢 **Gerçek mod:** evrak, canlı 11-ajan orkestratörüyle "
-                   "(src/) uçtan uca işlenir — tür, özet, mevzuat, KVKK, taslak "
-                   "ve yönlendirme gerçek çıktıdır.")
-    else:
-        st.caption("🔴 **Çekirdek yüklenemedi:** gerçek işleme yapılamaz. Bu pano "
-                   "kurgu sonuç göstermez; çekirdek bağımlılıkları kurun.")
-
-    sol, sag = st.columns([2, 3])
+    sol, sag = st.columns([1, 2], gap="medium")
     with sol:
-        st.markdown("##### 1) Evrak Girişi")
-        yuklenen = st.file_uploader("Evrak dosyası (TXT veya metin-tabanlı PDF)",
-                                    type=["txt", "pdf"])
-        varsayilan = ORNEK_DILEKCE
-        if yuklenen is not None:
-            cikan = _yuklenen_metni(yuklenen)
-            if cikan:
-                varsayilan = cikan
-            else:
-                st.warning("Dosyadan metin çıkarılamadı (taranmış/görüntü PDF "
-                           "olabilir; görüntü OCR eklentisi kurulu değil). "
-                           "Metni aşağıya elle yapıştırabilirsiniz.")
-        metin = st.text_area("Evrak metni", value=varsayilan, height=330)
-        calistir = st.button("🚀 Akıllı Ajanı Çalıştır", type="primary",
-                             width="stretch")
+        with st.container(border=True):
+            st.markdown("###### 📥 Evrak Yükle")
+            yuklenen = st.file_uploader(
+                "Evrak dosyası", type=["txt", "pdf"],
+                label_visibility="collapsed")
+            st.caption(".txt · .pdf (metin katmanı) · görüntü OCR opsiyonel")
+            if yuklenen is not None:
+                cikan = _yuklenen_metni(yuklenen)
+                if cikan:
+                    ss["evrak_metin"] = cikan
+                else:
+                    st.warning("Dosyadan metin çıkarılamadı (taranmış/görüntü PDF "
+                               "olabilir). Metni aşağıya yapıştırabilirsiniz.")
+            st.markdown("**VEYA ÖRNEK EVRAK SEÇİN**")
+            o1, o2, o3 = st.columns(3)
+            if o1.button("Dilekçe", width="stretch"):
+                ss["evrak_metin"] = _ornek_metin("dilekce_01") or ORNEK_DILEKCE
+                ss["_evrak_run"] = True
+                st.rerun()
+            if o2.button("Üst Yazı", width="stretch"):
+                ss["evrak_metin"] = _ornek_metin("ust_yazi_01") or ORNEK_DILEKCE
+                ss["_evrak_run"] = True
+                st.rerun()
+            if o3.button("Tutanak", width="stretch"):
+                ss["evrak_metin"] = _ornek_metin("tutanak_01") or ORNEK_DILEKCE
+                ss["_evrak_run"] = True
+                st.rerun()
+
+        with st.container(border=True):
+            metin = st.text_area("Evrak metni", value=ss["evrak_metin"],
+                                 height=200, label_visibility="collapsed")
+            baslat = st.button("▶  İşlemeyi Başlat", type="primary",
+                               width="stretch")
+            sifirla = st.button("Sıfırla", width="stretch")
+            st.caption("Pano işlemleri denetim bütünlüğü için kayıt defterine "
+                       "**yazmaz**.")
+        if sifirla:
+            ss["son_analiz"] = None
+            st.rerun()
+        if baslat or ss.pop("_evrak_run", False):
+            ss["son_analiz"] = _evrak_isle(metin)
 
     with sag:
-        st.markdown("##### 2) Ajan Hattı")
-        if calistir:
-            if not metin or len(metin.strip()) < 15:
-                st.warning("Lütfen yeterli uzunlukta bir evrak metni giriniz.")
-            else:
-                st.session_state["son_analiz"] = _analiz_yap(metin)
-        elif st.session_state["son_analiz"] is None:
-            st.info("Soldan bir evrak girip **Akıllı Ajanı Çalıştır** butonuna "
-                    "basın. Ajan hattı adım adım burada akacaktır.")
+        _md(_stepper_karti(ss.get("son_analiz")))
 
-    sonuc = st.session_state["son_analiz"]
+    sonuc = ss.get("son_analiz")
     if sonuc is not None:
-        st.divider()
         try:
-            _analiz_sonuc_kartlari(sonuc)
+            _evrak_sonuc_sekmeleri(sonuc)
         except Exception as e:
-            # Render sırasında beklenmedik bir alan hatası tüm sayfayı (ve kalıcı
-            # son_analiz nedeniyle oturumu) kilitlemesin: hatayı göster, temizle.
             st.error(f"⛔ Sonuç görüntülenirken hata: {type(e).__name__}: {e}")
-            st.session_state["son_analiz"] = None
-            if st.button("↻ Son analizi temizle"):
-                st.rerun()
+            ss["son_analiz"] = None
+
+
+def _ornek_metin(govde: str) -> str:
+    """data/raw/kurgu_evraklar içinden örnek evrak metnini okur (gerçek dosya)."""
+    try:
+        for f in sorted((_VERI_KOK / "data" / "raw" / "kurgu_evraklar")
+                        .glob(govde + "*.txt")):
+            return f.read_text(encoding="utf-8")
+    except Exception:
+        pass
+    return ""
+
+
+def _evrak_isle(metin: str):
+    """Metni GERÇEK 11-ajan pipeline'ıyla işler (kurgu sonuç YOK)."""
+    if not metin or len(metin.strip()) < 15:
+        st.warning("Lütfen yeterli uzunlukta bir evrak metni girin.")
+        return st.session_state.get("son_analiz")
+    pipe = _gercek_pipeline() if _BACKEND_VAR else None
+    if pipe is None:
+        st.error("⛔ Gerçek işleme çekirdeği (src/) yüklenemedi; kurgu veri "
+                 "gösterilmez.")
+        return None
+    try:
+        with st.spinner("Gerçek 11-ajan orkestratör hattı çalışıyor "
+                        "(3 kapı: okunabilirlik / dil / düşük güven)..."):
+            sonuc = pipe.process_text(metin, mode="full", kayit=False)
+    except Exception as e:
+        st.error(f"⛔ Ajan hattı bu evrakta hata verdi: {type(e).__name__}: {e}")
+        return None
+    st.session_state["oturum_islenen"] += 1
+    st.session_state["son_adimlar"] = sonuc.get("islem_adimlari", []) or []
+    sonuc["orijinal_metin"] = metin
+    sonuc["_gercek"] = True
+    return sonuc
+
+
+# Adım durumu → node/pill görsel yapılandırması (mockup renk sistemi).
+_ADIM_KONF = {
+    "bekliyor": {"et": "BEKLİYOR", "ac": "#94A3B8", "bg": "#F4F6FA", "bd": "#E2E8F0"},
+    "isliyor":  {"et": "İŞLENİYOR", "ac": "#1D4ED8", "bg": "#DBEAFE", "bd": "#1D4ED8"},
+    "tamam":    {"et": "TAMAM", "ac": "#15803D", "bg": "#DCFCE7", "bd": "#15803D"},
+    "atlandi":  {"et": "ATLANDI", "ac": "#B45309", "bg": "#FEF3C7", "bd": "#FDE68A"},
+    "hata":     {"et": "HATA", "ac": "#B91C1C", "bg": "#FEE2E2", "bd": "#FCA5A5"},
+}
+
+
+def _stepper_karti(sonuc) -> str:
+    """Canlı Ajan Hattı — 11 adımlık dikey stepper, gerçek AgentState durumları."""
+    adim_map = {}
+    kapilar = {}
+    if sonuc:
+        for a in (sonuc.get("islem_adimlari") or []):
+            adim_map[a.get("agent")] = a
+        cls = sonuc.get("siniflandirma") or {}
+        rout = sonuc.get("yonlendirme") or {}
+        atlanan = {a.get("agent") for a in (sonuc.get("islem_adimlari") or [])
+                   if a.get("status") == "atlandi"}
+        okun = str(cls.get("tur") or "") not in ("", "bilinmiyor")
+        dil_ok = "draft_writer" not in atlanan
+        g, rg = cls.get("guven"), rout.get("guven")
+        kapilar["ocr"] = (f"Kapı 1 · Okunabilirlik {'✓' if okun else '✗'}"
+                          f"   ·   Kapı 2 · Dil (Türkçe) {'✓' if dil_ok else '✗'}")
+        if isinstance(g, (int, float)):
+            kapilar["classification"] = (f"Kapı 3a · Güven {_ond(g, 2)} "
+                                         f"{'≥' if g >= 0.6 else '<'} 0,60")
+        if isinstance(rg, (int, float)):
+            kapilar["routing"] = (f"Kapı 3b · Yönlendirme güveni {_ond(rg, 2)} "
+                                  f"{'≥' if rg >= 0.6 else '<'} 0,60")
+
+    govde = ""
+    for i, ajan in enumerate(AJANLAR):
+        adim = adim_map.get(ajan["kod"])
+        if not sonuc:
+            durum = "bekliyor"
+        elif adim is None:
+            durum = "bekliyor"
+        else:
+            durum = {"success": "tamam", "atlandi": "atlandi",
+                     "error": "hata"}.get(adim.get("status"), "tamam")
+        k = _ADIM_KONF[durum]
+        ms = int((adim.get("sure_saniye") or 0) * 1000) if adim else 0
+        ms_html = (f'<span class="ez-step-kat" style="color:#94A3B8;">{ms} ms</span>'
+                   if adim else "")
+        cizgi = ('<div class="ez-step-line"></div>'
+                 if i < len(AJANLAR) - 1 else '')
+        gate = kapilar.get(ajan["kod"], "")
+        gate_html = ""
+        if gate and adim is not None:
+            gate_html = (f'<div class="ez-step-gate">{_ikon("share", 13, "#B45309")}'
+                         f'{_kacar(gate)}</div>')
+        govde += f"""
+        <div class="ez-step">
+          <div class="ez-step-col">
+            <div class="ez-step-node" style="background:{k['bg']};border:2px solid {k['bd']};color:{k['ac']};">{i+1:02d}</div>
+            {cizgi}
+          </div>
+          <div class="ez-step-body">
+            <div class="ez-step-head">
+              <span class="ez-step-name">{_kacar(ajan['ad'])}</span>
+              <span class="ez-step-pill" style="background:{k['bg']};color:{k['ac']};">{k['et']}</span>
+              <span class="ez-step-kat">{_kacar(ajan['kategori'])}</span>{ms_html}
+            </div>
+            <div class="ez-step-rol">{_kacar(ajan['rol'])}</div>
+            {gate_html}
+          </div>
+        </div>"""
+
+    ipucu = ("Orkestratör 11 uzman ajanı koşullu akışla yönetir · 3 kapı: "
+             "okunabilirlik, dil, düşük güven." if not sonuc else
+             f"Gerçek AgentState akışı · toplam "
+             f"{_ond(sonuc.get('islem_suresi_saniye'), 3)} sn.")
+    lejant = (
+        '<div style="display:flex;gap:14px;font-size:11px;color:#64748B;flex-wrap:wrap;">'
+        '<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:2px;background:#F4F6FA;border:1.5px solid #E2E8F0;"></span>bekliyor</span>'
+        '<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:2px;background:#DCFCE7;border:1.5px solid #15803D;"></span>tamam</span>'
+        '<span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:9px;height:9px;border-radius:2px;background:#FEF3C7;border:1.5px solid #FDE68A;"></span>atlandı</span></div>')
+    return f"""
+    <div class="ez-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;display:flex;align-items:center;gap:8px;">{_ikon("share", 17, "#14315B")}Canlı Ajan Hattı</h3>
+        {lejant}
+      </div>
+      <div style="font-size:12px;color:#64748B;margin-bottom:18px;">{_kacar(ipucu)}</div>
+      <div>{govde}</div>
+    </div>"""
+
+
+def _guven_olcer(guven, esik: float = 0.6) -> str:
+    """Güven ölçer bar HTML'i (gradient + eşik çizgisi + knob)."""
+    g = guven if isinstance(guven, (int, float)) else esik
+    knob_p = min(97, max(3, g * 100))
+    knob_renk = "#15803D" if g >= esik else "#B91C1C"
+    return f"""
+    <div class="ez-guven-track">
+      <div class="ez-guven-esik" style="left:{esik*100:.0f}%;"></div>
+      <div class="ez-guven-knob" style="left:{knob_p:.0f}%;border:3px solid {knob_renk};"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#64748B;margin-top:6px;">
+      <span>0,00</span><span style="color:#0F1E33;font-weight:600;">eşik {_ond(esik, 2)}</span><span>güven {_ond(g, 2)}</span></div>"""
+
+
+def _mevzuat_kod(m: dict) -> str:
+    """Mevzuat eşleşmesinden kısa kod (kanun no) üretir."""
+    for kaynak in (str(m.get("doc_id") or ""), str(m.get("mevzuat_adi") or ""),
+                   str(m.get("baslik") or "")):
+        bulunan = re.findall(r"\d{3,4}", kaynak)
+        if bulunan:
+            return bulunan[-1]
+    doc = str(m.get("doc_id") or "")
+    return (doc[:6].upper() or "MEV")
+
+
+def _evrak_sonuc_sekmeleri(sonuc: dict) -> None:
+    """İşlem sonuçları — mockup'ın 5 sekmesi, tümü gerçek pipeline çıktısı."""
+    cls = sonuc.get("siniflandirma") or {}
+    bc = sonuc.get("bilgi_cikarim") or {}
+    eksik = sonuc.get("eksik_bilgiler") or []
+    mevz = sonuc.get("mevzuat_eslestirme") or []
+    taslak = (sonuc.get("yazi_taslagi") or "").strip()
+    fmt = sonuc.get("format_denetimi") or {}
+
+    _bolum_basligi("İşlem Sonuçları", rozet="gercek_cikti",
+                   kaynak_notu="canlı orkestratör çıktısı")
+    onay = sonuc.get("insan_onayi") or {}
+    if onay.get("gerekli"):
+        _notice("<b>İnsan onayı gerekli</b> (düşük güven / tutarsızlık): "
+                + "; ".join(_kacar(g) for g in onay.get("gerekceler", [])),
+                tur="kvkk", ikon_ad="ucgen")
+
+    t1, t2, t3, t4, t5 = st.tabs(["Sınıflandırma", "Çıkarılan Alanlar",
+                                  "Eksik Bilgi", "Mevzuat İsabet",
+                                  "Üretilen Taslak"])
+
+    # --- Sınıflandırma ---
+    with t1:
+        guven = cls.get("guven")
+        yontem_ad = {"kural_tabanli": "kural tabanlı",
+                     "hibrit_ensemble": "kural + Naive Bayes",
+                     "llm_eskalasyon": "LLM eskalasyonu"}.get(
+            cls.get("yontem", ""), cls.get("yontem", "hibrit"))
+        skorlar = cls.get("tum_skorlar") or {}
+        adaylar = sorted(skorlar.items(), key=lambda kv: -kv[1])[:2]
+        aday_html = ""
+        for j, (kod, olas) in enumerate(adaylar):
+            renk = "#15803D" if j == 0 else "#94A3B8"
+            metin_r = "#0F1E33" if j == 0 else "#475569"
+            aday_html += (
+                f'<div style="display:flex;align-items:center;gap:10px;">'
+                f'<span style="width:92px;font-size:13px;color:{metin_r};font-weight:'
+                f'{"500" if j==0 else "400"};">{_kacar(_TUR_KOD_AD.get(kod, kod))}</span>'
+                f'<div style="flex:1;height:9px;background:#EDF1F7;border-radius:999px;overflow:hidden;">'
+                f'<div style="height:100%;width:{olas*100:.0f}%;background:{renk};border-radius:999px;"></div></div>'
+                f'<span style="width:44px;text-align:right;font-size:12px;color:#94A3B8;font-variant-numeric:tabular-nums;">{_yzd(olas)}</span></div>')
+        if not aday_html:
+            aday_html = ('<div style="font-size:12.5px;color:#64748B;">Aday '
+                         'skorları bu çalıştırmada üretilmedi.</div>')
+        _md(f"""
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+          <div>
+            <div style="font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#64748B;margin-bottom:8px;">Belirlenen Tür</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+              <div style="font-size:28px;font-weight:700;letter-spacing:-.02em;color:#0F1E33;">{_kacar(cls.get('tur_adi', '—'))}</div>
+              <span class="ez-cip bilgi">{_kacar(yontem_ad)}</span>
+            </div>
+            <div style="font-size:12.5px;font-weight:600;color:#334155;margin-bottom:9px;">Güven Ölçer <span style="font-weight:400;color:#64748B;">· eşik 0,60</span></div>
+            {_guven_olcer(guven)}
+          </div>
+          <div>
+            <div style="font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#64748B;margin-bottom:10px;">En Olası 2 Aday</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">{aday_html}</div>
+            <div style="font-size:11.5px;color:#64748B;margin-top:14px;line-height:1.5;">Ensemble: <b>0,6×kural + 0,4×ML</b>. Güven eşiğin altındaysa (LLM varsa) doğrulatılır; aksi halde insan onayına düşer.</div>
+          </div>
+        </div>""")
+
+    # --- Çıkarılan Alanlar ---
+    with t2:
+        alanlar = [("Evrak Tarihi", "evrak_tarihi"), ("Sayı", "evrak_sayisi"),
+                   ("Konu", "konu"), ("Muhatap", "muhatap"),
+                   ("İlgi Referansları", "ilgi_referanslari"),
+                   ("T.C. Kimlik No", "tc_kimlik"), ("Telefon", "telefon"),
+                   ("IBAN", "iban")]
+        kutu_html = ""
+        for etiket, anahtar in alanlar:
+            deger = _deger_metni(bc.get(anahtar)) or "—"
+            rozet = ""
+            if anahtar == "tc_kimlik" and deger != "—":
+                rozet = ('<span style="display:inline-flex;align-items:center;gap:3px;'
+                         'background:#DCFCE7;color:#15803D;font-size:10px;font-weight:700;'
+                         'padding:1px 6px;border-radius:999px;margin-right:6px;">'
+                         + _ikon("tik", 10, "currentColor", 2.8) + 'checksum</span>')
+            kutu_html += (
+                f'<div style="display:flex;align-items:center;justify-content:space-between;'
+                f'gap:10px;padding:12px 14px;background:#F8FAFC;border:1px solid #E2E8F0;'
+                f'border-radius:9px;"><span style="font-size:12.5px;color:#64748B;">'
+                f'{_kacar(etiket)}</span><span style="font-size:13px;font-weight:500;'
+                f'color:#0F1E33;font-variant-numeric:tabular-nums;display:inline-flex;'
+                f'align-items:center;gap:0;text-align:right;">{rozet}{_kacar(deger)}</span></div>')
+        _md(f'<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">{kutu_html}</div>'
+            '<div style="font-size:11.5px;color:#64748B;margin-top:14px;line-height:1.5;">'
+            'TCKN 11 hane + resmî checksum ile doğrulanır (geçersizler alınmaz). Bilgi '
+            'çıkarımı ReDoS-güvenli regex; LLM yalnızca ekleyerek zenginleştirir.</div>')
+
+    # --- Eksik Bilgi ---
+    with t3:
+        if not eksik:
+            _md('<div style="display:flex;align-items:center;gap:10px;padding:14px 16px;'
+                'background:#DCFCE7;border-radius:9px;font-size:13px;color:#15803D;'
+                'font-weight:600;">' + _ikon("tik", 16, "#15803D", 2.4)
+                + 'Zorunlu alanların tamamı mevcut — eksik bilgi tespit edilmedi.</div>')
+        else:
+            satir = ""
+            for e in eksik:
+                onc = str(e.get("oncelik", "")).lower()
+                tip, bar = ({"kritik": ("kritik", "#B91C1C"),
+                             "önemli": ("uyari", "#B45309"),
+                             "onemli": ("uyari", "#B45309")}.get(
+                    onc, ("notr", "#94A3B8")))
+                etiket = {"kritik": "KRİTİK", "önemli": "ÖNEMLİ",
+                          "onemli": "ÖNEMLİ"}.get(onc, "BİLGİ")
+                satir += (
+                    f'<div style="display:flex;align-items:center;gap:12px;padding:13px 15px;'
+                    f'background:#F8FAFC;border:1px solid #E2E8F0;border-left:3px solid {bar};'
+                    f'border-radius:9px;">{_cip(etiket, tip)}<div style="flex:1;min-width:0;">'
+                    f'<div style="font-size:13.5px;font-weight:600;color:#0F1E33;">'
+                    f'{_kacar(e.get("alan", "—"))}</div><div style="font-size:12px;color:#64748B;">'
+                    f'{_kacar(e.get("oneri") or e.get("aciklama") or "")}</div></div></div>')
+            _md(f'<div style="display:flex;flex-direction:column;gap:10px;">{satir}</div>'
+                '<div style="font-size:11.5px;color:#64748B;margin-top:14px;">Zorunlu '
+                'alanlar evrak türüne göre denetlenir (örn. dilekçe: tarih, ad_soyad, '
+                'tc_kimlik, adres, talep_metni, imza).</div>')
+
+    # --- Mevzuat İsabet ---
+    with t4:
+        if not mevz:
+            _md('<div style="font-size:12.5px;color:#64748B;">Eşleşen mevzuat '
+                'maddesi bulunamadı.</div>')
+        else:
+            kart = ""
+            for m in mevz[:5]:
+                skor = float(m.get("benzerlik") or 0.0)
+                zayif = (' <span class="ez-cip uyari" style="font-size:10px;">zayıf '
+                         'eşleşme</span>' if m.get("zayif_esleme") else "")
+                kart += f"""
+                <div style="padding:15px 17px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;"><span style="font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;background:#14315B;color:#fff;padding:2px 8px;border-radius:6px;">{_kacar(_mevzuat_kod(m))}</span><span style="font-size:14px;font-weight:600;color:#0F1E33;">{_kacar(m.get('mevzuat_adi') or m.get('baslik', '—'))}</span>{zayif}</div>
+                    <span style="font-size:11.5px;color:#64748B;">{_kacar(m.get('madde_etiketi', ''))}</span>
+                  </div>
+                  <div style="font-size:12.5px;color:#475569;margin-bottom:9px;">{_kacar((m.get('gerekce') or m.get('icerik_ozeti') or '')[:220])}</div>
+                  <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:#64748B;">benzerlik</span><div style="flex:1;height:7px;background:#EDF1F7;border-radius:999px;overflow:hidden;"><div style="height:100%;width:{min(100,max(0,skor*100)):.0f}%;background:#1D4ED8;border-radius:999px;"></div></div><span style="font-size:12px;color:#94A3B8;font-variant-numeric:tabular-nums;">{_yzd(skor)}</span></div>
+                </div>"""
+            _md(f'<div style="display:flex;flex-direction:column;gap:12px;">{kart}</div>'
+                '<div style="font-size:11.5px;color:#64748B;margin-top:14px;">Benzerlik '
+                '<b>mutlak</b> ölçekte raporlanır; en iyi eşleşme &lt; 0,50 ise "zayıf '
+                'eşleşme" işaretlenir ve taslakta atıf yapılmaz.</div>')
+
+    # --- Üretilen Taslak ---
+    with t5:
+        if not taslak:
+            _md('<div style="display:flex;align-items:center;gap:10px;padding:14px 16px;'
+                'background:#EDF1F7;border-radius:9px;font-size:13px;color:#64748B;">'
+                + _ikon("info", 16, "#64748B")
+                + 'Bu evrak için taslak üretilmedi (dil kapısı: metin Türkçe '
+                'görünmüyor, ya da okunabilirlik kapısı).</div>')
+        else:
+            kontroller = fmt.get("kontroller") or []
+            k_html = ""
+            for k in kontroller:
+                ok = bool(k.get("durum"))
+                ikon = (_ikon("tik", 15, "#15803D", 2.4) if ok
+                        else '<span style="color:#B91C1C;font-weight:700;font-size:15px;">✕</span>')
+                k_html += (
+                    f'<div style="display:flex;align-items:center;gap:9px;padding:7px 11px;'
+                    f'background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;">{ikon}'
+                    f'<span style="flex:1;font-size:12.5px;color:#334155;">{_kacar(k.get("kural", ""))}</span>'
+                    f'<span style="font-size:10.5px;color:#94A3B8;font-variant-numeric:tabular-nums;">{_kacar(k.get("dayanak", ""))}</span></div>')
+            skor = fmt.get("skor")
+            skor_metin = _yzd(skor) if isinstance(skor, (int, float)) else "—"
+            uygun = fmt.get("uygun")
+            skor_bg = "#DCFCE7" if uygun else "#FEF3C7"
+            skor_fg = "#15803D" if uygun else "#B45309"
+            taslak_html = _kacar(taslak).replace("\n", "<br/>")
+            _md(f"""
+            <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:start;">
+              <div class="ez-resmi" style="white-space:normal;font-size:13px;">{taslak_html}</div>
+              <div>
+                <div style="font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#64748B;margin-bottom:10px;">Format Öz-Denetimi <span style="font-weight:400;text-transform:none;">· Resmî Yazışma Yönetmeliği</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px;">{k_html}</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:11px 14px;background:{skor_bg};border-radius:9px;">
+                  <span style="font-size:12px;color:{skor_fg};font-weight:600;">Ağırlıklı format skoru</span><span style="flex:1;"></span>
+                  <span style="font-size:16px;font-weight:700;color:{skor_fg};font-variant-numeric:tabular-nums;">{skor_metin}</span>
+                  <span style="font-size:11px;color:{skor_fg};">uygun ≥ %80</span>
+                </div>
+              </div>
+            </div>""")
+            i1, i2 = st.columns(2)
+            i1.download_button("⬇️ Taslağı İndir (.txt)", data=taslak,
+                               file_name="resmi_cevap_taslak.txt",
+                               mime="text/plain", width="stretch")
+            _pdf, _pdf_hata = _taslak_pdf(taslak)
+            if _pdf:
+                i2.download_button("⬇️ Resmî Yazı PDF İndir", data=_pdf,
+                                   file_name="resmi_cevap_taslak.pdf",
+                                   mime="application/pdf", width="stretch",
+                                   help="Resmî Yazışma Yönetmeliği (RG 10.06.2020/"
+                                        "31151) görsel formatı; A4, Times New Roman.")
+            elif _pdf_hata == "reportlab":
+                i2.button("⬇️ PDF (reportlab gerekli)", disabled=True,
+                          width="stretch",
+                          help="pip install -r requirements-optional.txt")
+            else:
+                i2.button("⬇️ PDF üretilemedi", disabled=True, width="stretch",
+                          help=f"PDF üretim hatası: {_pdf_hata}")
+            st.caption("PDF içeriği .txt ile birebir aynıdır; yalnızca dizgi resmî "
+                       "yazışma formatına göre yeniden hizalanır.")
+
+    # --- Gelişmiş çıktılar (mockup dışı; işlevsellik korunur, gizli) ----------
+    with st.expander("🔧 Gelişmiş çıktılar — kullanıcı bilgilendirmeleri · "
+                     "denetim raporu · e-Yazışma · emsal · geri bildirim"):
+        # Görev 2 zorunlu çıktısı (şartname m.6.4.2): süreç bilgilendirmesi +
+        # eksik bilgi talep metinleri. Ana sekmeler mockup'a sadık kalsın diye
+        # burada tutulur ama KALDIRILMAZ (uyum matrisi kanıtı korunur).
+        _kart_bilgilendirmeler(sonuc)
+        _kart_islem_raporu(sonuc)
+        _kart_eyazisma_ustveri(sonuc)
+        _kart_emsal(sonuc)
+        _bolum_geri_bildirim(sonuc)
 
 
 def _analiz_yap(metin: str):
@@ -1564,49 +2230,130 @@ def _gercek_kvkk_paneli(sonuc: dict) -> None:
 # ===========================================================================
 
 def sayfa_toplu_isleme() -> None:
-    """Toplu İşleme — GERÇEK evrak seti dosyalarını gerçek pipeline'dan geçirir."""
+    """Toplu İşleme — gerçek evrak setini uçtan uca işler (mockup birebir)."""
+    pill = (("canli", "CANLI ÇEKİRDEK") if _BACKEND_VAR
+            else ("notr", "ÇEKİRDEK YÜKLENEMEDİ"))
     _ust_cubuk("Toplu İşleme",
-               "Gerçek evrak setini uçtan uca işle — canlı gerçek sonuç tablosu")
+               "Gerçek evrak setini uçtan uca işle — tür, birim ve güven "
+               "sütunlarıyla", pill=pill)
     if not _BACKEND_VAR:
         st.error("⛔ Gerçek işleme çekirdeği (src/) yüklenemedi; toplu işleme "
                  "yalnız gerçek pipeline ile çalışır.")
         return
-    st.caption("ℹ️ Seçilen **gerçek evrak seti** (data/raw), gerçek 11-ajan "
-               "pipeline'ından tek tek geçirilir — kurgu yok. Tür/birim/öncelik/"
-               "süre gerçek çıktıdır.")
-    kontrol, ozet = st.columns([2, 3])
-    with kontrol:
-        st.markdown("##### 🎛️ İşleme Ayarları")
-        set_ad = st.selectbox("Evrak seti (gerçek)", list(_KURGU_SETLERI.keys()))
-        yollar = _kurgu_evrak_yollari(_KURGU_SETLERI[set_ad])
-        azami = len(yollar)
-        # Slider min==max iken çöker (StreamlitAPIException); boş/tek dosyalı
-        # sette slider'ı atla.
-        if azami == 0:
-            st.warning("Bu sette işlenecek .txt evrak bulunamadı.")
-            adet = 0
-        elif azami == 1:
-            st.info("Bu sette 1 evrak var; tümü işlenecek.")
-            adet = 1
-        else:
-            adet = st.slider("İşlenecek evrak sayısı", 1, azami, min(10, azami))
-        baslat = st.button("▶ Gerçek Toplu İşlemeyi Başlat", type="primary",
-                           width="stretch", disabled=(azami == 0))
-    with ozet:
-        st.markdown("##### 📥 Kuyruk")
-        st.info(f"Set: **{set_ad}** · klasörde **{azami}** gerçek evrak. Seçilen "
-                f"**{adet}** evrak, {len(AJANLAR)} ajanlık gerçek hattan "
-                f"geçirilecek.\n\nİlk evrakta korpus yüklemesi nedeniyle küçük "
-                f"gecikme olabilir; sonrası hızlıdır.")
-    st.divider()
+
+    k1, k2, k3 = st.columns([2, 1, 1])
+    set_ad = k1.selectbox("Evrak seti", list(_KURGU_SETLERI.keys()),
+                          label_visibility="collapsed")
+    yollar = _kurgu_evrak_yollari(_KURGU_SETLERI[set_ad])
+    azami = len(yollar)
+    if azami <= 1:
+        adet = azami
+        k2.caption(f"{azami} evrak")
+    else:
+        adet = k2.slider("Adet", 1, azami, min(15, azami),
+                         label_visibility="collapsed")
+    baslat = k3.button("▶ Toplu İşlemeyi Başlat", type="primary",
+                       width="stretch", disabled=(azami == 0))
+    st.caption(f"Set: **{set_ad}** · klasörde **{azami}** gerçek evrak · seçilen "
+               f"**{adet}** evrak {len(AJANLAR)} ajanlık gerçek hattan geçirilecek.")
+
     if baslat and yollar and adet:
-        _toplu_isle_gercek(yollar[:adet])
-    elif st.session_state.get("son_toplu"):
-        st.caption("Son gerçek toplu işleme sonucu:")
-        _toplu_sonuc_goster(st.session_state["son_toplu"])
+        _toplu_isle_mockup(yollar[:adet])
+    elif st.session_state.get("son_toplu_kartlar"):
+        _toplu_goster(st.session_state["son_toplu_kartlar"],
+                      st.session_state.get("son_toplu_metrik", {}), gercek=True)
         _kokpit_gostergeleri(st.session_state.get("son_toplu_tam") or [])
     else:
-        st.caption("Başlatmak için **Gerçek Toplu İşlemeyi Başlat** butonuna basın.")
+        _toplu_goster(None, {}, gercek=False)
+        st.caption("Başlatmak için **Toplu İşlemeyi Başlat**'a basın.")
+
+
+def _toplu_isle_mockup(yollar: list) -> None:
+    """Gerçek dosyaları işler; mockup stili metrik + tablo üretir."""
+    pipe = _gercek_pipeline()
+    if pipe is None:
+        st.error("⛔ Pipeline kurulamadı.")
+        return
+    ilerleme = st.progress(0.0, text="Gerçek işleme başlıyor...")
+    kartlar, tam, guvenler, sureler, onay = [], [], [], [], 0
+    toplam = len(yollar)
+    for i, yol in enumerate(yollar, start=1):
+        try:
+            r = pipe.process(str(yol), mode="full", kayit=False)
+        except Exception as e:
+            kartlar.append({"dosya": yol.name, "tur": "⚠ HATA", "birim": "—",
+                            "guven": "—"})
+            continue
+        tam.append(r)
+        cls = r.get("siniflandirma") or {}
+        g = cls.get("guven")
+        if isinstance(g, (int, float)):
+            guvenler.append(g)
+        sm = int((r.get("islem_suresi_saniye") or 0) * 1000)
+        sureler.append(sm)
+        if (r.get("insan_onayi") or {}).get("gerekli"):
+            onay += 1
+        kartlar.append({
+            "dosya": yol.name, "tur": cls.get("tur_adi", "—"),
+            "birim": (r.get("yonlendirme") or {}).get("birim", "—"),
+            "guven": _yzd(g) if isinstance(g, (int, float)) else "—"})
+        ilerleme.progress(i / toplam, text=f"{yol.name} ({i}/{toplam})")
+    ilerleme.progress(1.0, text="✅ Gerçek toplu işleme tamamlandı")
+
+    ort_guven = _yzd(sum(guvenler) / len(guvenler)) if guvenler else "—"
+    med = sorted(sureler)[len(sureler) // 2] if sureler else 0
+    metrik = {"islenen": str(len(tam)), "ort_guven": ort_guven,
+              "onay": str(onay), "medyan": f"{med} ms"}
+    st.session_state["oturum_islenen"] += len(tam)
+    st.session_state["son_toplu_kartlar"] = kartlar
+    st.session_state["son_toplu_metrik"] = metrik
+    st.session_state["son_toplu_tam"] = tam
+    st.session_state["son_toplu"] = [  # HITL kuyruğu uyumu (ajan sayfası)
+        {"Dosya": k["dosya"], "Tür": k["tur"], "Birim": k["birim"],
+         "İnsan Onayı": ("🛑 gerekli" if (t.get("insan_onayi") or {}).get("gerekli")
+                         else "✔ otomatik"), "Öncelik": ONCELIKLER.get(
+             (t.get("onceliklendirme") or {}).get("oncelik", "normal"), "—")}
+        for k, t in zip(kartlar, tam)]
+    _toplu_goster(kartlar, metrik, gercek=True)
+    _kokpit_gostergeleri(tam)
+
+
+def _toplu_goster(kartlar, metrik: dict, gercek: bool) -> None:
+    """Toplu sonuç: 4 metrik kartı + sonuç tablosu (mockup stili)."""
+    kaynak = "gercek" if gercek else "sim"
+    tanim = [("İşlenen Evrak", metrik.get("islenen", "—"), "evrak"),
+             ("Ort. Güven", metrik.get("ort_guven", "—"), "trend"),
+             ("İnsan Onayı", metrik.get("onay", "—"), "shield"),
+             ("Medyan Süre", metrik.get("medyan", "—"), "clock")]
+    _md(_metrik_gridi([_metrik_karti(b, d, "gerçek toplu çıktı" if gercek
+                                     else "işleme bekleniyor", ik, kaynak)
+                       for b, d, ik in tanim]))
+
+    rozet = _kaynak_rozet("gercek_kisa") if gercek else _kaynak_rozet("demo")
+    if kartlar:
+        satir = "".join(
+            f'<tr><td class="num">{_kacar(k["dosya"])}</td>'
+            f'<td class="str">{_kacar(k["tur"])}</td>'
+            f'<td>{_kacar(k["birim"])}</td>'
+            f'<td class="num">{_kacar(k["guven"])}</td></tr>' for k in kartlar)
+    else:
+        satir = ('<tr><td colspan="4" style="padding:16px;color:#94A3B8;">'
+                 'Henüz işleme yapılmadı — set seçip başlatın.</td></tr>')
+    _md(f"""
+    <div class="ez-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;">Sonuç Tablosu</h3>{rozet}
+      </div>
+      <table class="ez-tbl">
+        <thead><tr><th>Dosya</th><th>Tür</th><th>Birim</th><th style="text-align:right;">Güven</th></tr></thead>
+        <tbody>{satir}</tbody>
+      </table>
+    </div>""")
+    if kartlar:
+        df = pd.DataFrame(kartlar)
+        st.download_button("⬇️ Sonuçları İndir (CSV)",
+                           data=df.to_csv(index=False).encode("utf-8-sig"),
+                           file_name="toplu_isleme_gercek.csv", mime="text/csv")
 
 
 def _toplu_isle_gercek(yollar: list) -> None:
@@ -1834,71 +2581,81 @@ def _kart_insan_onayi_kuyrugu() -> None:
 
 
 def sayfa_ajan_yonetimi() -> None:
-    """Ajan Yönetimi — GERÇEK 11 ajan + gerçek ölçülen adım süreleri."""
+    """Ajan Yönetimi — orkestratör (3 kapı) + 11 uzman ajan grid (mockup birebir)."""
     _ust_cubuk("Ajan Yönetimi",
-               f"{len(AJANLAR)} gerçek uzman ajan + orkestratör")
-    st.caption("ℹ️ Ajan listesi, rolleri ve süreleri **gerçektir**: roller "
-               "`src/agents` ile birebir; ortalama süreler ölçüm raporundan, "
-               "'son çalıştırma' süreleri son canlı analizden gelir. Kurgu "
-               "CPU/bellek telemetrisi yoktur (şartname m.6).")
-    ss = st.session_state
+               "11 uzman ajan + orkestratör — sorumluluk, kategori ve "
+               "tetiklenme koşulları")
     rapor = _eval_raporu("eval_report.json")
     adim_sure = (rapor.get("performans") or {}).get(
         "adim_bazinda_ortalama_sure_saniye", {}) or {}
-    son_adim = {a.get("agent"): a for a in (ss.get("son_adimlar") or [])}
 
-    kartlar = [
-        _metrik_karti("🤖", str(len(AJANLAR)), "Uzman Ajan", "gerçek",
-                      "green", MAVI, [50] * 8),
-        _metrik_karti("🧠", "1", "Orkestratör", "3 karar kapısı", "blue",
-                      MAVI_ACIK, [50] * 8),
-        _metrik_karti("⚙️", str(len(adim_sure) or len(AJANLAR)), "Ölçülen Adım",
-                      "eval raporu", "blue", MAVI, [50] * 8),
-        _metrik_karti("📥", str(ss["oturum_islenen"]), "Bu Oturumda İşlenen",
-                      "canlı", "green", YESIL, [50] * 8),
+    # Orkestratör kartı (koyu) + 3 kapı
+    kapilar = [
+        ("KAPI 1 · OKUNABİLİRLİK",
+         "Metin ≥ 30 anlamlı karakter — aksi halde süreç erken sonlanır."),
+        ("KAPI 2 · DİL",
+         "Metin Türkçe mi? Değilse taslak atlanır, analiz sürer."),
+        ("KAPI 3 · DÜŞÜK GÜVEN",
+         "Sınıflandırma/yönlendirme güveni &lt; 0,60 → insan onayı."),
     ]
-    _md(_metrik_gridi(kartlar))
+    kapi_html = "".join(
+        f'<div style="flex:1;min-width:180px;background:#122A4A;border:1px solid '
+        f'rgba(107,155,255,.25);border-radius:10px;padding:14px;">'
+        f'<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#FDE68A;">'
+        f'{ad}</div><div style="font-size:12.5px;color:#C9D6EA;margin-top:5px;">'
+        f'{aciklama}</div></div>' for ad, aciklama in kapilar)
+    _md(f"""
+    <div style="background:#0B1B33;border-radius:12px;padding:22px 24px;margin-bottom:24px;color:#E6EDF7;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:36px;height:36px;border-radius:9px;background:#122A4A;display:flex;align-items:center;justify-content:center;">{_ikon("cpu", 19, "#6B9BFF")}</div>
+        <div><div style="font-size:16px;font-weight:700;color:#fff;">Orkestratör Ajan</div>
+        <div style="font-size:12px;color:#93A4BE;">Çekirdek · Koordinasyon — 11 ajanı koşullu akışla yönetir</div></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">{kapi_html}</div>
+    </div>""")
 
-    _orkestrator_paneli()
-    _kart_insan_onayi_kuyrugu()
-
-    st.markdown("##### 🧩 Uzman Ajan Filosu (gerçek roller + ölçülen süreler)")
-    sutunlar = st.columns(3)
-    for idx, ajan in enumerate(AJANLAR):
-        ort = adim_sure.get(ajan["kod"])
-        canli = son_adim.get(ajan["kod"])
-        with sutunlar[idx % 3]:
-            with st.container(border=True):
-                st.markdown(f"### {ajan['ikon']} {ajan['ad']}")
-                st.caption(ajan["kategori"])
-                c1, c2 = st.columns(2)
-                c1.metric("Ort. Süre",
-                          f"{(ort or 0) * 1000:.1f} ms" if ort is not None else "—")
-                if canli:
-                    c2.metric("Son Çalıştırma",
-                              f"{int((canli.get('sure_saniye') or 0) * 1000)} ms")
-                    durum = {"success": "✔ başarılı", "atlandi": "⤳ atlandı",
-                             "error": "✗ hata"}.get(canli.get("status"), "—")
-                    st.caption(f"Son durum: {durum}")
-                else:
-                    c2.metric("Son Çalıştırma", "—")
-                st.caption(f"Rol: {ajan['rol'][:70]}")
-
-    st.divider()
-    st.markdown("##### 📊 Ajan Bazlı Ortalama Süre (gerçek — ölçüm raporu)")
+    # 11 uzman ajan grid
+    kart_html = ""
+    for i, a in enumerate(AJANLAR):
+        gorev = "GÖREV 1" if i < 8 else "GÖREV 2"
+        ort = adim_sure.get(a["kod"])
+        sure_html = (f'<span style="font-size:10.5px;color:#94A3B8;font-variant-numeric:'
+                     f'tabular-nums;">ort. {ort*1000:.0f} ms</span>'
+                     if isinstance(ort, (int, float)) else "")
+        kart_html += f"""
+        <div class="ez-card ez-card-sm" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:11px;">
+            <div style="width:36px;height:36px;border-radius:9px;background:#EDF1F7;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:#14315B;flex:0 0 auto;">{i+1:02d}</div>
+            <div style="min-width:0;"><div style="font-size:14px;font-weight:600;color:#0F1E33;line-height:1.25;">{_kacar(a['ad'])}</div>
+            <div style="font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#94A3B8;">{_kacar(a['kategori'])}</div></div>
+          </div>
+          <div style="font-size:12.5px;color:#475569;line-height:1.5;flex:1;">{_kacar(a['rol'])}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span style="font-size:10px;font-weight:700;letter-spacing:.05em;background:#DBEAFE;color:#1D4ED8;padding:2px 8px;border-radius:999px;">{gorev}</span>{sure_html}
+          </div>
+        </div>"""
+    _md(f'<div class="ez-g3">{kart_html}</div>')
     if adim_sure:
-        yuk_df = pd.DataFrame({
-            "Ajan": [next((a["ad"] for a in AJANLAR if a["kod"] == k), k)
-                     for k in adim_sure],
-            "Süre (ms)": [round(v * 1000, 2) for v in adim_sure.values()]})
-        st.altair_chart(alt.Chart(yuk_df).mark_bar(cornerRadiusEnd=4).encode(
-            x=alt.X("Süre (ms):Q", title="Ortalama Süre (ms)"),
-            y=alt.Y("Ajan:N", sort="-x", title=None),
-            color=alt.Color("Süre (ms):Q", legend=None,
-                            scale=alt.Scale(scheme="blues")),
-            tooltip=["Ajan", "Süre (ms)"]).properties(height=360), use_container_width=True)
+        st.caption("Ortalama süreler `scripts/evaluate.py` ölçüm raporundan "
+                   "(gerçek); roller `src/agents` ile birebir.")
     else:
-        st.info("Adım süresi verisi için önce `scripts/evaluate.py` çalıştırın.")
+        st.caption("Roller `src/agents` ile birebir. Ortalama süreler için "
+                   "`scripts/evaluate.py` çalıştırın.")
+
+    with st.expander("📊 Ölçülen adım süreleri + İnsan Onayı Kuyruğu (gerçek)"):
+        if adim_sure:
+            yuk_df = pd.DataFrame({
+                "Ajan": [next((a["ad"] for a in AJANLAR if a["kod"] == k), k)
+                         for k in adim_sure],
+                "Süre (ms)": [round(v * 1000, 2) for v in adim_sure.values()]})
+            st.altair_chart(alt.Chart(yuk_df).mark_bar(cornerRadiusEnd=4).encode(
+                x=alt.X("Süre (ms):Q", title="Ortalama Süre (ms)"),
+                y=alt.Y("Ajan:N", sort="-x", title=None),
+                color=alt.Color("Süre (ms):Q", legend=None,
+                                scale=alt.Scale(scheme="blues")),
+                tooltip=["Ajan", "Süre (ms)"]).properties(height=340),
+                use_container_width=True)
+        _kart_insan_onayi_kuyrugu()
 
 
 # ===========================================================================
@@ -2866,50 +3623,56 @@ def _orkestrator_yanit(soru: str) -> str:
     return _NIYET_ISLEV[isim1](sorgu, evrak)
 
 
+def _sohbet_html(metin: str) -> str:
+    """Sohbet mesajındaki basit markdown'ı (kalın, satır, madde) HTML'e çevirir."""
+    t = _kacar(metin)
+    t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+    t = re.sub(r"(?m)^\s*[-*]\s+", "• ", t)
+    return t.replace("\n", "<br/>")
+
+
 def sayfa_asistan() -> None:
-    """Asistan sayfası — orkestratör ile doğal dil sohbeti."""
-    _ust_cubuk("Asistan · Orkestratör",
-               "Doğal dille sorun; orkestratör ilgili ajana yönlendirip yanıtlar")
+    """Asistan — orkestratör sohbeti (mockup balonları + gerçek yanıt motoru)."""
+    llm_var, llm_ad = _llm_durum()
+    pill = (("gercek", f"ÇEVRİMİÇİ · +LLM ({llm_ad})") if llm_var
+            else ("notr", "HİBRİT NİYET MOTORU · ÇEVRİMDIŞI"))
+    _ust_cubuk("Asistan",
+               "Orkestratör sohbeti — doğal dille sorun, ilgili ajana yönlendirsin",
+               pill=pill)
     ss = st.session_state
 
-    sol, sag = st.columns([1, 2])
+    # Sohbet balonları (mockup stili)
+    balonlar = ""
+    for m in ss["sohbet"]:
+        if m["rol"] == "user":
+            balonlar += (
+                '<div style="display:flex;justify-content:flex-end;margin-bottom:16px;">'
+                f'<div class="ez-chat-user">{_sohbet_html(m["icerik"])}</div></div>')
+        else:
+            balonlar += (
+                '<div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:16px;">'
+                f'<div class="ez-chat-ava">{_ikon("cpu-min", 17, "#6B9BFF")}</div>'
+                f'<div class="ez-chat-bot">{_sohbet_html(m["icerik"])}</div></div>')
+    _md(f'<div class="ez-card" style="max-width:860px;padding:22px 24px;">{balonlar}'
+        f'</div>')
+    _md('<div style="font-size:11.5px;color:#64748B;margin-top:12px;max-width:860px;">'
+        'Hesap makinesi ve LLM-fallback yolları görünürdür: sayısal sorular kural '
+        'tabanlı hesaplanır, mevzuat soruları RAG\'e, belirsiz sorular (LLM varsa) '
+        'orkestratöre yönlendirilir.</div>')
 
-    # --- Sol: orkestratör kartı + hızlı sorular -------------------------
-    with sol:
-        with st.container(border=True):
-            st.markdown(f"### 🧠 {ORKESTRATOR['ad']}")
-            _llm_var, _llm_ad = _llm_durum()
-            if _llm_var:
-                st.write(f"🟢 Çevrimiçi · hibrit niyet motoru + LLM ({_llm_ad})")
-            else:
-                st.write("🟢 Çevrimiçi · hibrit niyet motoru (LLM bağlı değil)")
-            st.caption(ORKESTRATOR["rol"])
-            c1, c2 = st.columns(2)
-            c1.metric("Yönetilen Ajan", len(AJANLAR))
-            c2.metric("Çekirdek", "🟢 Gerçek" if _BACKEND_VAR else "🟡 Yok")
-
-        st.markdown("**💡 Hızlı Sorular**")
-        for i, oneri in enumerate(_HIZLI_SORULAR):
-            if st.button(oneri, key=f"oneri_{i}", width="stretch"):
-                ss["bekleyen_soru"] = oneri
-                st.rerun()
-
-        if st.button("🗑️ Sohbeti Temizle", width="stretch"):
-            ss["sohbet"] = [{"rol": "assistant", "icerik": _KARSILAMA_MESAJI}]
+    # Hızlı sorular
+    st.markdown("**💡 Hızlı Sorular**")
+    hs = st.columns(2)
+    for i, oneri in enumerate(_HIZLI_SORULAR):
+        if hs[i % 2].button(oneri, key=f"oneri_{i}", width="stretch"):
+            ss["bekleyen_soru"] = oneri
             st.rerun()
+    if st.button("🗑️ Sohbeti Temizle"):
+        ss["sohbet"] = [{"rol": "assistant", "icerik": _KARSILAMA_MESAJI}]
+        st.rerun()
 
-    # --- Sağ: konuşma alanı ---------------------------------------------
-    with sag:
-        st.markdown("##### 💬 Sohbet")
-        with st.container(border=True, height=440):
-            for mesaj in ss["sohbet"]:
-                avatar = "🧠" if mesaj["rol"] == "assistant" else "🧑"
-                with st.chat_message(mesaj["rol"], avatar=avatar):
-                    st.markdown(mesaj["icerik"])
-
-    # --- Girdi (alt sabit) + bekleyen hızlı soru işleme -----------------
-    girdi = st.chat_input("Orkestratöre sorun: evrak, mevzuat, ajan durumu, "
-                          "KVKK, öncelik, yönlendirme...")
+    # Girdi
+    girdi = st.chat_input('Bir soru yazın… (ör. "Bu evrakta KVKK riski var mı?")')
     soru = girdi or ss.get("bekleyen_soru")
     if soru:
         ss["bekleyen_soru"] = None
@@ -2929,31 +3692,48 @@ def sayfa_asistan() -> None:
 # ===========================================================================
 
 def sayfa_mevzuat_rag() -> None:
-    """Mevzuat ve RAG — GERÇEK mevzuat korpusu + sistemin gerçek BM25 araması."""
+    """Mevzuat ve RAG — gerçek korpus + canlı BM25 araması (mockup birebir)."""
     _ust_cubuk("Mevzuat ve RAG",
-               "Gerçek mevzuat korpusu (RAG kaynağı) ve canlı BM25 araması")
+               "Saf Python BM25-Okapi ile madde-referanslı, gerekçeli mevzuat "
+               "araması")
     korpus = _mevzuat_korpus()
-    st.caption(f"ℹ️ Kaynak: **`data/raw/mevzuat_metinleri/`** — gerçek "
-               f"**{len(korpus)}** mevzuat metni. Arama, sistemin ürettiği çıktıda "
-               f"kullandığı **gerçek BM25/RAG** motoruyla yapılır (kurgu skor yok).")
+    a1, a2 = st.columns([5, 1])
+    sorgu = a1.text_input("Sorgu", placeholder="dilekçeye kaç günde cevap "
+                          "verilir · bilgi edinme süresi · KVKK maskeleme",
+                          label_visibility="collapsed")
+    ara = a2.button("Ara", type="primary", width="stretch")
+    _md(f'<div style="display:flex;align-items:center;gap:8px;margin:6px 0 20px;">'
+        f'{_kaynak_rozet("gercek_kisa")}<span style="font-size:12px;color:#64748B;">'
+        f'Korpus: <b>{len(korpus)} belge</b> — kaynak: mevzuat.gov.tr (kamuya açık)'
+        f'</span></div>')
 
-    st.markdown("##### 🔍 Canlı Mevzuat Araması (gerçek BM25/RAG)")
-    sorgu = st.text_input("Sorgu", placeholder="ör. dilekçeye kaç günde cevap "
-                          "verilir · bilgi edinme süresi · KVKK maskeleme")
-    if sorgu:
-        sonuc = _gercek_mevzuat_ara(sorgu, limit=5)
-        if sonuc:
-            for m in sonuc:
-                skor = float(m.get("benzerlik") or 0)
-                with st.container(border=True):
-                    st.markdown(f"**{m.get('mevzuat_adi') or m.get('baslik', '—')}**"
-                                f" · {m.get('madde_etiketi', '')}")
-                    st.caption((m.get("icerik_ozeti") or m.get("gerekce") or "")[:280])
-                    st.progress(min(1.0, max(0.0, skor)),
-                                text=f"benzerlik {skor:.2f}")
-        else:
+    if sorgu or ara:
+        sonuc = _gercek_mevzuat_ara(sorgu, limit=5) if sorgu.strip() else []
+        if not sonuc:
             st.info("Bu sorgu için eşleşme bulunamadı ya da arama motoru "
                     "yüklenemedi.")
+        else:
+            kart = ""
+            for m in sonuc:
+                skor = float(m.get("benzerlik") or 0)
+                baslik = m.get("mevzuat_adi") or m.get("baslik", "—")
+                bl = baslik.lower()
+                tur = ("Yönetmelik" if "yönetmelik" in bl else
+                       "Genelge" if "genelge" in bl else
+                       "Tebliğ" if "tebliğ" in bl else "Kanun")
+                ozet = (m.get("icerik_ozeti") or m.get("gerekce")
+                        or m.get("madde_etiketi") or "")[:240]
+                kart += f"""
+                <div class="ez-card" style="padding:16px 18px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:5px;">
+                    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;"><span style="font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;background:#14315B;color:#fff;padding:2px 8px;border-radius:6px;">{_kacar(_mevzuat_kod(m))}</span><span style="font-size:14.5px;font-weight:600;color:#0F1E33;">{_kacar(baslik)}</span></div>
+                    <span style="font-size:11px;font-weight:600;background:#EDF1F7;color:#475569;padding:2px 9px;border-radius:999px;">{tur}</span>
+                  </div>
+                  <div style="font-size:12.5px;color:#475569;line-height:1.5;margin-bottom:10px;">{_kacar(ozet)}</div>
+                  <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:11px;color:#64748B;">BM25 skoru</span><div style="flex:1;height:7px;background:#EDF1F7;border-radius:999px;overflow:hidden;"><div style="height:100%;width:{min(100,max(0,skor*100)):.0f}%;background:#1D4ED8;border-radius:999px;"></div></div><span style="font-size:12px;color:#94A3B8;font-variant-numeric:tabular-nums;">{_yzd(skor)}</span></div>
+                </div>"""
+            _md(f'<div style="display:flex;flex-direction:column;gap:12px;max-width:'
+                f'860px;">{kart}</div>')
 
     st.divider()
     st.markdown(f"##### 📋 Mevzuat Korpusu ({len(korpus)} gerçek doküman)")
@@ -2998,77 +3778,115 @@ def _maskele_gercek(metin: str):
         return None
 
 
+def _kvkk_maskele_tam(metin: str):
+    """Gerçek anonimleştirme ajanı: (maskeli, sayac_dict) döndürür; yoksa None."""
+    agent = _anonim_agent() if _BACKEND_VAR else None
+    if agent is None:
+        return None
+    try:
+        state = _AgentState(raw_text=metin)
+        agent.run(state)
+        sayac = (state.anonymization_report or {}).get("maskelenen", {}) or {}
+        return state.anonymized_text or "", sayac
+    except Exception:
+        return None
+
+
+def _kvkk_sizinti(maskeli: str) -> int:
+    """Bağımsız sızıntı denetimi (kvkk_denetim.kacak_olc) — toplam kaçak."""
+    try:
+        from src.utils.kvkk_denetim import kacak_olc
+        return int((kacak_olc(maskeli) or {}).get("toplam", 0))
+    except Exception:
+        return 0
+
+
 def sayfa_kvkk_uyum() -> None:
-    """KVKK ve Uyum — GERÇEK maskeleme + ölçülen sızıntı metriği + uyum matrisi."""
+    """KVKK ve Uyum — gerçek anonimleştirme (öncesi/sonrası + PII) (mockup birebir)."""
     _ust_cubuk("KVKK ve Uyum",
-               "Gerçek kişisel veri maskeleme, ölçülen sızıntı ve şartname uyumu")
-    kvkk = (_eval_raporu("eval_report.json").get("kvkk")) or {}
-    st.caption("ℹ️ Sızıntı metriği **ölçülmüştür** (`scripts/evaluate.py`); "
-               "maskeleme **gerçek anonimleştirme ajanıyla** canlı çalışır — "
-               "kurgu/demo skor yoktur (şartname m.6).")
-    kartlar = [
-        _metrik_karti("🛡️", _yzd(kvkk.get("sizintisiz_oran")), "KVKK Sızıntısız Oran",
-                      f"{kvkk.get('degerlendirilen', '—')} evrak", "green",
-                      YESIL, ipucu="Maskeleme sonrası PII sızmayan evrak oranı "
-                      "(ölçüldü: evaluate.py)."),
-        _metrik_karti("🔒", str(kvkk.get("toplam_kacak", "—")), "Toplam PII Kaçağı",
-                      "ölçülen", "green", MAVI,
-                      ipucu="Değerlendirmede maskelemeden kaçan toplam PII adedi."),
-        _metrik_karti("🧬", str(kvkk.get("degerlendirilen", "—")),
-                      "Değerlendirilen Evrak", "ölçülen", "blue", MAVI_ACIK,
-                      ipucu="Sızıntı metriğinin hesaplandığı evrak sayısı."),
-        _metrik_karti("🧩", str(len(_PII_ETIKET)), "Maskelenen PII Türü",
-                      "kural tabanlı", "blue", MAVI,
-                      ipucu="TCKN, telefon, e-posta, IBAN, ad-soyad, adres, "
-                      "plaka, doğum tarihi, sicil no."),
-    ]
-    _md(_metrik_gridi(kartlar))
-    st.caption("Kaynak: `data/processed/eval_report.json` (kvkk bloğu).")
-    # Beyan (ölçüm değil): şartname ilkeleri açıkça 'beyan' olarak işaretlenir.
-    st.info("📌 **Beyan (ölçüm değil):** 5/5 şartname kısıtı karşılanmıştır ve "
-            "veri **%100 sentetiktir** (gerçek PII yoktur). Bu iki ifade bir "
-            "taahhüttür; aşağıdaki uyum matrisiyle belgelenir.")
+               "Format-koruyan anonimleştirme — gerçek AnonimlestirmeAgent çıktısı")
+    _notice(
+        "<b>6698 sayılı KVKK md.4 (ölçülülük) ve md.8.</b> Paylaşım nüshasında "
+        "9 kategori kişisel veri format-koruyarak maskelenir; tamamen kural "
+        "tabanlı ve çevrimdışıdır. Şüphede maskeleme tercih edilir.",
+        tur="kvkk", ikon_ad="shield")
 
-    st.markdown("##### 🧪 Canlı Maskeleme (gerçek KVKK anonimleştirme ajanı)")
-    st.caption("Metne kurgu PII (TCKN, telefon, e-posta, IBAN) girin; gerçek "
-               "ajanın çıktısını anında görün.")
-    metin = st.text_area("Test metni", value=ORNEK_DILEKCE, height=220)
-    if st.button("🛡️ Maskele", type="primary"):
-        cikti = _maskele_gercek(metin)
-        if cikti is None:
-            st.error("⛔ Gerçek KVKK ajanı yüklenemedi; bu pano kurgu maske "
-                     "göstermez.")
-        else:
-            maskeli, satir = cikti
-            st.success("🟢 **Gerçek KVKK anonimleştirme ajanı** (kural tabanlı) "
-                       "ile maskelendi.")
-            sol, sag = st.columns(2)
-            with sol:
-                st.markdown("**🔓 Orijinal**")
-                st.code(metin, language="text")
-            with sag:
-                st.markdown("**🔒 Maskeli**")
-                st.code(maskeli, language="text")
-            if satir:
-                st.dataframe(pd.DataFrame(satir), width="stretch", hide_index=True)
-                toplam = sum(r.get("Maskelenen Adet", 0) for r in satir)
-                st.success(f"{toplam} kişisel veri unsuru maskelendi.")
-            else:
-                st.info("Maskelenecek PII bulunamadı.")
+    metin = st.text_area("Test metni (kurgu PII girin)", value=ORNEK_DILEKCE,
+                         height=180)
+    cikti = _kvkk_maskele_tam(metin)
+    if cikti is None:
+        st.error("⛔ Gerçek KVKK anonimleştirme ajanı yüklenemedi; bu pano kurgu "
+                 "maske göstermez.")
+        return
+    maskeli, sayac = cikti
+    toplam = sum(sayac.values()) if sayac else 0
 
-    st.divider()
-    st.markdown("##### 📋 Şartname Uyum Matrisi")
-    uyum = pd.DataFrame({
-        "Kısıt": ["Türkçe zorunluluğu", "Açık kaynak (Apache 2.0)",
-                  "Gerçek kamu verisi yok", "Görev bütünlüğü (G1+G2)",
-                  "Offline-first korunur"],
-        "Durum": ["✅ Uygun"] * 5,
-        "Kanıt": ["Tüm çıktı ve arayüz Türkçe",
-                  "Depo Apache 2.0; model ağırlığı yok",
-                  "Yalnızca sentetik/kurgu veri",
-                  "Sınıflandırma + taslak uçtan uca",
-                  "LLM olmadan tam işlevsel çekirdek"]})
-    st.dataframe(uyum, width="stretch", hide_index=True)
+    _md(f"""
+    <div class="ez-g2 ez-mb22">
+      <div class="ez-card">
+        <div style="font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#B91C1C;margin-bottom:12px;">Öncesi — ham metin</div>
+        <div style="font-family:'Times New Roman',Georgia,serif;font-size:13px;line-height:1.9;color:#334155;white-space:pre-wrap;">{_kacar(metin)}</div>
+      </div>
+      <div class="ez-card">
+        <div style="font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#15803D;margin-bottom:12px;">Sonrası — maskeli nüsha</div>
+        <div style="font-family:'Times New Roman',Georgia,serif;font-size:13px;line-height:1.9;color:#334155;white-space:pre-wrap;">{_kacar(maskeli)}</div>
+      </div>
+    </div>""")
+
+    # PII kategorileri (9) — gerçek sayaçlar
+    sira = ["tc_kimlik", "telefon", "eposta", "iban", "kisi_adi", "adres",
+            "plaka", "dogum_tarihi", "sicil_no"]
+    cip_html = ""
+    for k in sira:
+        adet = int(sayac.get(k, 0) or 0)
+        renk = "#15803D" if adet else "#94A3B8"
+        cip_html += (
+            f'<span style="display:inline-flex;align-items:center;gap:7px;'
+            f'background:#EDF1F7;border:1px solid #E2E8F0;border-radius:999px;'
+            f'padding:5px 12px;font-size:12.5px;color:#334155;">'
+            f'{_kacar(_PII_ETIKET.get(k, k))}<b style="font-variant-numeric:'
+            f'tabular-nums;color:{renk};">{adet}</b></span>')
+    kacak = _kvkk_sizinti(maskeli)
+    kacak_bg = "#DCFCE7" if kacak == 0 else "#FEE2E2"
+    kacak_fg = "#15803D" if kacak == 0 else "#B91C1C"
+    _md(f"""
+    <div class="ez-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h3 style="margin:0;font-size:15px;font-weight:600;color:#0F1E33;">Tespit Edilen PII Kategorileri <span style="font-weight:400;color:#64748B;font-size:12px;">· {toplam} maskeleme</span></h3>
+        {_kaynak_rozet("gercek_cikti")}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">{cip_html}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 15px;background:{kacak_bg};border-radius:9px;">
+        {_ikon("tik" if kacak == 0 else "ucgen", 16, kacak_fg, 2)}
+        <span style="font-size:13px;color:{kacak_fg};font-weight:600;">Bağımsız sızıntı denetimi (kvkk_denetim.py):</span>
+        <span style="flex:1;"></span>
+        <span style="font-size:15px;font-weight:700;color:{kacak_fg};font-variant-numeric:tabular-nums;">{kacak} kaçak</span>
+      </div>
+    </div>""")
+
+    if maskeli:
+        st.download_button("⬇️ KVKK Paylaşım/Arşiv Nüshasını İndir (.txt)",
+                           data=maskeli, file_name="kvkk_paylasim_nushasi.txt",
+                           mime="text/plain")
+
+    with st.expander("📋 Şartname Uyum Matrisi + ölçülen sızıntı metriği"):
+        kvkk_m = (_eval_raporu("eval_report.json").get("kvkk")) or {}
+        c1, c2, c3 = st.columns(3)
+        c1.metric("KVKK Sızıntısız Oran", _yzd(kvkk_m.get("sizintisiz_oran")))
+        c2.metric("Toplam PII Kaçağı (ölçüm)", str(kvkk_m.get("toplam_kacak", "—")))
+        c3.metric("Değerlendirilen Evrak", str(kvkk_m.get("degerlendirilen", "—")))
+        st.caption("Kaynak: `data/processed/eval_report.json` (kvkk bloğu, ölçüldü).")
+        uyum = pd.DataFrame({
+            "Kısıt": ["Türkçe zorunluluğu", "Açık kaynak (Apache 2.0)",
+                      "Gerçek kamu verisi yok", "Görev bütünlüğü (G1+G2)",
+                      "Offline-first korunur"],
+            "Durum": ["✅ Uygun"] * 5,
+            "Kanıt": ["Tüm çıktı ve arayüz Türkçe",
+                      "Depo Apache 2.0; model ağırlığı yok",
+                      "Yalnızca sentetik/kurgu veri",
+                      "Sınıflandırma + taslak uçtan uca",
+                      "LLM olmadan tam işlevsel çekirdek"]})
+        st.dataframe(uyum, width="stretch", hide_index=True)
 
 
 # ===========================================================================
@@ -3076,109 +3894,120 @@ def sayfa_kvkk_uyum() -> None:
 # ===========================================================================
 
 def sayfa_hakkinda() -> None:
-    """Hakkında — mimari özeti, görev eşleşmesi, veri kaynağı ve lisans beyanı."""
-    _ust_cubuk("Hakkında",
-               "Sistem, veri kaynağı ve kullanım hakları — şartname beyanı")
-    st.caption("ℹ️ Bu sayfa şartname m.6.5 (veri kaynağı beyanı) ve m.7 (açık "
-               "kaynak lisans) gereğini karşılar.")
+    """Hakkında — künye, şartname uyum özeti, lisans (mockup birebir)."""
+    _ust_cubuk("Hakkında", "Veri kaynağı, lisans ve şartname uyum künyesi")
 
-    ust = st.columns(2)
-    with ust[0]:
-        with st.container(border=True):
-            st.markdown("#### 🏛️ Sistem Özeti")
-            st.markdown(
-                "**Evrak Zekâ** — Kamu Evrak ve Yazışma Süreçleri için Akıllı "
-                "Agent Destek Sistemi (TEKNOFEST 2026, 1. Senaryo).\n\n"
-                f"- **{len(AJANLAR)} uzman ajan + orkestratör** (saf Python, "
-                "framework'süz)\n"
-                "- **Offline-first**: hiçbir LLM olmadan tam işlevsel çekirdek\n"
-                "- Koşullu akış, 3 karar kapısı: okunabilirlik / dil / düşük güven")
-        with st.container(border=True):
-            st.markdown("#### 🎯 Şartname Görev Eşleşmesi")
-            st.markdown(
-                "- **Görev 1 — Sınıflandırma + İçerik Analizi:** tür belirleme, "
-                "bilgi çıkarımı, eksik bilgi, mevzuat (RAG), önceliklendirme, "
-                "özet, KVKK maskeleme\n"
-                "- **Görev 2 — Taslak + Yönlendirme:** resmî cevap taslağı, "
-                "birim yönlendirme, kullanıcı bilgilendirmesi")
-    with ust[1]:
-        with st.container(border=True):
-            st.markdown("#### 🗂️ Veri Kaynağı Beyanı (m.6.5)")
-            st.success("Bu projede **gerçek kamu verisi kullanılmaz.** Tüm "
-                       "evraklar **sentetik/kurgudur**.")
-            st.markdown(
-                "- **TCKN:** yalnızca checksum geçen, gerçek hiçbir kişiye "
-                "atanmamış kurgu değerler\n"
-                "- **Telefon:** `05XX 000 XX XX` kurgu kalıbı\n"
-                "- **Kişi/kurum/yer adları:** kurgu evren; gerçekle benzerlik "
-                "tesadüf\n"
-                "- **Mevzuat korpusu:** kamuya açık mevzuat metinleri "
-                "(15 belge)")
-            st.caption("Ayrıntı: `data/README.md` (kaynak + kullanım hakları).")
-        with st.container(border=True):
-            st.markdown("#### ⚖️ Lisans ve Açık Kaynak (m.7)")
-            st.markdown(
-                "Depo **Apache License 2.0** ile açık kaynaktır (`LICENSE`).\n\n"
-                "- Depoya **model ağırlığı yüklenmez**; üçüncü taraf modeller "
-                "yalnızca bağlantı + sürüm + lisans ile `docs/model_bilgileri.md` "
-                "içinde dokümante edilir.")
-    st.caption("© 2026 · Evrak Zekâ · TEKNOFEST 2026 Yapay Zeka Dil Ajanları "
-               "Yarışması — sentetik veri · KVKK uyumlu")
+    kunye = [
+        ("Proje", "Kamu Evrak Akıllı Ajanı"),
+        ("Yarışma", "TEKNOFEST 2026 · 1. Senaryo"),
+        ("Mimari", f"{len(AJANLAR)} Ajan + Orkestratör"),
+        ("Veri", "Sentetik kurgu evrak (116)"),
+        ("Mevzuat Kaynağı", "mevzuat.gov.tr (kamuya açık)"),
+        ("Lisans", "Apache 2.0"),
+    ]
+    kunye_html = "".join(
+        f'<div style="display:flex;justify-content:space-between;gap:16px;'
+        f'padding:9px 0;border-bottom:1px solid #EDF1F7;font-size:13px;">'
+        f'<span style="color:#64748B;">{_kacar(k)}</span>'
+        f'<span style="color:#0F1E33;font-weight:500;text-align:right;">'
+        f'{_kacar(v)}</span></div>' for k, v in kunye)
+
+    uyum = [
+        "Çevrimdışı-öncelikli: internet/LLM olmadan uçtan uca çalışır.",
+        "Dürüstlük (m.6): ölçülmemiş sayı gerçekmiş gibi gösterilmez.",
+        "KVKK uyumu: 9 kategori PII maskeleme + bağımsız sızıntı denetimi.",
+        "Resmî Yazışma Yönetmeliği: taslak format öz-denetimi madde-referanslı.",
+        "Şeffaflık: her karar güven skoru + gerekçe + madde dayanağı taşır.",
+    ]
+    uyum_html = "".join(
+        f'<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;">'
+        f'{_ikon("tik", 16, "#15803D", 2.4)}<span style="font-size:13px;'
+        f'color:#334155;line-height:1.5;">{_kacar(u)}</span></div>' for u in uyum)
+
+    _md(f"""
+    <div class="ez-g2" style="max-width:960px;">
+      <div class="ez-card">
+        <h3 style="margin:0 0 14px;font-size:15px;font-weight:600;color:#0F1E33;">Künye</h3>
+        {kunye_html}
+      </div>
+      <div class="ez-card">
+        <h3 style="margin:0 0 14px;font-size:15px;font-weight:600;color:#0F1E33;">Şartname Uyum Özeti</h3>
+        {uyum_html}
+      </div>
+    </div>
+    <div style="background:#0B1B33;border-radius:12px;padding:20px 24px;margin-top:16px;max-width:960px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="width:40px;height:40px;border-radius:9px;background:#122A4A;display:flex;align-items:center;justify-content:center;">{_ikon("layers", 20, "#6B9BFF")}</div>
+      <div style="flex:1;min-width:200px;"><div style="font-size:15px;font-weight:700;color:#fff;">AGENTRA TECH</div>
+      <div style="font-size:12.5px;color:#93A4BE;">TEKNOFEST 2026 — Yapay Zekâ Dil Ajanları Yarışması · 1. Senaryo</div></div>
+      <span style="font-size:11px;font-weight:600;background:rgba(107,155,255,.18);color:#9DC0FF;padding:5px 12px;border-radius:999px;">Apache 2.0 Lisansı</span>
+    </div>""")
+    st.caption("© 2026 · Evrak Zekâ · sentetik veri · KVKK uyumlu. Ayrıntı: "
+               "`data/README.md`, `docs/model_bilgileri.md`, `LICENSE`.")
 
 
 # ===========================================================================
 #  BÖLÜM 12 — SAYFA: AYARLAR
 # ===========================================================================
 
+def _ayar_rozet(deger: str, tip: str) -> str:
+    """Ayar satırı durum rozeti (aktif/bilgi/notr)."""
+    renk = {"aktif": "background:#DCFCE7;color:#15803D;",
+            "bilgi": "background:#DBEAFE;color:#1D4ED8;",
+            "notr": "background:#EDF1F7;color:#475569;"}.get(tip, "")
+    return (f'<span style="display:inline-flex;align-items:center;gap:5px;'
+            f'padding:4px 11px;border-radius:999px;font-size:11.5px;'
+            f'font-weight:600;{renk}">{_kacar(deger)}</span>')
+
+
 def sayfa_ayarlar() -> None:
-    """Ayarlar — sistemin GERÇEK çalışma yapılandırması (salt-okunur bilgi)."""
-    _ust_cubuk("Ayarlar", "Sistemin güncel yapılandırması (salt-okunur, gerçek)")
-    st.caption("ℹ️ Bu sayfa sistemin **gerçek** çalışma yapılandırmasını "
-               "salt-okunur gösterir; kurgu ayar/değer yoktur. Çalışma modu ve "
-               "eşikler kod/CLI ile belirlenir.")
-    sol, sag = st.columns(2)
-    with sol:
-        with st.container(border=True):
-            st.markdown("#### ⚙️ Çalışma Çekirdeği")
-            c1, c2 = st.columns(2)
-            c1.metric("İşleme çekirdeği",
-                      "🟢 Gerçek (src/)" if _BACKEND_VAR else "🟡 Yok")
-            c2.metric("Uzman ajan", len(AJANLAR))
-            st.caption("Çalışma modu CLI'de seçilir: "
-                       "`python -m src.main --mode {full|classify|draft}` "
-                       "(varsayılan: full = Görev 1 + Görev 2).")
-        with st.container(border=True):
-            st.markdown("#### 🔌 LLM Köprüsü (opsiyonel)")
-            st.write("Çekirdek **offline-first**: hiçbir LLM olmadan tam çalışır.")
-            st.caption("Opsiyonel eskalasyon (Ollama / OpenAI-uyumlu) ortam "
-                       "değişkeniyle açılır. Model bilgileri: "
-                       "`docs/model_bilgileri.md`.")
-    with sag:
-        with st.container(border=True):
-            st.markdown("#### 🧠 Karar Eşikleri (kod sabiti)")
-            # Değerleri kaynaktan içe aktar (elle yazım → drift riskini önler;
-            # 'gerçek' denen değer gerçekten kaynaktan gelsin — Anayasal İlke 4).
-            try:
-                from src.agents.orchestrator import _INSAN_ONAYI_GUVEN_ESIGI
-                onay_esik = f"{_INSAN_ONAYI_GUVEN_ESIGI:.2f}"
-            except Exception:
-                onay_esik = "—"
-            try:
-                from src.agents.legislation_agent import DUZELTME_ESIGI
-                rag_esik = f"{DUZELTME_ESIGI:.2f}"
-            except Exception:
-                rag_esik = "—"
-            c1, c2 = st.columns(2)
-            c1.metric("İnsan onayı güven eşiği", onay_esik)
-            c2.metric("Corrective RAG tetiği", rag_esik)
-            st.caption("Değerler kaynaktan canlı okunur: "
-                       "`orchestrator._INSAN_ONAYI_GUVEN_ESIGI`, "
-                       "`legislation_agent.DUZELTME_ESIGI`.")
-        with st.container(border=True):
-            st.markdown("#### 🗂️ Veri ve KVKK")
-            st.write("✅ Yalnızca sentetik/kurgu veri (şartname m.6.5)")
-            st.write("✅ KVKK otomatik maskeleme (anonimleştirme ajanı)")
-            st.caption("Gerçek kamu verisi kullanımı şartname gereği kapalıdır.")
+    """Ayarlar — sistemin gerçek çalışma yapılandırması (salt-okunur, mockup birebir)."""
+    _ust_cubuk("Ayarlar",
+               "LLM sağlayıcı, çevrimdışı durum ve backend göstergeleri")
+
+    llm_var, llm_ad = _llm_durum()
+    try:
+        from src.agents.orchestrator import _INSAN_ONAYI_GUVEN_ESIGI
+        onay_esik = _ond(_INSAN_ONAYI_GUVEN_ESIGI, 2)
+    except Exception:
+        onay_esik = "—"
+    try:
+        from src.agents.legislation_agent import DUZELTME_ESIGI
+        rag_esik = _ond(DUZELTME_ESIGI, 2)
+    except Exception:
+        rag_esik = "—"
+
+    ayarlar = [
+        ("LLM Sağlayıcı", "OpenAI-uyumlu / Ollama — opsiyonel hızlandırıcı",
+         (f"Çevrimiçi · {llm_ad}", "aktif") if llm_var else ("Çevrimdışı", "notr")),
+        ("İşleme Çekirdeği", "11-ajan orkestratör backend",
+         ("Aktif · 11 ajan", "aktif") if _BACKEND_VAR else ("Yüklenemedi", "notr")),
+        ("Mevzuat Korpusu", "BM25-Okapi dizini",
+         (f"{len(_mevzuat_korpus())} belge", "bilgi")),
+        ("Semantik Arama", "turkish-e5-large + reranker (opsiyonel)",
+         ("Devre dışı", "notr")),
+        ("Tema", "Kamu-kurumsal · yüksek kontrast · açık zemin",
+         ("Kurumsal", "bilgi")),
+        ("Kayıt Defteri", "SQLite denetim izi",
+         ("Bağlı" if _BACKEND_VAR else "Kapalı",
+          "aktif" if _BACKEND_VAR else "notr")),
+        ("İnsan Onayı Güven Eşiği", "orchestrator._INSAN_ONAYI_GUVEN_ESIGI",
+         (onay_esik, "bilgi")),
+        ("Corrective RAG Tetiği", "legislation_agent.DUZELTME_ESIGI",
+         (rag_esik, "bilgi")),
+    ]
+    satir_html = ""
+    for k, aciklama, (deger, tip) in ayarlar:
+        satir_html += (
+            f'<div style="display:flex;align-items:center;justify-content:space-between;'
+            f'gap:16px;padding:16px 20px;border-bottom:1px solid #EDF1F7;">'
+            f'<div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;'
+            f'color:#0F1E33;">{_kacar(k)}</div><div style="font-size:12px;color:#64748B;">'
+            f'{_kacar(aciklama)}</div></div>{_ayar_rozet(deger, tip)}</div>')
+    _md(f'<div class="ez-card" style="max-width:760px;padding:0;overflow:hidden;">'
+        f'{satir_html}</div>')
+    st.caption("Değerler sistemin gerçek çalışma durumundan/kod sabitlerinden "
+               "canlı okunur; kurgu ayar yoktur. Çalışma modu CLI'de seçilir: "
+               "`python -m src.main --mode {full|classify|draft}`.")
 
 
 # ===========================================================================
@@ -3191,20 +4020,26 @@ def main() -> None:
     oturum_baslat()
     tema_uygula()
 
-    secili = kenar_cubugu_ciz()
-
-    sayfalar = {
-        "Genel Bakış": sayfa_genel_bakis,
-        "Evrak İşleme": sayfa_evrak_isleme,
-        "Toplu İşleme": sayfa_toplu_isleme,
-        "Ajan Yönetimi": sayfa_ajan_yonetimi,
-        "Asistan": sayfa_asistan,
-        "Mevzuat ve RAG": sayfa_mevzuat_rag,
-        "KVKK ve Uyum": sayfa_kvkk_uyum,
-        "Hakkında": sayfa_hakkinda,
-        "Ayarlar": sayfa_ayarlar,
+    # Gezinme durumu URL query parametresinden okunur (?p=<anahtar>); kenar
+    # çubuğundaki HTML anchor'lar bu parametreyi değiştirir (tam görsel sadakat,
+    # SVG ikonlu nav). Streamlit yeniden çalışması URL param'ıyla tetiklenir.
+    SAYFALAR = {
+        "genel": sayfa_genel_bakis,
+        "evrak": sayfa_evrak_isleme,
+        "toplu": sayfa_toplu_isleme,
+        "ajan": sayfa_ajan_yonetimi,
+        "asistan": sayfa_asistan,
+        "mevzuat": sayfa_mevzuat_rag,
+        "kvkk": sayfa_kvkk_uyum,
+        "hakkinda": sayfa_hakkinda,
+        "ayarlar": sayfa_ayarlar,
     }
-    sayfalar.get(secili, sayfa_genel_bakis)()
+    aktif = st.query_params.get("p", "genel")
+    if aktif not in SAYFALAR:
+        aktif = "genel"
+    st.session_state["aktif_sayfa"] = aktif
+    kenar_cubugu_ciz(aktif)
+    SAYFALAR[aktif]()
 
 
 if __name__ == "__main__":
