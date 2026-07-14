@@ -79,7 +79,8 @@ def parse_args() -> argparse.Namespace:
         "-o",
         type=str,
         default=None,
-        help="Çıktı dizini (varsayılan: ./output/)",
+        help="Çıktı dizini: sonuçları <DIZIN>/sonuclar.json ve HTML raporlarını "
+             "<DIZIN>/ altına yazar (--json / --html-rapor verilmişse onlar önceliklidir)",
     )
     parser.add_argument(
         "--mode",
@@ -136,7 +137,6 @@ def parse_args() -> argparse.Namespace:
 def run_pipeline(
     input_path: str,
     mode: str = "full",
-    output_dir: str | None = None,
     pipeline: EndToEndPipeline | None = None,
 ) -> dict:
     """
@@ -145,7 +145,6 @@ def run_pipeline(
     Args:
         input_path: İşlenecek evrak dosya yolu
         mode: Çalışma modu ('full', 'classify', 'draft')
-        output_dir: Çıktı dizini
         pipeline: Hazır pipeline örneği (None ise yeni oluşturulur;
             mevcut çağrılar etkilenmez)
 
@@ -363,6 +362,18 @@ def main() -> None:
         )
         return
 
+    # --output DIZIN: "çıktı dizini" bayrağı — açıkça --json / --html-rapor
+    # verilmediyse sonuçları bu dizine yönlendirir (aksi halde o açık bayraklar
+    # önceliklidir). Önceden bu bayrak tanımlıydı ama hiçbir yerde kullanılmıyordu
+    # (sessiz no-op); artık vaat ettiği "çıktı dizini" işlevini yerine getirir.
+    if args.output:
+        cikti_dizini = Path(args.output)
+        cikti_dizini.mkdir(parents=True, exist_ok=True)
+        if not args.json:
+            args.json = str(cikti_dizini / "sonuclar.json")
+        if not args.html_rapor:
+            args.html_rapor = str(cikti_dizini)
+
     # Tek pipeline tüm evraklar için paylaşılır; --kayit ile denetim izi açılır.
     pipeline = EndToEndPipeline(kayit_defteri_aktif=args.kayit)
     if args.kayit:
@@ -377,7 +388,7 @@ def main() -> None:
     sonuclar: list[dict] = []
     if args.input:
         sonuclar.append(
-            run_pipeline(args.input, mode=args.mode, output_dir=args.output, pipeline=pipeline)
+            run_pipeline(args.input, mode=args.mode, pipeline=pipeline)
         )
     if args.klasor:
         sonuclar.extend(klasor_isle(args.klasor, mode=args.mode, pipeline=pipeline))
