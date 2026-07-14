@@ -97,3 +97,9 @@ demo/demo_evraklar/
 # (her kosuda degisir; kod CREATE TABLE IF NOT EXISTS ile otomatik yeniden olusturur)
 data/processed/kayit_defteri.db
 data/processed/geri_bildirim.jsonl
+
+# Claude Code kisisel yerel ayarlari (otomatik commit+push hook'u dahil).
+# Kisiseldir; takim deposuna gitmez (herkese otomatik push dayatilmaz).
+.claude/settings.local.json
+# Panoyu onizleme icin uretilen tek kullanimlik statik HTML'ler
+data/processed/onizleme_*.html
