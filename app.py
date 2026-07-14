@@ -450,7 +450,12 @@ def tema_uygula() -> None:
         .stApp { background: #F4F6FA; }
         * { font-family: "Segoe UI", system-ui, -apple-system, "Roboto",
             "Helvetica Neue", Arial, sans-serif; }
-        .stApp, .stApp p, .stApp span, .stApp div, .stApp li { color: #0F1E33; }
+        /* Ana içerik metni koyu; KENAR ÇUBUĞU HARİÇ (aksi halde koyu zeminde
+           koyu yazı → görünmez olur). Global span/div kuralı bilinçli olarak
+           yalnızca ana alana kapsandı. */
+        [data-testid="stMain"] { color: #0F1E33; }
+        [data-testid="stMain"] p, [data-testid="stMain"] li,
+        [data-testid="stMain"] label { color: #0F1E33; }
         .block-container {
             max-width: 1240px; padding: 26px 34px 64px 34px;
         }
@@ -510,7 +515,7 @@ def tema_uygula() -> None:
         a.ez-navitem.aktif {
             background: rgba(255,255,255,.07); color: #FFFFFF;
             border-left: 3px solid #6B9BFF; }
-        a.ez-navitem .ez-navlabel { flex: 1; }
+        a.ez-navitem .ez-navlabel { flex: 1; color: inherit; }
         .ez-badge-canli {
             font-size: 9px; font-weight: 700; letter-spacing: .06em;
             background: #B91C1C; color: #fff; padding: 2px 6px; border-radius: 999px;
@@ -535,6 +540,20 @@ def tema_uygula() -> None:
         .ez-sys-foot {
             margin-top: 12px; text-align: center; font-size: 10.5px; line-height: 1.5;
             color: #6B7F9E; }
+
+        /* KENAR ÇUBUĞU METİN GÜVENCESİ — yüksek özgüllük ([data-testid] +
+           class) ile Streamlit tema rengi sızsa bile açık renk garantilenir. */
+        [data-testid="stSidebar"] .ez-brand-name { color: #FFFFFF; }
+        [data-testid="stSidebar"] .ez-brand-sub,
+        [data-testid="stSidebar"] .ez-navsec { color: #93A4BE; }
+        [data-testid="stSidebar"] a.ez-navitem,
+        [data-testid="stSidebar"] a.ez-navitem .ez-navlabel { color: #93A4BE; }
+        [data-testid="stSidebar"] a.ez-navitem:hover { color: #C9D6EA; }
+        [data-testid="stSidebar"] a.ez-navitem.aktif,
+        [data-testid="stSidebar"] a.ez-navitem.aktif .ez-navlabel { color: #FFFFFF; }
+        [data-testid="stSidebar"] .ez-sys-row,
+        [data-testid="stSidebar"] .ez-sys-row .l { color: #B4C2D9; }
+        [data-testid="stSidebar"] .ez-sys-foot { color: #6B7F9E; }
 
         /* ===== Sayfa başlığı ===== */
         .ez-hdr {
