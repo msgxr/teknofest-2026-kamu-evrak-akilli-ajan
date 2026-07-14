@@ -72,6 +72,26 @@ _IPUCU_KALIPLARI = (
     "karar veril", "bilgilerinize", "sonuçlanmıştır",
 )
 
+# İÇERİK OLGUSU desenleri — extractive cümle skoruna bonus (bilgi tamlığı).
+# Özetin "kaynak-kapsama"sı (kaynaktaki somut olguların özette temsili) doğrudan
+# bu olguları taşıyan cümlelerin seçilmesine bağlıdır. Bu POZİTİF liste yalnızca
+# ANLAM taşıyan sayısal olguları (tarih, tutar, süre, yüzde, mevzuat referansı)
+# yakalar; TCKN/telefon/IBAN gibi kişisel TANIMLAYICILAR bilinçli olarak listede
+# YOKTUR — özet bunları öne çıkarmamalıdır (KVKK/anonimleştirme ile tutarlı).
+# Desenler turkish_lower uygulanmış cümleye karşı çalıştırılır.
+_ICERIK_OLGU_DESENLERI = (
+    re.compile(r"\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b"),                # sayısal tarih: 12.05.2026
+    re.compile(                                                     # sözel tarih: 5 mayıs
+        r"\b\d{1,2}\s+(?:ocak|şubat|mart|nisan|mayıs|haziran|temmuz|"
+        r"ağustos|eylül|ekim|kasım|aralık)\b"
+    ),
+    re.compile(r"\b\d[\d.,]*\s*(?:tl|₺|lira|kuruş|usd|eur|dolar|avro)\b"),  # tutar
+    re.compile(r"\b\d+\s*(?:gün|ay|yıl|hafta|saat|iş günü)\b"),      # süre
+    re.compile(r"%\s*\d+|\b\d+\s*%"),                                # yüzde
+    re.compile(r"\b\d+\s*sayılı\b"),                                 # kanun: 3071 sayılı
+    re.compile(r"\b(?:madde|md\.|m\.|fıkra|bent)\s*\d+\b"),          # mevzuat: madde 14
+)
+
 # Adres/iletişim satırı tespiti (turkish_lower uygulanmış satırda aranır):
 # adres birimi kısaltmaları (mahalle/sokak/cadde/bulvar/apartman), kapı
 # numarası kalıbı ("No: 14/3") ve iletişim etiketleri. Dilekçe altındaki
@@ -293,10 +313,19 @@ Kurallar:
             # İpucu kalıpları (talep/karar cümleleri)
             ipucu = 0.4 if any(k in tl for k in _IPUCU_KALIPLARI) else 0.0
 
+            # İçerik olgusu bonusu: somut olgu (tarih/tutar/süre/yüzde/mevzuat)
+            # taşıyan cümleler bilgi tamlığı açısından değerlidir; özete
+            # alınmaları kaynak-kapsamayı artırır. En çok 3 olgu ödüllendirilir
+            # (tek cümlenin skoru şişip özeti tek olgu-yığınına indirmesin diye
+            # tavanlı), sadakat riski yoktur çünkü olgular kaynaktan gelir.
+            olgu_bonus = min(self._icerik_olgu_sayisi(tl), 3) * 0.4
+
             # Uzunluk normalizasyonu: ideal 6-40 kelime
             uzunluk_carpani = 1.0 if 6 <= kelime_sayisi <= 40 else 0.6
 
-            skor = (pozisyon + 2.0 * ortusme + konu_ortusme + ipucu) * uzunluk_carpani
+            skor = (
+                pozisyon + 2.0 * ortusme + konu_ortusme + ipucu + olgu_bonus
+            ) * uzunluk_carpani
             skorlar.append((skor, i, sentence))
 
         # En iyi 2-4 cümleyi seç, orijinal sırayla birleştir
@@ -546,6 +575,21 @@ Kurallar:
         ):
             return None
         return stripped
+
+    @staticmethod
+    def _icerik_olgu_sayisi(tl_cumle: str) -> int:
+        """Cümledeki BENZERSİZ içerik olgusu (tarih/tutar/süre/yüzde/mevzuat)
+        sayısını döndürür. Girdi turkish_lower uygulanmış cümledir.
+
+        Aynı olgunun (ör. bir tarihin) tekrar sayılmaması için eşleşmeler bir
+        kümede toplanır. Kişisel tanımlayıcılar (TCKN/telefon/IBAN) desen
+        listesinde bulunmadığından sayıma DÂHİL değildir.
+        """
+        bulunan = set()
+        for desen in _ICERIK_OLGU_DESENLERI:
+            for m in desen.finditer(tl_cumle):
+                bulunan.add(m.group(0).strip())
+        return len(bulunan)
 
     @staticmethod
     def _tokenize(text: str) -> list:
