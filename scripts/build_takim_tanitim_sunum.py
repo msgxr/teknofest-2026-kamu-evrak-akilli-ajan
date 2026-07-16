@@ -173,6 +173,16 @@ def picture(slide, path, x, y, w):
     slide.shapes.add_picture(str(path), Inches(x), Inches(y), width=Inches(w))
 
 
+def photo_h(slide, path, x, y, h, border=GRAPH):
+    """Fotoğrafı EN-BOY oranını koruyarak (kırpmadan) sabit yükseklikle yerleştirir."""
+    pic = slide.shapes.add_picture(str(path), Inches(x), Inches(y), height=Inches(h))
+    if border:
+        pic.line.color.rgb = border
+        pic.line.width = Pt(0.75)
+    _noshadow(pic)
+    return pic
+
+
 def arrow(slide, x, y, w, h, color=GRAPH, direction="right"):
     sh = MSO_SHAPE.RIGHT_ARROW if direction == "right" else MSO_SHAPE.DOWN_ARROW
     sp = slide.shapes.add_shape(sh, Inches(x), Inches(y), Inches(w), Inches(h))
@@ -431,20 +441,20 @@ def slayt_uyeler(prs, n):
     header(s, "Ekip & Organizasyon", "Ekibimiz")
     members = [
         ("Şeyma Nur Çebi", "TAKIM KAPTANI · YAZILIM", "Yazılım Müh. · 3. Sınıf · Arel Üni.",
-         "Görev 1 içerik analizi: sınıflandırma, bilgi çıkarımı, mevzuat RAG; değerlendirme ve entegrasyon.", True),
+         "Görev 1 içerik analizi: sınıflandırma, bilgi çıkarımı, mevzuat RAG; değerlendirme ve entegrasyon.", True, "foto_seyma.png"),
         ("Muhammed Sina Gün", "YAZILIM", "Bilgisayar Müh. · 3. Sınıf · Arel Üni.",
-         "Mimari ve orkestrasyon; model-agnostik LLM katmanı; Görev 2 taslak üretimi (OCR, özet).", False),
+         "Mimari ve orkestrasyon; model-agnostik LLM katmanı; Görev 2 taslak üretimi (OCR, özet).", False, "foto_sina.png"),
         ("Emine Elik", "VERİ · TEST · DOKÜMAN", "Maden Müh. · 1. Sınıf · Cerrahpaşa Üni.",
-         "Veri seti ve etiketleme; test kapsamı; dokümantasyon; sunum ve demo; şartname uyumu.", False),
+         "Veri seti ve etiketleme; test kapsamı; dokümantasyon; sunum ve demo; şartname uyumu.", False, "foto_emine.png"),
         ("Zeynep Akel", "YAZILIM", "Yazılım Müh. · 3. Sınıf · Biruni Üni.",
-         "Görev 1 eksik bilgi; Görev 2 yönlendirme ve kullanıcı etkileşimi; triyaj, KVKK; web arayüzü.", False),
+         "Görev 1 eksik bilgi; Görev 2 yönlendirme ve kullanıcı etkileşimi; triyaj, KVKK; web arayüzü.", False, "foto_zeynep.png"),
     ]
     pos = [(0.62, 1.68), (6.72, 1.68), (0.62, 4.16), (6.72, 4.16)]
     cw, ch = 6.0, 2.36
-    for (name, role, akademik, desc, cap), (x, y) in zip(members, pos):
+    for (name, role, akademik, desc, cap, foto), (x, y) in zip(members, pos):
         rrect(s, x, y, cw, ch, PANEL, line=LINE, line_w=1.25, radius=0.05)
         rect(s, x, y, 0.1, ch, SILVER if cap else GRAPH)
-        avatar(s, x + 0.32, y + 0.4, 0.86, name[0])
+        photo_h(s, ASSET / foto, x + 0.34, y + 0.4, 1.24)  # gri portre, olduğu gibi (kırpmasız)
         textbox(s, x + 1.42, y + 0.34, cw - 1.6, 0.42, [P([R(name, INK, False, 17.5, SEMI)])])
         textbox(s, x + 1.44, y + 0.86, cw - 1.6, 0.34, [P([R(akademik, SILVER, False, 12, SEMI)])])
         pill(s, x + 1.44, y + 1.22, min(cw - 1.6, 0.6 + len(role) * 0.098), 0.34, role, size=10.5)
