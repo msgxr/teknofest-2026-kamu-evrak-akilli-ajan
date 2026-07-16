@@ -41,7 +41,7 @@ LOGO_FULL = ASSET / "agentra_logo.png"      # amblem + AGENTRA TECH + SINCE 2026
 LOGO_EMBLEM = ASSET / "agentra_emblem.png"  # yalnızca gümüş swoosh
 FULL_RATIO = 1013 / 357
 EMBLEM_RATIO = 1013 / 228
-TOPLAM_SLAYT = 11
+TOPLAM_SLAYT = 10
 
 
 # ----------------------------------------------------------------------------
@@ -317,24 +317,16 @@ def slayt_kunye(prs, n):
     for (big, unit, label) in tiles:
         kpi_tile(s, x, 1.9, tw, 1.55, big, unit, label)
         x += tw + 0.11
-    rrect(s, 0.62, 3.7, 12.09, 1.28, PANEL, line=LINE, line_w=1.25, radius=0.05)
-    rect(s, 0.62, 3.7, 0.08, 1.28, SILVER)
-    textbox(s, 0.98, 3.86, 11.5, 1.02,
-            [P([R("Biz ", INK, False, 15.5, BODY), R("AGENTRA TECH", SILVER, False, 16, SEMI),
-                R("; TEKNOFEST 2026 için bir araya gelen, ", INK, False, 15.5, BODY),
-                R("Türkçe dil teknolojileri ve akıllı ajan sistemleri", SILVER, False, 15.5, SEMI),
-                R(" üzerine çalışan 4 kişilik bir öğrenci takımıyız.", INK, False, 15.5, BODY)], line=1.14),
+    rrect(s, 0.62, 3.72, 12.09, 1.5, PANEL, line=LINE, line_w=1.25, radius=0.05)
+    rect(s, 0.62, 3.72, 0.08, 1.5, SILVER)
+    textbox(s, 0.98, 3.98, 11.5, 1.2,
+            [P([R("Biz ", INK, False, 16, BODY), R("AGENTRA TECH", SILVER, False, 16.5, SEMI),
+                R("; TEKNOFEST 2026 için bir araya gelen, ", INK, False, 16, BODY),
+                R("Türkçe dil teknolojileri ve akıllı ajan sistemleri", SILVER, False, 16, SEMI),
+                R(" üzerine çalışan 4 kişilik bir öğrenci takımıyız.", INK, False, 16, BODY)], line=1.16),
              P([R("Adımızın merkezinde “agent” var: kararları izlenebilir, tamamen açık kaynak bir sistem geliştiriyoruz.",
-                 MUTED, False, 13, BODY)], space_before=4)])
-    members = ["Şeyma Nur Çebi", "Muhammed Sina Gün", "Emine Elik", "Zeynep Akel"]
-    x = 0.62
-    for nm in members:
-        w = 0.74 + len(nm) * 0.122
-        rrect(s, x, 5.34, w, 0.66, PANEL, line=LINE, line_w=1.25, radius=0.3)
-        avatar(s, x + 0.16, 5.51, 0.32, nm[0])
-        textbox(s, x + 0.6, 5.5, w - 0.62, 0.38, [P([R(nm, INK, False, 13, SEMI)])])
-        x += w + 0.22
-    textbox(s, 0.62, 6.34, 12.0, 0.4,
+                 MUTED, False, 13.5, BODY)], space_before=6)])
+    textbox(s, 0.62, 5.78, 12.0, 0.4,
             [P([R("Şartname m.3.1: bu sunum takımın organizasyon yapısını, ekip üyelerini ve görev dağılımını tanıtır.",
                  MUTED, False, 12, BODY)])])
     footer(s, n)
@@ -436,7 +428,7 @@ def slayt_organizasyon(prs, n):
 # ----------------------------------------------------------------------------
 def slayt_uyeler(prs, n):
     s = new_slide(prs)
-    header(s, "Ekip Üyeleri", "Takım Üyeleri ve Sorumlulukları")
+    header(s, "Ekip & Organizasyon", "Ekibimiz")
     members = [
         ("Şeyma Nur Çebi", "TAKIM KAPTANI · YAZILIM", "Yazılım Müh. · 3. Sınıf · Arel Üni.",
          "Görev 1 içerik analizi: sınıflandırma, bilgi çıkarımı, mevzuat RAG; değerlendirme ve entegrasyon.", True),
@@ -462,8 +454,8 @@ def slayt_uyeler(prs, n):
             pill(s, x + cw - 1.5, y + 0.28, 1.3, 0.36, "★ KAPTAN", fill=SILVER,
                  tcolor=DARKTEXT, size=10.5, border=None)
     textbox(s, 0.62, 6.58, 12.1, 0.4,
-            [P([R("4 üye · 3 üniversite · Yazılım, Bilgisayar ve Maden Mühendisliği öğrencileri.",
-                 MUTED, False, 12.5, BODY)])])
+            [P([R("Takım kaptanı Şeyma Nur Çebi ekibi koordine eder · her uzmanlık alanı bir sorumluya bağlıdır · 3 üniversite, 3 mühendislik dalı.",
+                 MUTED, False, 12, BODY)])])
     footer(s, n)
     return s
 
@@ -654,27 +646,14 @@ def slayt_kapanis(prs, n):
     textbox(s, 0, 3.98, W_IN, 0.5,
             [P([R("Organizasyon yapısı, ekip ve görev dağılımıyla; kamuya uygun bir yapay zekâ takımı.",
                  MUTED, False, 15, BODY)], align=PP_ALIGN.CENTER)])
-    members = [("Şeyma Nur Çebi", "Kaptan"), ("Muhammed Sina Gün", ""),
-               ("Emine Elik", ""), ("Zeynep Akel", "")]
-    widths = [0.66 + len(nm) * 0.125 + (len(rl) * 0.095 if rl else 0) for (nm, rl) in members]
-    gap = 0.22
-    x = (W_IN - (sum(widths) + gap * (len(members) - 1))) / 2
-    for (nm, rl), w in zip(members, widths):
-        rrect(s, x, 4.74, w, 0.62, PANEL, line=LINE, line_w=1.0, radius=0.3)
-        avatar(s, x + 0.16, 4.9, 0.3, nm[0])
-        runs = [R(nm, INK, False, 13, SEMI)]
-        if rl:
-            runs.append(R("  · " + rl, MUTED, False, 11, BODY))
-        textbox(s, x + 0.56, 4.83, w - 0.56, 0.4, [P(runs)])
-        x += w + gap
     depo_w = 9.4
     depo_x = (W_IN - depo_w) / 2
-    rrect(s, depo_x, 5.64, depo_w, 0.72, PANEL, line=LINE, line_w=1.0, radius=0.08)
-    textbox(s, depo_x, 5.8, depo_w, 0.44,
+    rrect(s, depo_x, 4.86, depo_w, 0.74, PANEL, line=LINE, line_w=1.0, radius=0.08)
+    textbox(s, depo_x, 5.03, depo_w, 0.44,
             [P([R("Depo:  ", SILVER2, False, 13.5, SEMI),
                 R("github.com/msgxr/teknofest-2026-kamu-evrak-akilli-ajan", INK, False, 13.5, MONO)],
                align=PP_ALIGN.CENTER)])
-    textbox(s, 0, 6.62, W_IN, 0.5,
+    textbox(s, 0, 6.05, W_IN, 0.5,
             [P([R("Kamuya uygun, dürüst, açık kaynak ve ", MUTED, False, 15, BODY),
                 R("bugün çalışan", INK, False, 15, SEMI),
                 R(" bir sistem geliştiren bir takımız.", MUTED, False, 15, BODY)], align=PP_ALIGN.CENTER)])
@@ -692,14 +671,13 @@ def uret(cikti: Path):
     slayt_kapak(prs)
     slayt_kunye(prs, 2)
     slayt_kimlik(prs, 3)
-    slayt_organizasyon(prs, 4)
-    slayt_uyeler(prs, 5)
-    slayt_gorev_dagilimi(prs, 6)
-    slayt_calisma(prs, 7)
-    slayt_proje(prs, 8)
-    slayt_kanit(prs, 9)
-    slayt_motivasyon(prs, 10)
-    slayt_kapanis(prs, 11)
+    slayt_uyeler(prs, 4)          # Ekibimiz — organizasyon şeması ile birleştirildi
+    slayt_gorev_dagilimi(prs, 5)
+    slayt_calisma(prs, 6)
+    slayt_proje(prs, 7)
+    slayt_kanit(prs, 8)
+    slayt_motivasyon(prs, 9)
+    slayt_kapanis(prs, 10)
 
     cikti.parent.mkdir(parents=True, exist_ok=True)
     try:
