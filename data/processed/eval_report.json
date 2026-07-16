@@ -1,14 +1,14 @@
 {
-  "zaman_damgasi": "2026-07-14T14:14:11",
+  "zaman_damgasi": "2026-07-17T01:27:00",
   "veri_dizini": "data/raw/kurgu_evraklar",
   "set_adi": "kurgu_evraklar",
   "tekrarlanabilirlik": {
-    "git_commit": "10d6775380a085d2ad1a600f55eda42b289e503d",
-    "calisma_agaci_kirli": true,
+    "git_commit": "869fe344b230d87e6e4d17020dd2a585a9de9288",
+    "calisma_agaci_kirli": false,
     "python": "3.12.10",
     "platform": "Windows-11-10.0.26200-SP0",
-    "requirements_sha256": "bb75d4cfed1b8383",
-    "set_icerik_hash": "c66e8719d8f15382"
+    "requirements_sha256": "0e87558102251d8e",
+    "set_icerik_hash": "d78092026a7b9b0e"
   },
   "llm": {
     "backend": "offline",
@@ -413,19 +413,19 @@
     "sikistirma_orani": 0.3913
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.0336,
-    "evrak_basina_medyan_sure_saniye": 0.014,
+    "evrak_basina_ortalama_sure_saniye": 0.079,
+    "evrak_basina_medyan_sure_saniye": 0.0485,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.0,
-      "classification": 0.0024,
-      "info_extraction": 0.0203,
-      "missing_info": 0.0011,
-      "legislation": 0.0018,
-      "triage": 0.0006,
-      "summarization": 0.0015,
-      "anonimlestirme": 0.0012,
-      "draft_writer": 0.0012,
-      "routing": 0.0036,
+      "ocr": 0.0013,
+      "classification": 0.0063,
+      "info_extraction": 0.0342,
+      "missing_info": 0.0033,
+      "legislation": 0.0059,
+      "triage": 0.0018,
+      "summarization": 0.005,
+      "anonimlestirme": 0.004,
+      "draft_writer": 0.0042,
+      "routing": 0.013,
       "user_info": 0.0
     }
   },

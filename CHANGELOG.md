@@ -27,6 +27,19 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
   eval'i temiz HEAD'de yeniden koşulduğunda commit'li raporlarla birebir aynı
   çıktı; düzeltme yalnızca dokümantasyon dürüstlüğüdür.
 
+- **Pydantic V2 uyumu: `class Config` → `SettingsConfigDict` (deprecation giderildi):**
+  `src/config.py`'deki dört ayar sınıfı (LLM/Embedding/Chroma/App) sınıf-tabanlı
+  `Config` yerine `SettingsConfigDict(env_prefix=...)` kullanır; Pydantic V3'te
+  kaldırılacak `PydanticDeprecatedSince20` uyarıları giderildi (`pytest`: 4 uyarı → 0).
+  `env_prefix` davranışı birebir korundu; 632 test yeşil kaldı.
+
+- **Değerlendirme raporlarının izlenebilirlik damgası tazelendi (provenance):**
+  Beş `eval_report*.json`, eski bir commit (`10d6775`) + kirli çalışma ağacı
+  (`calisma_agaci_kirli: True`) damgası taşıyordu. Temiz HEAD'de `scripts/evaluate.py`
+  ile yeniden üretildi (`calisma_agaci_kirli: False`, güncel commit). Beş setin de
+  **tüm metrikleri birebir aynı** çıktı; held-out setlerine bakılarak hiçbir kural
+  değiştirilmediğinden **held-out bütünlüğü korundu** (yalnız damga yenilendi).
+
 - **Adversarial (v3) sınırlılıklarından üçü ilkesel olarak giderildi (şartname izi: Uygulama-35 / G1):**
   Held-out hatasına dosyaya özel kural yazılmadan, genel kurallarla:
   (1) **Yapısal İlgi denetimi** — "İlgi" alan etiketi yalnızca iki noktalı
