@@ -68,6 +68,7 @@ def dayaniklilik_olc(
     tur_ayni = birim_ayni = 0
     robust_dogru = 0
     toplam_varyant = 0
+    islenen_evrak = 0  # DÜZELTME: diskte gerçekten bulunan/işlenen evrak sayısı
     pert = defaultdict(lambda: {"toplam": 0, "tur_degisti": 0, "birim_degisti": 0})
     degisim_ornekleri: List[Dict[str, str]] = []
 
@@ -76,6 +77,7 @@ def dayaniklilik_olc(
         if not yol.exists():
             continue
         logger.info(f"[{i}/{len(dosyalar)}] {dosya_adi}")
+        islenen_evrak += 1
         metin = yol.read_text(encoding="utf-8")
 
         orijinal = pipeline.process_text(metin, mode="full", kayit=False)
@@ -123,7 +125,7 @@ def dayaniklilik_olc(
         "zaman_damgasi": datetime.now().isoformat(timespec="seconds"),
         "veri_dizini": goreli_yol(veri_dizini),
         "tohum": tohum,
-        "degerlendirilen_evrak": len(dosyalar),
+        "degerlendirilen_evrak": islenen_evrak,  # DÜZELTME: len(dosyalar) değil (eksik dosyalar atlanır)
         "uygulanan_bozulmalar": list(PERTURBASYONLAR),
         "toplam_varyant": toplam_varyant,
         "tur_invaryans": round(tur_ayni / n, 4),

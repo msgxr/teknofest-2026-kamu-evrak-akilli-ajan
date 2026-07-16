@@ -114,8 +114,17 @@ def _arac_calistir(ad: str, argumanlar: Dict[str, Any]) -> dict:
     raise ValueError(f"Bilinmeyen araç: {ad}")
 
 
-def istek_isle(istek: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def istek_isle(istek: Any) -> Optional[Dict[str, Any]]:
     """Tek bir JSON-RPC 2.0 isteğini işler. Bildirim (id yok) ise None döner."""
+    # DÜZELTME: üst seviye geçerli JSON nesne (sözlük) DEĞİLSE (5, "x", [], true,
+    # null) sonraki .get çağrıları AttributeError atıp sunucuyu çökertirdi;
+    # JSON-RPC 2.0'a uygun -32600 (geçersiz istek) döndür.
+    if not isinstance(istek, dict):
+        return {
+            "jsonrpc": "2.0",
+            "id": None,
+            "error": {"code": -32600, "message": "Geçersiz istek: JSON nesnesi (sözlük) bekleniyor."},
+        }
     yontem = istek.get("method")
     istek_id = istek.get("id")
 
@@ -136,9 +145,15 @@ def istek_isle(istek: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     if yontem == "tools/list":
         return sonuc({"tools": ARACLAR})
     if yontem == "tools/call":
-        params = istek.get("params") or {}
+        # DÜZELTME: params/arguments sözlük DEĞİLSE (ör. "x") .get çökerdi;
+        # güvenle boş sözlüğe indirge (ad=None → _arac_calistir -32602 döndürür).
+        params = istek.get("params")
+        if not isinstance(params, dict):
+            params = {}
         ad = params.get("name")
-        argumanlar = params.get("arguments") or {}
+        argumanlar = params.get("arguments")
+        if not isinstance(argumanlar, dict):
+            argumanlar = {}
         try:
             veri = _arac_calistir(ad, argumanlar)
             return sonuc({
@@ -166,7 +181,12 @@ def main() -> None:
             istek = json.loads(satir)
         except json.JSONDecodeError:
             continue
-        yanit = istek_isle(istek)
+        # DÜZELTME: tek bir bozuk/beklenmedik satır tüm sunucuyu düşürmesin
+        # (savunma amaçlı; istek_isle zaten tip kontrolü yapıyor).
+        try:
+            yanit = istek_isle(istek)
+        except Exception:  # noqa: BLE001
+            continue
         if yanit is not None:
             sys.stdout.write(json.dumps(yanit, ensure_ascii=False) + "\n")
             sys.stdout.flush()

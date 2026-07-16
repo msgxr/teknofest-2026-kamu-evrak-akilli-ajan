@@ -175,6 +175,11 @@ def egit(
 
     # 4) Laplace düzeltmeli log-olasılıklar (log-uzay)
     sozluk_boyutu = len(df)
+    # DÜZELTME: tüm eğitim belgeleri boş/yalnız durak-kelime olup sözlük boş
+    # kalırsa payda 0 olur ve math.log(alpha / payda) ZeroDivisionError verir;
+    # anlamlı bir hatayla erken çık.
+    if sozluk_boyutu == 0:
+        raise ValueError("Eğitim belgelerinden hiç öznitelik çıkmadı; sözlük boş.")
     log_olasilik: Dict[str, Dict[str, float]] = {}
     bilinmeyen_log_olasilik: Dict[str, float] = {}
     for sinif, agirliklar in sinif_agirliklari.items():

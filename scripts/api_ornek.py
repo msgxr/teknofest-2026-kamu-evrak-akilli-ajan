@@ -68,6 +68,31 @@ def _post(taban: str, yol: str, veri: dict) -> dict:
         return json.loads(yanit.read().decode("utf-8"))
 
 
+def _http_hata_mesaji(exc: urllib.error.HTTPError) -> str:
+    """Sunucunun HTTP hata yanıtındaki JSON 'hata' alanını okur; yoksa exc metni."""
+    try:
+        return str(json.loads(exc.read().decode("utf-8")).get("hata", exc))
+    except Exception:
+        return str(exc)
+
+
+def _guvenli_post(taban: str, yol: str, veri: dict, baslik: str) -> dict | None:
+    """POST çağrısını EBYS-dostu Türkçe hata mesajlarıyla korur.
+
+    DÜZELTME: Eski akışta POST çağrıları try/except DIŞINDAYDI; sunucu 4xx/5xx
+    dönerse urllib.error.HTTPError yakalanmayıp betik ham Python traceback ile
+    çökerek entegrasyon demosunu bozuyordu. Artık HTTPError (önce; URLError alt
+    sınıfıdır) ve URLError/OSError yakalanır, başarısızlıkta None döner.
+    """
+    try:
+        return _post(taban, yol, veri)
+    except urllib.error.HTTPError as exc:
+        print(f"HATA: {baslik} başarısız (HTTP {exc.code}): {_http_hata_mesaji(exc)}")
+    except (urllib.error.URLError, OSError) as exc:
+        print(f"HATA: {baslik} — API sunucusuna ulaşılamadı ({exc}).")
+    return None
+
+
 def main() -> int:
     """Demo akışını çalıştırır: sağlık → evrak işleme → anonimleştirme."""
     parser = argparse.ArgumentParser(description="Kamu Evrak Ajan API örnek istemcisi")
@@ -94,7 +119,9 @@ def main() -> int:
 
     # 2) Örnek evrakı uçtan uca işle — EBYS'nin gelen evrak kaydı senaryosu
     print("[2] Örnek evrak işleniyor (POST /evrak/isle)...")
-    sonuc = _post(taban, "/evrak/isle", {"metin": ORNEK_EVRAK, "mod": "full"})
+    sonuc = _guvenli_post(taban, "/evrak/isle", {"metin": ORNEK_EVRAK, "mod": "full"}, "Evrak işleme")
+    if sonuc is None:
+        return 1
 
     siniflandirma = sonuc.get("siniflandirma", {})
     yonlendirme = sonuc.get("yonlendirme", {})
@@ -107,7 +134,9 @@ def main() -> int:
 
     # 3) KVKK anonimleştirme — paylaşım/arşiv nüshası senaryosu
     print("[3] KVKK anonimleştirme (POST /evrak/anonimlestir)...")
-    anonim = _post(taban, "/evrak/anonimlestir", {"metin": ORNEK_EVRAK})
+    anonim = _guvenli_post(taban, "/evrak/anonimlestir", {"metin": ORNEK_EVRAK}, "Anonimleştirme")
+    if anonim is None:
+        return 1
     rapor = anonim.get("rapor", {})
     print(f"    Maskelenen unsur sayısı: {rapor.get('toplam')}")
     print(f"    Kategori dağılımı      : {rapor.get('maskelenen')}\n")

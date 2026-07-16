@@ -1,14 +1,14 @@
 {
-  "zaman_damgasi": "2026-07-13T12:26:56",
+  "zaman_damgasi": "2026-07-14T14:14:15",
   "veri_dizini": "data/raw/kurgu_evraklar_heldout_v4",
   "set_adi": "kurgu_evraklar_heldout_v4",
   "tekrarlanabilirlik": {
-    "git_commit": "08616ffdb097147f2675f7383018947bcc6de7c5",
+    "git_commit": "10d6775380a085d2ad1a600f55eda42b289e503d",
     "calisma_agaci_kirli": true,
     "python": "3.12.10",
     "platform": "Windows-11-10.0.26200-SP0",
     "requirements_sha256": "bb75d4cfed1b8383",
-    "set_icerik_hash": "f133624512ca0fb6"
+    "set_icerik_hash": "ea3f8d7ec4baaad1"
   },
   "llm": {
     "backend": "offline",
@@ -343,10 +343,10 @@
   "konformal": {
     "alfa": 0.1,
     "hedef_kapsama": 0.9,
-    "esik": 1.0,
+    "esik": 0.849,
     "ampirik_kapsama": 1.0,
-    "ortalama_kume_boyutu": 9.0,
-    "tekil_kume_orani": 0.0,
+    "ortalama_kume_boyutu": 1.375,
+    "tekil_kume_orani": 0.6875,
     "n": 16
   },
   "kvkk": {
@@ -397,23 +397,23 @@
   "ozet_kalitesi": {
     "n": 16,
     "sadakat": 0.9688,
-    "kaynak_kapsama": 0.4803,
-    "sikistirma_orani": 0.5581
+    "kaynak_kapsama": 0.5383,
+    "sikistirma_orani": 0.5685
   },
   "performans": {
-    "evrak_basina_ortalama_sure_saniye": 0.5065,
-    "evrak_basina_medyan_sure_saniye": 0.0815,
+    "evrak_basina_ortalama_sure_saniye": 0.0721,
+    "evrak_basina_medyan_sure_saniye": 0.011,
     "adim_bazinda_ortalama_sure_saniye": {
-      "ocr": 0.001,
-      "classification": 0.3965,
-      "info_extraction": 0.0114,
-      "missing_info": 0.0049,
-      "legislation": 0.0384,
-      "triage": 0.0027,
-      "summarization": 0.0079,
-      "anonimlestirme": 0.0056,
-      "draft_writer": 0.0149,
-      "routing": 0.0233,
+      "ocr": 0.0001,
+      "classification": 0.0609,
+      "info_extraction": 0.0017,
+      "missing_info": 0.0007,
+      "legislation": 0.0021,
+      "triage": 0.0002,
+      "summarization": 0.0012,
+      "anonimlestirme": 0.0011,
+      "draft_writer": 0.0012,
+      "routing": 0.0031,
       "user_info": 0.0
     }
   },

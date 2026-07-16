@@ -237,9 +237,13 @@ _EPOSTA = re.compile(r"[A-Za-z0-9._%+-]{1,64}@(?:[A-Za-z0-9-]{1,63}\.){1,10}[A-Z
 
 _IBAN = re.compile(r"\bTR\d{2}(?:[ ]?\d{4}){5}[ ]?\d{2}\b")
 
+# DÜZELTME: tamsayı kısmı ya binlik ayraçlı (1.500) YA DA ayraçsız düz sayı
+# (1500, 10000) olarak BÜTÜN yakalanır. Eski desen `\d{1,3}(?:\.\d{3})*` ayraçsız
+# ≥1000 tutarları son 3 haneye kırpıyordu (1500 TL → "500 TL", 10000 → "000").
+# Alternatifler ayrık olduğundan geri izleme doğrusaldır (ReDoS yok).
 _PARA_DESENLERI = [
-    re.compile(r"\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?\s*(?:TL\b|₺|[Tt]ürk\s+[Ll]irası)"),
-    re.compile(r"₺\s*\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?"),
+    re.compile(r"(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?\s*(?:TL\b|₺|[Tt]ürk\s+[Ll]irası)"),
+    re.compile(r"₺\s*(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?"),
 ]
 
 _ALAN_SATIRI = re.compile(r"^\s*[\wÇĞİÖŞÜçğıöşü.]{1,25}\s*:")

@@ -26,6 +26,7 @@ import json
 import logging
 import os
 import re
+import socket
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -126,11 +127,40 @@ def _http_post_json(url: str, payload: dict, headers: dict, timeout: int = 90) -
         return json.loads(response.read().decode("utf-8"))
 
 
-def _ollama_reachable(base_url: str, timeout: int = 2) -> bool:
-    """Ollama sunucusunun ayakta olup olmadığını kontrol eder."""
+def _ollama_reachable(base_url: str, timeout: float = 0.4) -> bool:
+    """Ollama sunucusunun ayakta olup olmadığını HIZLICA kontrol eder.
+
+    Önce hedef porta hızlı bir TCP bağlantısı denenir. Offline tipik durumda
+    (Ollama yok) bu, HTTP isteğinden çok daha ucuzdur:
+
+    - `localhost`, hem IPv6 (::1) hem IPv4 (127.0.0.1) adresine çözülür.
+      Doğrudan `urllib.urlopen` kullanıldığında her iki adres de ayrı ayrı
+      denenir ve kapalı port RST yerine paket düşürüyorsa (Windows'ta tipik)
+      HER adres tam `timeout` süresi bekler → offline'da ~2×timeout gecikme
+      (2 sn timeout ile gözlemlenen ~4 sn'lik takılmanın kaynağı budur).
+    - `create_connection` ilk erişilebilir adreste anında bağlanır; hiçbiri
+      erişilemezse yine 2×timeout'la sınırlı kalır ama timeout artık 0.4 sn
+      olduğundan en kötü durum ~0.8 sn'dir.
+
+    Port kapalıysa HTTP isteği hiç yapılmaz. Port açıksa, gerçekten Ollama
+    olduğunu /api/tags ile doğrularız (yanlış pozitif önlenir).
+    """
     try:
         _guvenli_http_url(base_url)  # GÜVENLİK: yalnızca http/https
-        with urllib.request.urlopen(base_url + "/api/tags", timeout=timeout):
+    except ValueError:
+        return False
+    parsed = urllib.parse.urlparse(base_url)
+    host = parsed.hostname or "localhost"
+    port = parsed.port or (443 if parsed.scheme == "https" else 11434)
+    # 1) Hızlı TCP ön-kontrolü — kapalı port için ucuz erken çıkış.
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            pass
+    except OSError:
+        return False
+    # 2) Port açık: gerçekten Ollama mı? (kısa timeout ile doğrula)
+    try:
+        with urllib.request.urlopen(base_url.rstrip("/") + "/api/tags", timeout=timeout):
             return True
     except Exception:
         return False
@@ -176,7 +206,11 @@ class LLMWrapper:
             return "offline"
         explicit = (self.settings.backend or os.getenv("LLM_BACKEND", "")).strip().lower()
         if explicit in ("openai", "ollama", "offline"):
-            if explicit == "ollama" and not _ollama_reachable(self.settings.ollama_base_url):
+            # Kullanıcı açıkça ollama seçtiyse (yeni başlatılmış olabilir) biraz
+            # daha cömert bekle; otomatik tespit (aşağıda) kısa timeout ile hızlı kalır.
+            if explicit == "ollama" and not _ollama_reachable(
+                self.settings.ollama_base_url, timeout=1.0
+            ):
                 logger.warning("LLM_BACKEND=ollama ayarlandı ama Ollama erişilemiyor; offline moda geçildi.")
                 return "offline"
             return explicit

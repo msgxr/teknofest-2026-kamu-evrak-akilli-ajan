@@ -249,7 +249,11 @@ class MissingInfoAgent:
                 and (bool(tanzim_tarihi_bul(text)) or bool(sozel_tarih_bul(text)))
             )
             or ("evrak_tarihi" not in extracted and bool(extracted.get("tarihler"))),
-            "saat": lambda: bool(re.search(r"\b\d{1,2}[:.][0-5]\d\b", text)),
+            # DÜZELTME: (?!\.\d) ileri-bakışı, dakikadan sonra ".yıl" gelen
+            # dd.mm.yyyy tarihlerini (12.07.2026) saat sanmayı önler; nokta-saat
+            # (10.30) ve iki nokta (14:30) biçimleri korunur. Eski desen her
+            # nokta-tarihi saat sanıp eksik-saat tespitini bastırıyordu.
+            "saat": lambda: bool(re.search(r"\b\d{1,2}[:.][0-5]\d\b(?!\.\d)", text)),
             # Evrak sayısı: belgenin KENDİ "Sayı :" alanı aranır (İlgi
             # bloğunda atıf yapılan yazıların sayıları belgenin sayısı
             # değildir; ayrım info_extraction'da "evrak_sayisi" olarak
