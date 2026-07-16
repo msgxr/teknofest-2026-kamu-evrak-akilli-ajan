@@ -1,66 +1,66 @@
 ---
 name: init-script-contract
-description: Author idempotent init.sh under 120s plus sibling test.sh, stop.sh, reset.sh, serve.sh with fixed names the harness relies on.
-when_to_use: scaffolding a new project the initializer agent will hand to future sessions, setup takes over 120s and needs splitting into init plus serve, every coding session burns tokens re-discovering how to bring up the dev server
+description: Harness'ın güvendiği sabit adlarla, 120 saniyenin altında idempotent init.sh ile birlikte kardeş test.sh, stop.sh, reset.sh, serve.sh betiklerini yaz.
+when_to_use: başlatıcı (initializer) ajanın gelecekteki oturumlara devredeceği yeni bir projeyi iskeleleme (scaffolding), kurulum 120 saniyeyi aşıyor ve init artı serve olarak bölünmesi gerekiyor, her kodlama oturumu dev sunucusunu nasıl ayağa kaldıracağını yeniden keşfederek token yakıyor
 ---
 
-# Init Script Contract
+# Init Betiği Sözleşmesi (Init Script Contract)
 
-Every coding session in a multi-session project starts by bringing the dev server up. If the entry point is named differently each time, or takes four minutes, or prompts for input, you burn tokens and wall-clock on every single session. The fix is a fixed set of script names at the project root with a hard contract. The initializer agent writes them once; every downstream session relies on them.
+Çok-oturumlu bir projedeki her kodlama oturumu, dev sunucusunu ayağa kaldırarak başlar. Giriş noktası her seferinde farklı adlandırılıyorsa, ya da dört dakika sürüyorsa, ya da girdi istiyorsa (prompt), her tek oturumda token ve duvar-saati (wall-clock) yakarsın. Çözüm, sıkı bir sözleşmeyle proje kökünde sabit bir betik adları kümesidir. Başlatıcı ajan bunları bir kez yazar; sonraki her oturum bunlara güvenir.
 
-The names are load-bearing — [[shift-notes]] and [[broken-window-check]] both refer to them by name. Do not invent your own.
+Adlar yük taşır (load-bearing) — [[shift-notes]] ve [[broken-window-check]] her ikisi de onlara adlarıyla atıfta bulunur. Kendi adını uydurma.
 
-## When to apply
+## Ne zaman uygulanır
 
-- You are the initializer agent scaffolding a fresh project.
-- You just discovered setup exceeds 120s and need to split cleanly.
-- You are auditing an existing project whose sessions keep re-discovering how to launch the app.
+- Sen, yeni bir projeyi iskeleleyen başlatıcı (initializer) ajansın.
+- Kurulumun 120 saniyeyi aştığını yeni keşfettin ve temiz bir şekilde bölmen gerekiyor.
+- Oturumları uygulamayı nasıl başlatacağını sürekli yeniden keşfeden mevcut bir projeyi denetliyorsun.
 
-## The five scripts
+## Beş betik
 
-| Script | Contract |
+| Betik | Sözleşme |
 |---|---|
-| `init.sh` | Clean clone → dev server up on `localhost`. Idempotent. Under 120s. Zero prompts. |
-| `serve.sh` | Start the dev server only. Written when `init.sh` cannot fit under 120s. |
-| `test.sh` | Run the full test suite. Exit non-zero on any failure. |
-| `stop.sh` | Cleanly kill the dev server. Sessions run this before exiting. |
-| `reset.sh` | Wipe local DB and ephemeral state. Leave code untouched. Used by [[broken-window-check]]. |
+| `init.sh` | Temiz klon → `localhost` üzerinde dev sunucusu ayakta. Idempotent. 120 saniyenin altında. Sıfır girdi istemi (prompt). |
+| `serve.sh` | Yalnızca dev sunucusunu başlat. `init.sh` 120 saniyenin altına sığamadığında yazılır. |
+| `test.sh` | Tüm test paketini çalıştır. Herhangi bir başarısızlıkta sıfır-olmayan çıkış. |
+| `stop.sh` | Dev sunucusunu temiz bir şekilde öldür. Oturumlar çıkmadan önce bunu çalıştırır. |
+| `reset.sh` | Yerel DB'yi ve geçici (ephemeral) durumu sil. Kodu dokunulmadan bırak. [[broken-window-check]] tarafından kullanılır. |
 
-## Procedure
+## Prosedür
 
-1. **Pick the stack** the spec implies. Do not scaffold Docker, CI, or lint configs the spec does not require.
-2. **Write `init.sh`** to run end-to-end from an empty clone. Pin every dependency (lockfile, `==`, `Pipfile.lock`). Answer every prompt non-interactively (`-y`, `--yes`, `DEBIAN_FRONTEND=noninteractive`).
-3. **Time it.** Run `time ./init.sh` on a clean clone. If it exceeds 120s, split — move one-time setup into `init.sh` and server launch into `serve.sh`. Have `init.sh` call `serve.sh` at the end so single-command startup still works.
-4. **Make it idempotent.** Run `./init.sh` twice back-to-back. If the second run errors or duplicates state, guard each step with existence checks (`if [ ! -d node_modules ]`, `createdb --if-not-exists`, etc.).
-5. **Write `stop.sh`** to kill by PID file or port, not by process name grep. Grep kills sibling agents on shared sandboxes.
-6. **Write `test.sh`** with a single end-to-end smoke test that proves `init.sh` produced a serving app. No feature tests — those belong to future sessions.
-7. **Write `reset.sh`** to drop and recreate the DB, clear caches, wipe `/tmp` artifacts. Never touch tracked files.
-8. **Verify from empty state.** `git clean -fdx && ./init.sh && ./test.sh && ./stop.sh`. Every script exits 0.
+1. **Şartnamenin (spec) ima ettiği yığını (stack) seç.** Şartnamenin gerektirmediği Docker, CI veya lint yapılandırmalarını iskeleleme.
+2. **`init.sh`'i** boş bir klondan uçtan uca çalışacak şekilde yaz. Her bağımlılığı sabitle (lockfile, `==`, `Pipfile.lock`). Her istemi etkileşimsiz (non-interactive) cevapla (`-y`, `--yes`, `DEBIAN_FRONTEND=noninteractive`).
+3. **Süresini ölç.** Temiz bir klonda `time ./init.sh` çalıştır. 120 saniyeyi aşarsa böl — tek-seferlik kurulumu `init.sh`'e, sunucu başlatmayı `serve.sh`'e taşı. Tek-komut başlatma hâlâ çalışsın diye `init.sh`'in sonda `serve.sh`'i çağırmasını sağla.
+4. **Idempotent yap.** `./init.sh`'i art arda iki kez çalıştır. İkinci koşu hata verir ya da durumu çoğaltırsa (duplicate), her adımı varlık kontrolleriyle koru (`if [ ! -d node_modules ]`, `createdb --if-not-exists`, vb.).
+5. **`stop.sh`'i** süreç adı grep'iyle değil, PID dosyası veya port ile öldürecek şekilde yaz. Grep, paylaşımlı sandbox'larda kardeş ajanları öldürür.
+6. **`test.sh`'i** `init.sh`'in servis veren bir uygulama ürettiğini kanıtlayan tek bir uçtan uca duman testiyle (smoke test) yaz. Özellik testi yok — onlar gelecekteki oturumlara aittir.
+7. **`reset.sh`'i** DB'yi düşürüp yeniden oluşturacak, önbellekleri temizleyecek, `/tmp` artefaktlarını silecek şekilde yaz. İzlenen (tracked) dosyalara asla dokunma.
+8. **Boş durumdan doğrula.** `git clean -fdx && ./init.sh && ./test.sh && ./stop.sh`. Her betik 0 ile çıkar.
 
-## Anti-patterns
+## Anti-desenler (Anti-patterns)
 
-- **Naming it `bootstrap.sh`, `setup.sh`, `dev.sh`.** Downstream sessions grep for the fixed names. A cute alias silently disables the harness.
-- **Interactive prompts.** `yarn install` asking about peer deps, `createdb` asking for a password, `npm audit` waiting for input. Every prompt is a stall the session cannot answer.
-- **Unpinned deps.** `npm install foo` without a lockfile means the next session gets a different transitive graph. See the Feb 2026 incident where an agent ran `npm update --save` and broke twelve sessions.
-- **Killing the server with `pkill node`.** Kills every node process in the sandbox. Use a PID file written by `serve.sh`.
-- **Letting `init.sh` create files outside the project directory.** Sandbox will reject it and the failure mode is opaque.
-- **Skipping `reset.sh` because "the DB is fine".** [[broken-window-check]] needs it to isolate a bad commit from stale state.
+- **`bootstrap.sh`, `setup.sh`, `dev.sh` olarak adlandırma.** Sonraki oturumlar sabit adları grep'ler. Şirin bir takma ad (alias), harness'ı sessizce devre dışı bırakır.
+- **Etkileşimli istemler (prompts).** Peer bağımlılıklarını soran `yarn install`, parola soran `createdb`, girdi bekleyen `npm audit`. Her istem, oturumun cevaplayamayacağı bir tıkanmadır (stall).
+- **Sabitlenmemiş bağımlılıklar.** Lockfile olmadan `npm install foo`, sonraki oturumun farklı bir geçişli (transitive) grafik almasına yol açar. Bir ajanın `npm update --save` çalıştırıp on iki oturumu bozduğu Şubat 2026 olayına bkz.
+- **Sunucuyu `pkill node` ile öldürme.** Sandbox'taki her node sürecini öldürür. `serve.sh` tarafından yazılan bir PID dosyası kullan.
+- **`init.sh`'in proje dizini dışında dosya oluşturmasına izin verme.** Sandbox bunu reddeder ve hata modu şeffaf değildir (opaque).
+- **"DB zaten iyi" diye `reset.sh`'i atlama.** [[broken-window-check]] kötü bir commit'i bayat (stale) durumdan izole etmek için ona ihtiyaç duyar.
 
-## Red flags
+## Kırmızı bayraklar (Red flags)
 
-- `init.sh` prints "Press Y to continue" anywhere in its output.
-- Timing varies wildly run-to-run — some dep is fetched from the network on the hot path.
-- Running `init.sh` twice leaves migrations doubled or ports bound.
-- `stop.sh` exits 0 but `lsof -i :3000` still shows the server.
+- `init.sh` çıktısında herhangi bir yerde "Press Y to continue" yazdırıyor.
+- Zamanlama koşudan koşuya çılgınca değişiyor — bazı bağımlılık, sıcak yolda (hot path) ağdan çekiliyor.
+- `init.sh`'i iki kez çalıştırmak migration'ları ikiye katlıyor ya da portları bağlı bırakıyor.
+- `stop.sh` 0 ile çıkıyor ama `lsof -i :3000` hâlâ sunucuyu gösteriyor.
 
-## When NOT to apply
+## Ne zaman uygulanmaz
 
-Single-session scripts and one-shot demos. The contract exists to amortize setup cost across many sessions; a one-off run does not need it.
+Tek-oturumluk betikler ve tek-atışlık demolar. Sözleşme, kurulum maliyetini birçok oturuma yaymak (amortize) için vardır; tek-seferlik bir koşu buna ihtiyaç duymaz.
 
-## Related
+## İlgili
 
-- [[shift-notes]] — the notes downstream sessions read after `init.sh` succeeds.
-- [[broken-window-check]] — runs `init.sh` then `reset.sh` when reverting a bad feature.
-- [[single-feature-per-session]] — the discipline this contract enables by keeping session startup cheap.
+- [[shift-notes]] — sonraki oturumların `init.sh` başarılı olduktan sonra okuduğu notlar.
+- [[broken-window-check]] — kötü bir özelliği geri alırken (revert) `init.sh`'i sonra `reset.sh`'i çalıştırır.
+- [[single-feature-per-session]] — oturum başlangıcını ucuz tutarak bu sözleşmenin mümkün kıldığı disiplin.
 
-Inspiration: Prithvi's March 2026 planner/generator/evaluator write-up, where the fixed harness entry points let the evaluator persona re-verify any generator session from scratch without re-learning the launch procedure.
+İlham: Prithvi'nin Mart 2026 planlayıcı/üretici/değerlendirici (planner/generator/evaluator) yazısı; orada sabit harness giriş noktaları, değerlendirici (evaluator) personasının başlatma prosedürünü yeniden öğrenmeden herhangi bir üretici oturumunu sıfırdan yeniden doğrulamasına imkân tanıdı.

@@ -1,66 +1,66 @@
 ---
 name: harness-stripping
-description: Systematically remove one harness component at a time and measure impact, killing scaffolding that no longer earns its complexity.
-when_to_use: auditing a harness after a model upgrade to see what workarounds are now obsolete, a component encodes an assumption about model weakness worth re-testing, or the harness has grown organically and you suspect dead/redundant machinery
+description: Karmaşıklığını artık hak etmeyen iskeleyi (scaffolding) öldürerek, her seferinde bir harness bileşenini sistematik olarak kaldır ve etkisini ölç.
+when_to_use: bir model yükseltmesi sonrası hangi geçici çözümlerin (workaround) artık geçersiz olduğunu görmek için harness'ı denetleme, bir bileşen yeniden-test etmeye değer bir model zayıflığı varsayımını kodluyor, ya da harness organik olarak büyümüş ve ölü/gereksiz mekanizmadan şüpheleniyorsun
 ---
 
-# Harness Stripping
+# Harness Soyma (Harness Stripping)
 
-Every harness component was added to compensate for a specific model failure. Models improve. Components don't retire themselves. The scaffolding that saved you on Sonnet 4.5 may be dead weight — or actively harmful — on Opus 4.6. Strip it deliberately, one piece at a time, and let evals tell you what still earns its keep.
+Her harness bileşeni, belirli bir model başarısızlığını telafi etmek için eklendi. Modeller gelişir. Bileşenler kendilerini emekliye ayırmaz. Sonnet 4.5'te seni kurtaran iskele, Opus 4.6'da ölü ağırlık — ya da aktif olarak zararlı — olabilir. Onu kasıtlı olarak, her seferinde bir parça soy ve neyin hâlâ ekmeğini çıkardığını (earns its keep) eval'lerin söylemesine izin ver.
 
-Inspired by Prithvi's March 2026 harness post on evaluator-generator separation and the general "re-test your assumptions each model bump" discipline.
+Prithvi'nin Mart 2026 harness yazısındaki değerlendirici-üretici (evaluator-generator) ayrımından ve genel "her model sıçramasında varsayımlarını yeniden test et" disiplininden ilham alındı.
 
-## When to apply
+## Ne zaman uygulanır
 
-- A model upgrade just landed and your harness was tuned for the previous generation.
-- A component's justification is "we added this because the model used to do X" — and you haven't checked whether it still does X.
-- The harness has accreted over months and nobody remembers what half the machinery is for.
-- Cost or latency is climbing and you suspect redundant belt-and-suspenders layers.
+- Yeni bir model yükseltmesi geldi ve harness'ın önceki nesle göre ayarlanmıştı.
+- Bir bileşenin gerekçesi "bunu ekledik çünkü model eskiden X yapardı" — ve hâlâ X yapıp yapmadığını kontrol etmedin.
+- Harness aylar boyunca birikti (accreted) ve mekanizmanın yarısının ne işe yaradığını kimse hatırlamıyor.
+- Maliyet ya da gecikme (latency) tırmanıyor ve gereksiz kemer-ve-askı (belt-and-suspenders) katmanlarından şüpheleniyorsun.
 
-## Procedure
+## Prosedür
 
-1. **Inventory the components.** List every distinct piece of scaffolding: prompt sections, tool wrappers, post-hoc validators, retry loops, evaluator personas, structured-output enforcers, sandbox rules. One row per component. Note the failure mode each was added to prevent.
+1. **Bileşenleri envanterle.** Her ayrı iskele parçasını listele: prompt bölümleri, araç sarmalayıcıları (tool wrappers), sonradan (post-hoc) doğrulayıcılar, yeniden-deneme (retry) döngüleri, değerlendirici personaları, yapılandırılmış-çıktı (structured-output) dayatıcıları, sandbox kuralları. Bileşen başına bir satır. Her birinin önlemek için eklendiği başarısızlık modunu not et.
 
-2. **Rank by suspicion.** Put the components most likely to be obsolete at the top: anything added before the last two model bumps, anything targeting a failure mode you haven't seen recently, anything whose original justification is now folklore.
+2. **Şüpheye göre sırala.** Geçersiz olma olasılığı en yüksek bileşenleri en üste koy: son iki model sıçramasından önce eklenen her şey, son zamanlarda görmediğin bir başarısızlık modunu hedefleyen her şey, orijinal gerekçesi artık folklor olan her şey.
 
-3. **Pick a baseline eval.** You need a repeatable metric before you touch anything. Reuse an existing eval set if you have one; otherwise pick 20–60 tasks representative of production work. Record baseline score, cost, and wall-clock.
+3. **Bir temel eval (baseline) seç.** Hiçbir şeye dokunmadan önce tekrarlanabilir bir metriğe ihtiyacın var. Varsa mevcut bir eval setini yeniden kullan; yoksa üretim işini temsil eden 20–60 görev seç. Temel skoru, maliyeti ve duvar-saatini (wall-clock) kaydet.
 
-4. **Strip one component.** Only one. Comment it out or gate it behind a flag — don't delete yet. Re-run the eval.
+4. **Bir bileşeni soy.** Yalnızca bir tane. Yorum satırı yap ya da bir bayrağın (flag) arkasına al — henüz silme. Eval'i yeniden çalıştır.
 
-5. **Compare against baseline.**
-   - Score within noise, cost/latency down → the component is dead weight. Delete.
-   - Score drops measurably → the component still earns its complexity. Restore and note *what failure mode* returned.
-   - Score *improves* → the component was actively harmful. Delete and investigate why (often: over-constraining a now-capable model).
+5. **Temele (baseline) karşı karşılaştır.**
+   - Skor gürültü (noise) içinde, maliyet/gecikme düşük → bileşen ölü ağırlıktır. Sil.
+   - Skor ölçülebilir biçimde düşüyor → bileşen karmaşıklığını hâlâ hak ediyor. Geri koy ve *hangi başarısızlık modunun* geri döndüğünü not et.
+   - Skor *iyileşiyor* → bileşen aktif olarak zararlıydı. Sil ve nedenini araştır (çoğunlukla: artık yetenekli olan bir modeli aşırı-kısıtlama).
 
-6. **Commit the delta.** Land the strip (or the restore-with-notes) as its own commit. Do not batch multiple strips into one change — you lose the ability to attribute the score movement.
+6. **Farkı (delta) commit'le.** Soymayı (ya da not-ile-geri-koymayı) kendi commit'i olarak indir. Birden çok soymayı tek değişiklikte toplama — skor hareketini atfetme (attribute) yeteneğini kaybedersin.
 
-7. **Repeat for the next component.** Re-establish baseline from the *new* state each round, not the original. Compounding strips have compounding effects.
+7. **Sonraki bileşen için tekrarla.** Her turda temeli (baseline) orijinalden değil, *yeni* durumdan yeniden kur. Bileşik (compounding) soymaların bileşik etkileri vardır.
 
-## Anti-patterns
+## Anti-desenler (Anti-patterns)
 
-- **Stripping two components at once** — you can't tell which one mattered. Halve the signal, double the confusion.
-- **Skipping the eval "because it's obviously safe to remove"** — the harness accreted for reasons. Some are still real. Measure.
-- **Deleting instead of gating on the first pass** — you will want to A/B mid-review. Flag first, delete after the eval confirms.
-- **Trusting anecdotes over the eval** — "it feels better without it" is how load-bearing components get removed. If the eval doesn't show it, it isn't there.
-- **Stripping components that guard safety, sandboxing, or cost caps** — those aren't compensating for model weakness. Leave them.
-- **Doing this on prod traffic** — run against an eval set, not real users. The failure modes you're re-probing are exactly the ones that hurt users.
+- **Aynı anda iki bileşeni soyma** — hangisinin önemli olduğunu söyleyemezsin. Sinyali yarıya indir, kafa karışıklığını ikiye katla.
+- **Eval'i "kaldırılması bariz güvenli olduğu için" atlama** — harness sebeplerle birikti. Bazıları hâlâ gerçek. Ölç.
+- **İlk geçişte gate'lemek (bayraklamak) yerine silme** — inceleme (review) ortasında A/B yapmak isteyeceksin. Önce bayrakla, eval onayladıktan sonra sil.
+- **Eval yerine anekdotlara güvenme** — "onsuz daha iyi hissettiriyor", yük taşıyan (load-bearing) bileşenlerin böyle kaldırıldığı yoldur. Eval göstermiyorsa, orada değildir.
+- **Güvenliği, sandbox'lamayı ya da maliyet sınırlarını (cost caps) koruyan bileşenleri soyma** — onlar model zayıflığını telafi etmiyor. Bırak.
+- **Bunu prod trafiğinde yapma** — gerçek kullanıcılara değil, bir eval setine karşı çalıştır. Yeniden-yokladığın (re-probing) başarısızlık modları, tam da kullanıcılara zarar verenlerdir.
 
-## What to strip first
+## Önce ne soyulmalı
 
-Highest yield in practice:
+Pratikte en yüksek getirili (yield):
 
-- Structured-output enforcers layered on top of models that now emit valid JSON natively.
-- Multi-step "plan then execute" wrappers on tasks the model now one-shots.
-- Retry loops around tool calls that no longer flake.
-- Evaluator personas whose critiques the generator now anticipates on its own.
-- Verbose "remember to do X" prompt sections where X is now default behavior.
+- Artık doğal olarak (natively) geçerli JSON üreten modellerin üzerine katmanlanmış yapılandırılmış-çıktı dayatıcıları.
+- Modelin artık tek-atışta (one-shot) çözdüğü görevlerdeki çok-adımlı "önce planla sonra uygula" (plan then execute) sarmalayıcıları.
+- Artık takılmayan (flake) araç çağrıları etrafındaki yeniden-deneme (retry) döngüleri.
+- Eleştirilerini üreticinin artık kendi başına öngördüğü değerlendirici personaları.
+- X'in artık varsayılan davranış olduğu ayrıntılı (verbose) "X yapmayı unutma" prompt bölümleri.
 
-## When NOT to apply
+## Ne zaman uygulanmaz
 
-Don't strip mid-project on a live long-running run — you'll perturb sessions in flight. Do it between projects, or on a forked branch. Also skip if you don't have an eval you trust; stripping without measurement is guessing.
+Uzun süredir devam eden canlı bir koşunun ortasında proje ortasında soyma yapma — uçuş halindeki (in flight) oturumları bozarsın. Projeler arasında ya da bir çatal (fork) dalında yap. Ayrıca güvendiğin bir eval'in yoksa atla; ölçüm olmadan soyma, tahmin etmektir.
 
-## Related
+## İlgili
 
-- [[shift-notes]] — record which components were stripped and when, so the next audit doesn't re-strip and re-restore the same piece.
-- [[adversarial-verify]] — the evaluator-generator pattern that may itself be a strip candidate on newer models.
-- [[broken-window-check]] — if you strip a component and the eval regresses in a specific way, that's your new broken window to hunt.
+- [[shift-notes]] — hangi bileşenlerin ne zaman soyulduğunu kaydet ki sonraki denetim aynı parçayı yeniden-soyup yeniden-geri-koymasın.
+- [[adversarial-verify]] — daha yeni modellerde kendisi bir soyma adayı olabilecek değerlendirici-üretici deseni.
+- [[broken-window-check]] — bir bileşeni soyup eval belirli bir şekilde geriliyorsa (regress), avlanacağın yeni kırık pencere odur.

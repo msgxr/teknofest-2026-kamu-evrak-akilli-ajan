@@ -1,52 +1,52 @@
 ---
 name: evaluator-calibration
-description: Calibrate a reviewer persona with few-shot rubric examples so skepticism stays consistent and doesn't drift lenient over long runs.
-when_to_use: standing up an evaluator/critic agent for a multi-agent harness, noticing evaluator scores drift upward across many iterations, grading skill/PR/diff output with an LLM and wanting reproducible verdicts
+description: Şüpheciliğin tutarlı kalması ve uzun koşularda hoşgörülüye (lenient) kaymaması için, bir inceleyici (reviewer) personasını az-atışlı (few-shot) rubrik örnekleriyle kalibre et.
+when_to_use: çok-ajanlı bir harness için bir değerlendirici/eleştirmen (evaluator/critic) ajanı ayağa kaldırma, değerlendirici skorlarının birçok iterasyon boyunca yukarı kaydığını fark etme, skill/PR/diff çıktısını bir LLM ile notlandırıp (grade) tekrarlanabilir kararlar (verdict) isteme
 ---
 
-# Evaluator Calibration
+# Değerlendirici Kalibrasyonu (Evaluator Calibration)
 
-An evaluator agent that reads the generator's reasoning drifts lenient. The generator explains why the code is good; the evaluator, priming on that prose, starts nodding along. By sprint 8 the "skeptical critic" is a rubber stamp. Prithvi flagged this in the March 2026 planner/generator/evaluator writeup — evaluator leniency is the failure mode of the three-agent harness.
+Üreticinin (generator) gerekçesini okuyan bir değerlendirici (evaluator) ajanı hoşgörülüye (lenient) kayar. Üretici, kodun neden iyi olduğunu açıklar; değerlendirici, o düz metne (prose) önlem alarak (priming) baş sallamaya başlar. 8. sprint'e gelindiğinde "şüpheci eleştirmen" bir lastik damgadır (rubber stamp). Prithvi bunu Mart 2026 planlayıcı/üretici/değerlendirici yazısında işaretledi — değerlendirici hoşgörüsü, üç-ajanlı harness'ın başarısızlık modudur.
 
-The fix is not "tell the evaluator to be stricter." That works for one iteration. The fix is **anchoring the rubric with concrete pass/fail examples the evaluator re-reads every invocation**, and **re-prompting from scratch on a fixed cadence** so drift can't accumulate.
+Çözüm "değerlendiriciye daha katı ol de" değildir. Bu, bir iterasyon için işe yarar. Çözüm, **rubriği, değerlendiricinin her çağrımda yeniden okuduğu somut geçti/kaldı (pass/fail) örnekleriyle demirlemek** ve **sabit bir kadansda sıfırdan yeniden-prompt'lamak**, böylece kaymanın (drift) birikememesidir.
 
-## When to apply
+## Ne zaman uygulanır
 
-- You're building a critic/evaluator/judge agent in a multi-agent loop.
-- You're using an LLM as a grader for skills, PRs, diffs, or agent output.
-- You've noticed pass rates creeping up while output quality hasn't changed — or worse, dropped.
-- You want two runs of the same evaluator on the same artifact to return the same verdict.
+- Çok-ajanlı bir döngüde bir eleştirmen/değerlendirici/yargıç (critic/evaluator/judge) ajanı kuruyorsun.
+- Skill'ler, PR'lar, diff'ler ya da ajan çıktısı için notlandırıcı (grader) olarak bir LLM kullanıyorsun.
+- Çıktı kalitesi değişmediği halde — ya da daha kötüsü, düştüğü halde — geçme oranlarının (pass rate) yukarı süründüğünü fark ettin.
+- Aynı değerlendiricinin aynı artefakt üzerindeki iki koşusunun aynı kararı döndürmesini istiyorsun.
 
-## Procedure
+## Prosedür
 
-1. **Write the rubric as a scored checklist, not prose.** Each criterion gets a name, a one-line definition, and a binary or 1-3 score. Prose rubrics ("evaluate whether the code is well-designed") drift; checklists don't.
+1. **Rubriği düz metin değil, skorlanmış bir kontrol listesi (checklist) olarak yaz.** Her kriter bir ad, tek-satırlık bir tanım ve ikili (binary) ya da 1-3 skor alır. Düz metin rubrikler ("kodun iyi tasarlanıp tasarlanmadığını değerlendir") kayar; kontrol listeleri kaymaz.
 
-2. **Anchor every criterion with 2 concrete examples — one pass, one fail.** Real examples from prior runs, not invented ones. The evaluator reads these every invocation. This is the calibration; without it you're just prompting hope.
+2. **Her kriteri 2 somut örnekle demirle — biri geçti, biri kaldı.** Uydurma değil, önceki koşulardan gerçek örnekler. Değerlendirici bunları her çağrımda okur. Kalibrasyon budur; bu olmadan yalnızca umudu prompt'luyorsun.
 
-3. **Forbid reading the generator's reasoning before scoring.** The evaluator sees the artifact (code, diff, output) and the rubric. It does not see the generator's "here's why this is good" prose. Score first, then optionally read the reasoning to write the critique.
+3. **Skorlamadan önce üreticinin gerekçesini okumayı yasakla.** Değerlendirici artefaktı (kod, diff, çıktı) ve rubriği görür. Üreticinin "işte bunun neden iyi olduğu" düz metnini görmez. Önce skorla, sonra isteğe bağlı olarak eleştiriyi (critique) yazmak için gerekçeyi oku.
 
-4. **Require the evaluator to quote the artifact in every verdict.** "Fails criterion 3 because <quoted line>" — not "fails criterion 3." Quoting forces grounding and makes the verdict auditable.
+4. **Değerlendiricinin her kararda artefaktı alıntılamasını (quote) zorunlu kıl.** "Kriter 3'ten kaldı çünkü <alıntılanmış satır>" — "kriter 3'ten kaldı" değil. Alıntı, temellendirmeyi (grounding) zorlar ve kararı denetlenebilir (auditable) kılar.
 
-5. **Re-prompt from scratch every N iterations.** Empirically N=5 works. Kill the evaluator's context, reload the system prompt + rubric + examples fresh. Do not compact; compaction preserves the drift.
+5. **Her N iterasyonda sıfırdan yeniden-prompt'la.** Ampirik olarak N=5 işe yarar. Değerlendiricinin bağlamını öldür, sistem prompt'unu + rubriği + örnekleri taze yeniden yükle. Sıkıştırma (compact) yapma; sıkıştırma kaymayı korur.
 
-6. **Log verdict distributions.** Track pass rate per criterion per sprint. A criterion that goes from 40% pass to 90% pass without a spec change is drift, not improvement.
+6. **Karar dağılımlarını logla.** Sprint başına kriter başına geçme oranını takip et. Şartname (spec) değişikliği olmadan %40 geçmeden %90 geçmeye giden bir kriter, iyileşme değil, kaymadır (drift).
 
-7. **Spot-check with a held-out fail.** Every ~10 sprints, feed the evaluator an artifact from your example set that you know fails. If it passes, the calibration has decayed — regenerate the example set from recent real runs.
+7. **Tutulmuş (held-out) bir kaldı örneğiyle nokta-kontrolü (spot-check) yap.** Her ~10 sprint'te, örnek setinden kaldığını bildiğin bir artefaktı değerlendiriciye ver. Geçerse, kalibrasyon çürümüştür (decayed) — örnek setini yakın gerçek koşulardan yeniden üret.
 
-## Anti-patterns
+## Anti-desenler (Anti-patterns)
 
-- **"Be skeptical" in the system prompt with no examples.** Words don't calibrate. Examples calibrate.
-- **Letting the evaluator read the planner's plan.** Same drift mechanism as reading the generator's reasoning — priming on intent softens the critique.
-- **One shared context across many gradings.** Each grading should start from a clean rubric read. Batch-grading in one context is where leniency compounds fastest.
-- **Invented examples.** Fake pass/fail examples don't anchor to the artifact distribution the evaluator actually sees. Pull from real runs.
-- **Scoring on a 1-10 scale.** The evaluator will cluster at 7. Use binary or 1-3.
+- **Sistem prompt'unda örneksiz "şüpheci ol".** Kelimeler kalibre etmez. Örnekler kalibre eder.
+- **Değerlendiricinin planlayıcının (planner) planını okumasına izin verme.** Üreticinin gerekçesini okumakla aynı kayma mekanizması — niyete (intent) önlem almak (priming) eleştiriyi yumuşatır.
+- **Birçok notlandırma boyunca tek bir paylaşılan bağlam.** Her notlandırma temiz bir rubrik okumasıyla başlamalı. Tek bağlamda toplu-notlandırma (batch-grading), hoşgörünün en hızlı biriktiği yerdir.
+- **Uydurma örnekler.** Sahte geçti/kaldı örnekleri, değerlendiricinin gerçekte gördüğü artefakt dağılımına demirlemez. Gerçek koşulardan çek.
+- **1-10 ölçeğinde skorlama.** Değerlendirici 7'de kümelenir. İkili (binary) ya da 1-3 kullan.
 
-## Related
+## İlgili
 
-- [[adversarial-verify]] — the single-shot form; evaluator-calibration is the standing-agent form.
-- [[shift-notes]] — evaluator verdicts belong in the ledger so drift is visible session-over-session.
-- [[broken-window-check]] — a mechanical version of "don't trust the last verdict"; pairs well when the evaluator is the thing being distrusted.
+- [[adversarial-verify]] — tek-atışlık (single-shot) biçim; evaluator-calibration ise duran-ajan (standing-agent) biçimidir.
+- [[shift-notes]] — değerlendirici kararları deftere aittir ki kayma oturumdan oturuma görünür olsun.
+- [[broken-window-check]] — "son karara güvenme"nin mekanik bir sürümü; güvensizlik duyulan şey değerlendiricinin kendisi olduğunda iyi eşleşir.
 
-## When NOT to apply
+## Ne zaman uygulanmaz
 
-Single-shot grading with a fresh context every call — there's no drift to prevent, and the examples are overhead. Also skip for tasks under ~1 hour where the evaluator only runs 2-3 times.
+Her çağrıda taze bağlamla tek-atışlık notlandırma — önlenecek bir kayma yoktur ve örnekler ek yüktür (overhead). Ayrıca değerlendiricinin yalnızca 2-3 kez çalıştığı ~1 saatin altındaki görevler için de atla.

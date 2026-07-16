@@ -1,43 +1,43 @@
 ---
 name: suggest-next-features
-description: Read git log since initial scaffold + last 3 progress notes, draft feature additions to a SEPARATE suggestions file so feature_list.json stays immutable
-when_to_use: feature_list.json has zero passes:false entries left OR the last 3 sessions added no new work and the spec has quietly expanded (user asked for something the list does not cover)
+description: İlk iskeleden (scaffold) bu yana git log'unu + son 3 ilerleme notunu oku, feature_list.json değişmez (immutable) kalsın diye AYRI bir öneriler dosyasına özellik eklemeleri taslakla
+when_to_use: feature_list.json'da sıfır passes:false girdisi kaldığında YA DA son 3 oturum yeni iş eklemedi ve şartname (spec) sessizce genişledi (kullanıcı listede yer almayan bir şey istedi)
 ---
 
 # suggest-next-features
 
-The ledger runs dry. Either every `feature_list.json` entry has `passes: true`, or the last few sessions have been shuffling half-features and adding no new work because the spec grew and the list did not.
+Defter kuruyor (runs dry). Ya her `feature_list.json` girdisi `passes: true`, ya da son birkaç oturum yarı-özellikleri karıştırıp yeni iş eklemiyor çünkü şartname (spec) büyüdü ve liste büyümedi.
 
-This skill drafts candidate additions — but to a **separate** file, `feature_list.suggestions.json`. `feature_list.json` is immutable except for the single `passes: false → true` flip that [[feature-list-json]] permits. Silently appending entries would break that contract and let a runaway session invent its own scope.
+Bu skill aday eklemeleri taslaklar — ama **ayrı** bir dosyaya, `feature_list.suggestions.json`. `feature_list.json`, [[feature-list-json]]'ın izin verdiği tek `passes: false → true` çevirmesi dışında değişmezdir (immutable). Sessizce girdi eklemek o sözleşmeyi bozar ve kontrolsüz (runaway) bir oturumun kendi kapsamını uydurmasına izin verir.
 
-The suggestions file is a proposal. A human hand-merges chosen entries into `feature_list.json`; the rest are ignored or deleted. No agent, ever, edits `feature_list.json` directly from this skill.
+Öneriler dosyası bir tekliftir (proposal). Bir insan, seçilen girdileri elle `feature_list.json`'a birleştirir (hand-merge); geri kalanı yok sayılır ya da silinir. Hiçbir ajan, hiçbir zaman, bu skill'den `feature_list.json`'ı doğrudan düzenlemez.
 
-## Trigger
+## Tetik (Trigger)
 
-Apply when **either** condition holds:
+**Ya** koşul geçerliyse uygula:
 
-- `jq '[.[] | select(.passes==false)] | length' feature_list.json` returns `0`.
-- The last 3 progress entries in `claude-progress.txt` show no new `passes: true` flips AND the user has referenced behavior not present in `feature_list.json`.
+- `jq '[.[] | select(.passes==false)] | length' feature_list.json` `0` döndürüyor.
+- `claude-progress.txt`'deki son 3 ilerleme girdisi hiçbir yeni `passes: true` çevirmesi göstermiyor VE kullanıcı `feature_list.json`'da bulunmayan bir davranışa atıfta bulundu.
 
-Do not apply just because the list looks short. 30 unfinished entries is not a trigger; 0 is.
+Yalnızca liste kısa göründüğü için uygulama. 30 bitmemiş girdi bir tetik değildir; 0 tetiktir.
 
-## Procedure
+## Prosedür
 
-1. `git log --pretty=format:'%h %s' "$(git log --grep='chore: initial scaffold' --format=%H | tail -1)"..HEAD` — every commit since the scaffold. This is what actually shipped, not what was claimed.
-2. Read the last 3 "What's done" / "Notes for the next session" entries from `claude-progress.txt`. This is where recent scope creep leaks.
-3. Read `feature_list.json` in full. You need to know what is already enumerated so you do not propose duplicates.
-4. Compare (1)+(2) against (3). Look for:
-   - Behavior the user asked for in recent sessions that has no matching entry.
-   - Natural next steps implied by shipped features (a feature ships a POST endpoint but no list view for its results).
-   - Categories the initial list under-covered (error states, empty states, mobile layout, keyboard shortcuts, offline behavior).
-5. Draft 5–10 candidate entries in the same shape as `feature_list.json`. Every one starts `passes: false`. Order them roughly by priority.
-6. Write the array to `feature_list.suggestions.json` at the project root. Overwrite any prior draft — this file is regenerable, not append-only.
-7. Print a one-line summary per suggestion so the operator can scan without opening the file.
-8. Stop. Do not touch `feature_list.json`. Do not commit `feature_list.suggestions.json` (it is a proposal, not project state).
+1. `git log --pretty=format:'%h %s' "$(git log --grep='chore: initial scaffold' --format=%H | tail -1)"..HEAD` — iskeleden (scaffold) bu yana her commit. Bu, iddia edilen değil, gerçekte gönderilen şeydir.
+2. `claude-progress.txt`'den son 3 "What's done" / "Notes for the next session" girdisini oku. Son zamanlardaki kapsam kayması (scope creep) burada sızar.
+3. `feature_list.json`'ı tam olarak oku. Kopya (duplicate) önermemek için nelerin zaten listelendiğini bilmen gerekir.
+4. (1)+(2)'yi (3)'e karşı karşılaştır. Şunları ara:
+   - Kullanıcının son oturumlarda istediği, eşleşen girdisi olmayan davranış.
+   - Gönderilen özelliklerin ima ettiği doğal sonraki adımlar (bir özellik POST endpoint'i gönderir ama sonuçları için liste görünümü yoktur).
+   - İlk listenin yetersiz kapsadığı (under-covered) kategoriler (hata durumları, boş durumlar, mobil yerleşim, klavye kısayolları, çevrimdışı (offline) davranış).
+5. `feature_list.json` ile aynı biçimde 5–10 aday girdi taslakla. Her biri `passes: false` başlar. Onları kabaca önceliğe göre sırala.
+6. Diziyi proje kökündeki `feature_list.suggestions.json`'a yaz. Önceki taslağın üzerine yaz — bu dosya yeniden-üretilebilir (regenerable), yalnızca-ekleme (append-only) değil.
+7. Operatörün dosyayı açmadan tarayabilmesi için öneri başına tek-satırlık bir özet yazdır.
+8. Dur. `feature_list.json`'a dokunma. `feature_list.suggestions.json`'ı commit'leme (bir teklif, proje durumu değil).
 
-## Output shape
+## Çıktı biçimi (Output shape)
 
-`feature_list.suggestions.json` — same schema as `feature_list.json`:
+`feature_list.suggestions.json` — `feature_list.json` ile aynı şema:
 
 ```json
 [
@@ -55,17 +55,17 @@ Do not apply just because the list looks short. 30 unfinished entries is not a t
 ]
 ```
 
-The `rationale` field is unique to the suggestions file — it justifies the proposal so the human merger can decide fast. Strip `rationale` before merging into `feature_list.json`.
+`rationale` alanı öneriler dosyasına özgüdür — teklifi gerekçelendirir ki insan birleştirici (merger) hızlı karar verebilsin. `feature_list.json`'a birleştirmeden önce `rationale`'ı çıkar (strip).
 
-## Anti-patterns
+## Anti-desenler (Anti-patterns)
 
-- **Never edit `feature_list.json` directly from this skill.** Not to append, not to reorder, not to add a comment. The immutability rule from [[feature-list-json]] wins.
-- **Do not delete `feature_list.suggestions.json` on the next run.** Overwrite it — the operator may have partly consumed it, and a rewrite is clearer than a diff-merge.
-- **Do not propose more than 10 at a time.** Long lists get skimmed, not read. If more are warranted, ship the top 10 and note the rest in `claude-progress.txt`.
-- **Do not commit the suggestions file.** It is a proposal for the operator, not a source-of-truth artifact. Add `feature_list.suggestions.json` to `.gitignore` if the operator has not already.
+- **Bu skill'den `feature_list.json`'ı asla doğrudan düzenleme.** Ne eklemek için, ne yeniden sıralamak için, ne de yorum eklemek için. [[feature-list-json]]'daki değişmezlik (immutability) kuralı kazanır.
+- **Sonraki koşuda `feature_list.suggestions.json`'ı silme.** Üzerine yaz — operatör onu kısmen tüketmiş olabilir ve bir yeniden-yazma, diff-birleştirmeden (diff-merge) daha nettir.
+- **Bir seferde 10'dan fazla önerme.** Uzun listeler okunmaz, göz gezdirilir. Daha fazlası hak ediliyorsa, ilk 10'u gönder ve geri kalanı `claude-progress.txt`'e not et.
+- **Öneriler dosyasını commit'leme.** O, operatör için bir tekliftir, doğruluk-kaynağı (source-of-truth) artefaktı değil. Operatör henüz eklemediyse `feature_list.suggestions.json`'ı `.gitignore`'a ekle.
 
-## Related
+## İlgili
 
-- [[feature-list-json]] — the immutability contract this skill respects.
-- [[shift-notes]] — where recent-scope-drift signals live.
-- [[progress-reading-protocol]] — the fresh-session read this skill mirrors in reverse (reads history, writes forward proposals).
+- [[feature-list-json]] — bu skill'in saygı gösterdiği değişmezlik (immutability) sözleşmesi.
+- [[shift-notes]] — son-kapsam-kayması (recent-scope-drift) sinyallerinin yaşadığı yer.
+- [[progress-reading-protocol]] — bu skill'in tersine yansıttığı taze-oturum okuması (geçmişi okur, ileriye dönük teklifler yazar).

@@ -1,72 +1,72 @@
 ---
 name: eval-harness
-description: Build a repeatable eval loop that grades agent output with an LLM judge, so prompt/skill changes get scored against a baseline instead of eyeballed. Reuses loopkit's verifier subagent as the grader — do not build a new one.
-when_to_use: tuning a prompt, changing a skill, comparing two models, regression-testing a workflow, "does this actually work better?"
+description: Ajan çıktısını bir LLM yargıçla (judge) notlandıran tekrarlanabilir bir eval döngüsü kur, böylece prompt/skill değişiklikleri gözle bakılıp geçilmek yerine bir temele (baseline) karşı skorlansın. Notlandırıcı (grader) olarak loopkit'in verifier subagent'ını yeniden kullan — yenisini kurma.
+when_to_use: bir prompt'u ayarlama, bir skill'i değiştirme, iki modeli karşılaştırma, bir iş akışını (workflow) regresyon-testi yapma, "bu gerçekten daha mı iyi çalışıyor?"
 ---
 
 # Eval Harness
 
-Every prompt tweak in a long-running agent looks like an improvement in the moment. The only way to know is a graded run against fixed inputs. Loopkit already ships `.claude/agents/verifier.md` — that is your grader. Do not rebuild it.
+Uzun süre çalışan bir ajandaki her prompt ince ayarı, o anda bir iyileştirme gibi görünür. Bilmenin tek yolu, sabit girdilere karşı notlandırılmış (graded) bir koşudur. Loopkit zaten `.claude/agents/verifier.md` ile geliyor — notlandırıcın (grader) odur. Yeniden inşa etme.
 
-## The three-stage loop
+## Üç-aşamalı döngü
 
 ```
 inputs.jsonl  →  runner  →  outputs.jsonl  →  verifier (per row)  →  verdicts.jsonl  →  diff vs baseline
 ```
 
-Each stage writes to disk. No stage holds the whole run in context.
+Her aşama diske yazar. Hiçbir aşama tüm koşuyu bağlamda tutmaz.
 
-## Stage 1 — inputs.jsonl
+## Aşama 1 — inputs.jsonl
 
-One JSON object per row: `{"id": "case-01", "input": "...", "expected": "..."}`.
+Satır başına bir JSON nesnesi: `{"id": "case-01", "input": "...", "expected": "..."}`.
 
-- 20-100 cases is enough for a signal. More is nice, not required.
-- Include known-hard cases, edge cases, and a couple of trivial ones as sanity anchors.
-- Freeze the file. Rev the eval with a suffix (`inputs-v2.jsonl`) when you change it. Never edit in place — you lose the baseline.
+- 20-100 vaka bir sinyal için yeterlidir. Daha fazlası hoştur, zorunlu değil.
+- Bilinen-zor vakaları, uç (edge) vakaları ve akıl-sağlığı çıpası (sanity anchor) olarak birkaç önemsiz (trivial) vaka ekle.
+- Dosyayı dondur. Değiştirdiğinde eval'i bir sonek (suffix) ile revizyonla (`inputs-v2.jsonl`). Asla yerinde düzenleme — temeli (baseline) kaybedersin.
 
-## Stage 2 — runner
+## Aşama 2 — runner
 
-A dumb loop: for each row, call the model with the current prompt/skill, capture output, write `{"id": ..., "output": ...}` to `outputs.jsonl`. No grading here — just capture.
+Aptal bir döngü: her satır için modeli mevcut prompt/skill ile çağır, çıktıyı yakala, `{"id": ..., "output": ...}`'ı `outputs.jsonl`'e yaz. Burada notlandırma yok — yalnızca yakalama.
 
-- Same temperature every run (usually 0 for evals).
-- Same seed / model version.
-- Log the git SHA of the prompt/skill under test in the file header.
+- Her koşuda aynı sıcaklık (temperature) (eval'ler için genelde 0).
+- Aynı tohum (seed) / model sürümü.
+- Test edilen prompt/skill'in git SHA'sını dosya başlığına (header) logla.
 
-If the runner is smart it will bias the eval. Keep it dumb.
+Runner akıllıysa eval'i yanlı (bias) hale getirir. Aptal tut.
 
-## Stage 3 — verifier
+## Aşama 3 — verifier
 
-Fan out one subagent per row (see `subagent-fanout`). Each gets:
-- The input.
-- The expected output (or spec).
-- The actual output.
-- The verifier system prompt from `.claude/agents/verifier.md`.
+Satır başına bir subagent'e dağıt (fan out) (bkz. `subagent-fanout`). Her biri şunu alır:
+- Girdi.
+- Beklenen çıktı (ya da şartname).
+- Gerçek çıktı.
+- `.claude/agents/verifier.md`'deki verifier sistem prompt'u.
 
-Verifier returns strict JSON: `{"pass": bool, "why": "..."}`. Collect into `verdicts.jsonl`.
+Verifier katı JSON döndürür: `{"pass": bool, "why": "..."}`. `verdicts.jsonl`'de topla.
 
 ## Diff vs baseline
 
-Two runs of the same eval on two prompt versions → compare pass rates per case. What matters:
+Aynı eval'in iki prompt sürümü üzerindeki iki koşusu → vaka başına geçme oranlarını karşılaştır. Önemli olan:
 
-- **Overall pass rate** — the headline.
-- **Regressions** — cases that were green and went red. These block ship.
-- **New passes** — cases that were red and went green. These justify ship.
-- **Flappy cases** — inconsistent across reruns. Investigate; may be genuine model nondeterminism or a bad case.
+- **Genel geçme oranı (pass rate)** — manşet (headline).
+- **Regresyonlar** — yeşilken kırmızıya dönen vakalar. Bunlar göndermeyi (ship) bloklar.
+- **Yeni geçmeler** — kırmızıyken yeşile dönen vakalar. Bunlar göndermeyi gerekçelendirir.
+- **Çırpınan (flappy) vakalar** — yeniden koşular arasında tutarsız. Araştır; gerçek model belirsizliği (nondeterminism) ya da kötü bir vaka olabilir.
 
-A change that raises the mean but adds regressions is usually a loss — the new failures are cases you already knew worked.
+Ortalamayı yükselten ama regresyon ekleyen bir değişiklik genelde bir kayıptır — yeni başarısızlıklar, zaten çalıştığını bildiğin vakalardır.
 
-## Red flags
+## Kırmızı bayraklar (Red flags)
 
-- **Grader is the same model that produced the output, with the same prompt.** Self-grading is lenient. Use a different persona at minimum; ideally a different model tier.
-- **Eval passes 100% on day one.** The cases are too easy, or the grader is a rubber stamp. Add adversarial cases.
-- **Eval takes >30 minutes.** Fan out. A serial 100-case eval is a serial 100-case bottleneck.
-- **Grader sees your prompt under test.** It will grade what you wanted, not what happened. Feed it only spec + input + output.
-- **Baseline lost.** Without baseline, "improvement" is vibes. Commit `verdicts.jsonl` to git.
+- **Notlandırıcı, çıktıyı üreten modelle aynı, aynı prompt ile.** Kendi-kendini-notlandırma (self-grading) hoşgörülüdür. En azından farklı bir persona; ideali farklı bir model kademesi (tier) kullan.
+- **Eval ilk gün %100 geçiyor.** Vakalar çok kolay ya da notlandırıcı bir lastik damga (rubber stamp). Düşmanca (adversarial) vakalar ekle.
+- **Eval 30 dakikadan uzun sürüyor.** Dağıt (fan out). Seri 100-vakalık bir eval, seri 100-vakalık bir darboğazdır (bottleneck).
+- **Notlandırıcı test edilen prompt'unu görüyor.** Ne olduğunu değil, ne istediğini notlandırır. Ona yalnızca şartname (spec) + girdi + çıktı ver.
+- **Temel (baseline) kayboldu.** Temel olmadan "iyileşme" havadan (vibes) ibarettir. `verdicts.jsonl`'i git'e commit'le.
 
-## When NOT to do this
+## Ne zaman yapılmaz
 
-- One-off script — build a checklist, not a harness.
-- Prompt that changes daily and won't stabilize — evals need a fixed target.
-- Task where "correct" isn't checkable (open-ended creative writing) — use human eval or a rubric-based grader, not pass/fail.
+- Tek-seferlik betik — harness değil, bir kontrol listesi (checklist) kur.
+- Günlük değişen ve oturmayacak (won't stabilize) prompt — eval'ler sabit bir hedefe ihtiyaç duyar.
+- "Doğru"nun kontrol edilebilir olmadığı görev (açık uçlu yaratıcı yazım) — geçti/kaldı değil, insan eval'i ya da rubrik-tabanlı bir notlandırıcı kullan.
 
-The verifier is already yours. The harness is 100 lines of glue around it.
+Verifier zaten senin. Harness, onun etrafındaki 100 satır yapıştırıcıdır (glue).

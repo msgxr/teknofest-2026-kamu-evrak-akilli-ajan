@@ -1,79 +1,79 @@
 ---
 name: using-loopkit
-description: Use when starting any conversation in a loopkit-enabled project - establishes how to find and use loopkit's 49 skills, requiring skill invocation before ANY response including clarifying questions.
+description: loopkit-etkin bir projede herhangi bir konuşmaya başlarken kullan — loopkit'in 49 skill'inin nasıl bulunup kullanılacağını belirler; açıklayıcı sorular dahil HERHANGİ bir yanıttan önce skill çağrısı gerektirir.
 ---
 
-# Using Loopkit
+# Loopkit Kullanımı
 
 <EXTREMELY-IMPORTANT>
-If you think there is even a 1% chance a loopkit skill applies to what you are doing, INVOKE it.
+Yaptığın işe bir loopkit skill'inin uyma ihtimali %1 bile olsa, onu ÇAĞIR.
 
-IF A SKILL APPLIES, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+BİR SKILL UYGUNSA, SEÇME HAKKIN YOK. ONU KULLANMAK ZORUNDASIN.
 
-This overrides "just answer quickly" instincts. Not negotiable.
+Bu, "hızlıca yanıtla" içgüdülerini geçersiz kılar. Pazarlık konusu değil.
 </EXTREMELY-IMPORTANT>
 
-## The Rule
+## Kural
 
-**Invoke relevant skills BEFORE any response or action** — including clarifying questions, exploring the codebase, or reading files. If it turns out wrong for the situation, drop it.
+**İlgili skill'leri herhangi bir yanıt veya eylemden ÖNCE çağır** — açıklayıcı sorular, kod tabanını keşfetme veya dosya okuma dahil. Durum için yanlış çıkarsa, bırak.
 
-Then announce "Using [skill] to [purpose]" and follow the skill exactly. If it has a checklist, create a todo per item.
+Ardından "[amaç] için [skill] kullanılıyor" diye duyur ve skill'i aynen izle. Bir kontrol listesi varsa, her madde için bir todo oluştur.
 
-## Where the skills live
+## Skill'ler nerede yaşar
 
-Skills are files at `.claude/skills/<name>/SKILL.md`. Each has YAML frontmatter with `name` and `description` (the description is a trigger phrase, not a summary). Load a skill by reading its SKILL.md when its trigger matches your task.
+Skill'ler `.claude/skills/<name>/SKILL.md` konumundaki dosyalardır. Her birinin `name` ve `description` içeren YAML frontmatter'ı vardır (description bir tetikleyici ifadedir, özet değil). Tetiği görevinle eşleştiğinde SKILL.md'sini okuyarak bir skill yükle.
 
-## Skill routing (49 skills, 10 tracks)
+## Skill yönlendirme (49 skill, 10 hat)
 
-| Task shape | First skill |
+| Görev şekli | İlk skill |
 |---|---|
-| "Fix this bug" / test failing / crash | `systematic-debugging`, then `read-the-trace` |
-| "It broke between two commits" | `bisect-regression` |
-| "Flaky test" | `flaky-hunter` |
-| "Add a feature" / write anything new | `spec-first`, then `write-failing-test-first` |
-| "Refactor" / dead code / deep nesting | `kill-dead-code`, `simplify`, `reduce-nesting` |
-| About to claim done / commit / open PR | `adversarial-verify` + `verification-before-completion` + `self-eval-bias` |
-| Review a diff | `adversarial-verify`, `pr-from-diff` |
-| Frontend / UI work | `design-system`, `a11y-pass`, `loading-empty-error-states` |
-| Security touch | `owasp-review`, `authz-check`, `input-validation`, `secret-scan`, `dependency-audit` |
-| Data / SQL / migrations | `sql-review`, `migration-writer`, `schema-diff` |
-| Docs / changelog / README | `changelog-from-diff`, `decision-record`, `readme-audit` |
-| Git ops | `clean-commits`, `pr-from-diff`, `rebase-safely`, `revert-surgical` |
-| Test suite gaps | `coverage-gaps`, `contract-test` |
-| Running out of context | `context-budget`, `tool-restraint` |
-| Parallel work | `subagent-fanout` |
-| Starting a fresh project / major feature | `planner-spec-expand`, then `feature-list-json`, then `init-script-contract` |
-| Bootstrapping into an existing multi-session project | `progress-reading-protocol` |
-| Entering an implementation sprint | `sprint-contract` |
-| Calibrating a reviewer / evaluator | `evaluator-calibration` |
-| New Claude/Sonnet/Opus model landed | `harness-stripping` |
+| "Bu hatayı düzelt" / test başarısız / çökme | `systematic-debugging`, sonra `read-the-trace` |
+| "İki commit arasında bozuldu" | `bisect-regression` |
+| "Kararsız test (flaky test)" | `flaky-hunter` |
+| "Özellik ekle" / yeni bir şey yaz | `spec-first`, sonra `write-failing-test-first` |
+| "Refactor" / ölü kod / derin iç içelik | `kill-dead-code`, `simplify`, `reduce-nesting` |
+| Tamamlandı demek / commit / PR açmak üzere | `adversarial-verify` + `verification-before-completion` + `self-eval-bias` |
+| Bir diff'i incele | `adversarial-verify`, `pr-from-diff` |
+| Frontend / UI işi | `design-system`, `a11y-pass`, `loading-empty-error-states` |
+| Güvenliğe dokunuş | `owasp-review`, `authz-check`, `input-validation`, `secret-scan`, `dependency-audit` |
+| Veri / SQL / göçler (migrations) | `sql-review`, `migration-writer`, `schema-diff` |
+| Dokümanlar / changelog / README | `changelog-from-diff`, `decision-record`, `readme-audit` |
+| Git işlemleri | `clean-commits`, `pr-from-diff`, `rebase-safely`, `revert-surgical` |
+| Test paketi boşlukları | `coverage-gaps`, `contract-test` |
+| Bağlam tükeniyor | `context-budget`, `tool-restraint` |
+| Paralel iş | `subagent-fanout` |
+| Yeni proje / büyük özellik başlatma | `planner-spec-expand`, sonra `feature-list-json`, sonra `init-script-contract` |
+| Mevcut çok-oturumlu bir projeye giriş yapma | `progress-reading-protocol` |
+| Bir uygulama sprint'ine girme | `sprint-contract` |
+| Bir denetçi / değerlendirici kalibre etme | `evaluator-calibration` |
+| Yeni Claude/Sonnet/Opus modeli geldi | `harness-stripping` |
 
-Full list: `ls .claude/skills/`.
+Tam liste: `ls .claude/skills/`.
 
-## Red Flags — STOP and check for a skill
+## Kırmızı Bayraklar — DUR ve bir skill olup olmadığını kontrol et
 
-| Thought | Reality |
+| Düşünce | Gerçek |
 |---|---|
-| "This is just a simple question" | Questions are tasks. Check first. |
-| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
-| "I remember this skill" | Skills evolve. Read the current SKILL.md. |
-| "The skill is overkill" | Simple things become complex. Use it. |
-| "I'll just do this one thing first" | Check BEFORE doing anything. |
-| "Tests pass, we're good" | `verification-before-completion` says: run the exact command, read the output, then claim. |
-| "I'll do both features while I'm in here" | `single-feature-discipline` says: one per session. Never two. |
-| "The reviewer will let this slide" | `self-eval-bias` says: assume it will confidently praise. Calibrate first. |
+| "Bu sadece basit bir soru" | Sorular görevdir. Önce kontrol et. |
+| "Önce kod tabanını keşfedeyim" | Skill'ler sana NASIL keşfedeceğini söyler. Önce kontrol et. |
+| "Bu skill'i hatırlıyorum" | Skill'ler evrilir. Güncel SKILL.md'yi oku. |
+| "Skill fazla kaçar" | Basit şeyler karmaşıklaşır. Kullan. |
+| "Önce şu tek şeyi yapayım" | Herhangi bir şey yapmadan ÖNCE kontrol et. |
+| "Testler geçiyor, iyiyiz" | `verification-before-completion` der ki: tam komutu çalıştır, çıktıyı oku, sonra iddia et. |
+| "Buradayken iki özelliği de yaparım" | `single-feature-discipline` der ki: oturum başına bir tane. Asla iki. |
+| "Denetçi bunu görmezden gelir" | `self-eval-bias` der ki: kendinden emin bir şekilde öveceğini varsay. Önce kalibre et. |
 
-## Priority when multiple skills apply
+## Birden fazla skill uyduğunda öncelik
 
-Process skills first (spec-first, systematic-debugging, planner-spec-expand, sprint-contract), then implementation skills (design-system, sql-review, etc.), then finishers (adversarial-verify, verification-before-completion, self-eval-bias, clean-commits).
+Önce süreç skill'leri (spec-first, systematic-debugging, planner-spec-expand, sprint-contract), sonra uygulama skill'leri (design-system, sql-review, vb.), sonra bitiriciler (adversarial-verify, verification-before-completion, self-eval-bias, clean-commits).
 
-- "Let's build X" → `planner-spec-expand` → `feature-list-json` → `sprint-contract` → domain skills → `adversarial-verify`.
-- "Fix bug Y" → `systematic-debugging` → `read-the-trace` → fix → `verification-before-completion`.
-- "Session open in existing project" → `progress-reading-protocol` → `sprint-contract` → work.
+- "X'i inşa edelim" → `planner-spec-expand` → `feature-list-json` → `sprint-contract` → alan skill'leri → `adversarial-verify`.
+- "Y hatasını düzelt" → `systematic-debugging` → `read-the-trace` → düzeltme → `verification-before-completion`.
+- "Mevcut projede oturum açık" → `progress-reading-protocol` → `sprint-contract` → iş.
 
-## Skill release convention
+## Skill yayın (release) kuralı
 
-Every new skill in loopkit ships as a folder with four required files. No exceptions — a skill without these is a draft, not a release.
+loopkit'teki her yeni skill, dört zorunlu dosya içeren bir klasör olarak yayınlanır. İstisna yok — bunlar olmayan bir skill taslaktır, yayın (release) değil.
 
 ```
 skills/<skill-name>/
@@ -84,18 +84,18 @@ skills/<skill-name>/
     after.md          # same prompt WITH the skill loaded
 ```
 
-- `SKILL.md` — routed on its frontmatter `description`. Body under ~150 lines.
-- `POST.md` — the announcement thread. Copy from `template/POST.md`, fill in every placeholder before publishing.
-- `evidence/before.md` + `evidence/after.md` — one real task, both transcripts. The before/after pair is the receipt that the skill actually changes behaviour. If you cannot produce it, the skill is not ready; land it as a draft and merge once the evidence is real.
+- `SKILL.md` — frontmatter `description`'ına göre yönlendirilir. Gövde ~150 satırın altında.
+- `POST.md` — duyuru dizisi (thread). `template/POST.md`'den kopyala, yayınlamadan önce her yer tutucuyu (placeholder) doldur.
+- `evidence/before.md` + `evidence/after.md` — bir gerçek görev, her iki transkript. before/after çifti, skill'in davranışı gerçekten değiştirdiğinin makbuzudur. Üretemiyorsan, skill hazır değildir; taslak olarak indir (land) ve kanıt gerçek olduğunda birleştir (merge).
 
-Bootstrap a new skill by copying `template/` verbatim:
+Yeni bir skill'i `template/`'i aynen kopyalayarak başlat:
 
 ```
 cp -r template skills/<skill-name>
 ```
 
-Then edit SKILL.md, write POST.md, and capture the before/after pair.
+Ardından SKILL.md'yi düzenle, POST.md yaz ve before/after çiftini yakala.
 
-## User instructions win
+## Kullanıcı talimatları kazanır
 
-CLAUDE.md, AGENTS.md, and direct user requests override loopkit skills. Only skip a skill workflow when the user has explicitly said to.
+CLAUDE.md, AGENTS.md ve doğrudan kullanıcı istekleri loopkit skill'lerini geçersiz kılar. Bir skill iş akışını yalnızca kullanıcı açıkça söylediğinde atla.

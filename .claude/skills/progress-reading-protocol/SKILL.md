@@ -1,51 +1,51 @@
 ---
 name: progress-reading-protocol
-description: Run the fixed 6-step session-opening sequence — pwd, read progress, git log, count remaining features, init.sh, smoke-test last feature — before touching any new work. The orientation ritual that lets fresh-context sessions reconstruct project state in under a minute.
-when_to_use: very first tool calls of any fresh coding-agent session, rehydrating after a context reset or crash mid-project, verifying a claimed-shipped feature before picking up new work
+description: Herhangi bir yeni işe dokunmadan önce sabit 6-adımlı oturum-açılış dizisini çalıştır — pwd, ilerlemeyi oku, git log, kalan özellikleri say, init.sh, son özelliği duman-testi. Temiz-bağlam (fresh-context) oturumlarının proje durumunu bir dakikanın altında yeniden kurmasını sağlayan yönelim (orientation) ritüeli.
+when_to_use: herhangi bir temiz-bağlam kodlama-ajanı oturumunun ilk araç çağrıları, proje ortasında bir bağlam sıfırlaması ya da çökme sonrası yeniden nemlendirme (rehydrate), yeni işe geçmeden önce gönderildiği iddia edilen bir özelliği doğrulama
 ---
 
-# Progress-Reading Protocol
+# İlerleme-Okuma Protokolü (Progress-Reading Protocol)
 
-You have no memory of the previous session. The repo does. Every fresh session burns 5-10 minutes reconstructing state unless you follow a fixed opening sequence — with the sequence, it drops to 30-60 seconds. The cost is 2-4k tokens at the top of every session; the payoff crosses over past four sessions on the same project.
+Önceki oturuma dair hafızan yok. Depoda (repo) var. Sabit bir açılış dizisi izlemedikçe her yeni oturum, durumu yeniden kurmak için 5-10 dakika yakar — dizi ile bu, 30-60 saniyeye düşer. Maliyet, her oturumun başında 2-4k token'dır; getiri (payoff), aynı proje üzerinde dört oturumu geçince ödemesini yapar (crosses over).
 
-Skipping steps is the failure mode. Sessions that skip the smoke-test step (6) reliably build new features on top of silently broken ones. See the "looks shipped, isn't shipped" bug (originally documented in the shift-work harness pattern).
+Adımları atlamak, başarısızlık modudur. Duman-testi adımını (6) atlayan oturumlar, güvenilir biçimde yeni özellikleri sessizce bozuk olanların üzerine inşa eder. Bkz. "gönderilmiş görünüyor, gönderilmemiş" (looks shipped, isn't shipped) hatası (aslen vardiya-işi harness deseninde belgelenmiştir).
 
-## When to apply
+## Ne zaman uygulanır
 
-- First tool calls of any coding-agent session in a multi-session project.
-- After a context reset, compaction, or crash mid-project — treat the resumed context as a fresh session.
-- Before you write a single line of new code. No exceptions for "quick fixes."
+- Çok-oturumlu bir projedeki herhangi bir kodlama-ajanı oturumunun ilk araç çağrıları.
+- Bir bağlam sıfırlaması, sıkıştırma (compaction) ya da proje ortasında çökme sonrası — devam ettirilen bağlamı yeni bir oturum gibi ele al.
+- Tek satır yeni kod yazmadan önce. "Hızlı düzeltmeler" için istisna yok.
 
-## Procedure — run in order, no skipping
+## Prosedür — sırayla çalıştır, atlama yok
 
-1. **`pwd`** — confirm you are in the project directory. You may only edit files below this path.
-2. **Read `claude-progress.txt`** (or whatever the project's shift-notes file is called). This is the previous session's prose handoff.
-2b. **Read `claude-decisions.json`** — the machine-readable ledger of decisions the loopkit `pre-compact` hook extracts before each compaction. Prose in `claude-progress.txt` tells you *what* the last session did; JSON in `claude-decisions.json` tells you *what was chosen and rejected*. If the two disagree on a specific choice, the JSON is the durable record. See [[active-memory-reminder]].
-3. **`git log --oneline -20`** — see what was actually committed. If the progress file and the git log disagree, trust the git log. The progress file can be truncated by a crashed write; the log is append-only.
-4. **Count remaining features** — `cat feature_list.json | jq '[.[] | select(.passes==false)] | length'`. Adjust the field name to the project's schema. This anchors you to the source of truth for completion state.
-5. **`./init.sh`** — bring up the dev server. If this fails, fixing it is your only job this session. Do not skip to feature work with a broken environment.
-6. **Smoke-test the most recently "completed" feature** — drive it end-to-end via the browser-automation tool, `curl`, or the actual CLI. Not unit tests. If it fails, invoke [[broken-window-check]]: revert the offending commit, flip the feature back to `passes: false`, and fix it before touching new work.
+1. **`pwd`** — proje dizininde olduğunu doğrula. Yalnızca bu yolun altındaki dosyaları düzenleyebilirsin.
+2. **`claude-progress.txt`'i oku** (ya da projenin shift-notes dosyası her ne adlanıyorsa). Bu, önceki oturumun düz metin (prose) devir teslimidir.
+2b. **`claude-decisions.json`'ı oku** — loopkit `pre-compact` hook'unun her sıkıştırmadan önce çıkardığı, makine-okunabilir karar defteri. `claude-progress.txt` içindeki düz metin sana son oturumun *ne yaptığını* söyler; `claude-decisions.json` içindeki JSON sana *neyin seçilip neyin reddedildiğini* söyler. İkisi belirli bir seçimde çelişirse, kalıcı kayıt JSON'dur. Bkz. [[active-memory-reminder]].
+3. **`git log --oneline -20`** — gerçekte neyin commit'lendiğini gör. İlerleme dosyası ile git log çelişirse, git log'a güven. İlerleme dosyası çökmüş bir yazma (crashed write) tarafından kırpılabilir (truncated); log yalnızca-ekleme (append-only) niteliğindedir.
+4. **Kalan özellikleri say** — `cat feature_list.json | jq '[.[] | select(.passes==false)] | length'`. Alan adını projenin şemasına göre uyarla. Bu, seni tamamlanma durumunun (completion state) doğruluk kaynağına (source of truth) demirler.
+5. **`./init.sh`** — dev sunucusunu ayağa kaldır. Bu başarısız olursa, bu oturumdaki tek işin onu düzeltmektir. Bozuk bir ortamla özellik işine atlama.
+6. **En son "tamamlanmış" özelliği duman-testi yap** — tarayıcı-otomasyonu aracıyla, `curl` ile ya da gerçek CLI ile uçtan uca sür. Birim testleri değil. Başarısız olursa [[broken-window-check]]'i çağır: kusurlu commit'i geri al (revert), özelliği `passes: false`'a geri çevir ve yeni işe dokunmadan önce düzelt.
 
-Only after all six steps pass do you pick new work (see [[shift-notes]] for selection heuristics).
+Yalnızca altı adımın hepsi geçtikten sonra yeni iş seç (seçim sezgisel yöntemleri için bkz. [[shift-notes]]).
 
-## Anti-patterns
+## Anti-desenler (Anti-patterns)
 
-- **"I already know this repo, I'll skip the read."** You do not. The context you have is the context in front of you.
-- **Reading the progress file but not the git log.** The prose lies; the log does not.
-- **Running `init.sh` and assuming success without smoke-testing a feature.** The dev server can start clean while every route is broken.
-- **Smoke-testing with unit tests.** Unit tests can pass while the feature is end-to-end broken — wrong route, missing header, config mismatch. Drive the runtime path.
-- **Batching the 6 steps into "let me just get oriented."** The steps are cheap because they are fixed. Improvising the orientation is where tokens leak.
+- **"Bu depoyu zaten biliyorum, okumayı atlarım."** Bilmiyorsun. Sahip olduğun bağlam, önündeki bağlamdır.
+- **İlerleme dosyasını okuyup git log'u okumama.** Düz metin yalan söyler; log söylemez.
+- **`init.sh`'i çalıştırıp bir özelliği duman-testi yapmadan başarı varsayma.** Dev sunucusu temiz başlarken her rota bozuk olabilir.
+- **Birim testleriyle duman-testi.** Birim testleri geçerken özellik uçtan uca bozuk olabilir — yanlış rota, eksik header, config uyumsuzluğu. Çalışma zamanı (runtime) yolunu sür.
+- **6 adımı "hele bir yönlenip alayım" diye toplama (batching).** Adımlar sabit oldukları için ucuzdur. Yönelimi doğaçlamak, token'ın sızdığı yerdir.
 
-## Cost/benefit
+## Maliyet/fayda
 
-Roughly 2-4k tokens and 30-60 seconds of wall-clock at the top of every session. Payoff crosses over past ~4 sessions on the same project; below that, the ritual is overhead. If your project is one-shot, use [[verification-before-completion]] instead.
+Her oturumun başında kabaca 2-4k token ve 30-60 saniye duvar-saati (wall-clock). Getiri (payoff), aynı proje üzerinde ~4 oturumu geçince ödemesini yapar; altında, ritüel ek yüktür (overhead). Projen tek-atışlıksa (one-shot), bunun yerine [[verification-before-completion]] kullan.
 
-## Related
+## İlgili
 
-- [[shift-notes]] — the prose ledger this protocol reads and writes.
-- [[active-memory-reminder]] — the paired JSON decisions ledger read in step 2b.
-- [[broken-window-check]] — the sub-protocol for step 6 when the smoke test fails.
-- [[single-feature-per-session]] — what to do once orientation is complete.
-- [[clean-state-contract]] — the mirror discipline at session-end that makes this protocol cheap for the next session.
+- [[shift-notes]] — bu protokolün okuyup yazdığı düz metin (prose) defteri.
+- [[active-memory-reminder]] — adım 2b'de okunan eşlenik (paired) JSON kararlar defteri.
+- [[broken-window-check]] — duman testi başarısız olduğunda adım 6 için alt-protokol.
+- [[single-feature-per-session]] — yönelim tamamlandığında ne yapılacağı.
+- [[clean-state-contract]] — bu protokolü sonraki oturum için ucuz kılan, oturum-sonundaki ayna (mirror) disiplini.
 
-When NOT to apply: single-shot sessions with no prior state, or the very first session of a project (there is nothing to read yet — run the initializer instead).
+Ne zaman uygulanmaz: önceki durumu (prior state) olmayan tek-atışlık oturumlar ya da bir projenin ilk oturumu (henüz okunacak bir şey yok — bunun yerine başlatıcıyı (initializer) çalıştır).
