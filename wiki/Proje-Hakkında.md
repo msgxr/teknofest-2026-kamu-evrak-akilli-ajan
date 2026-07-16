@@ -182,7 +182,7 @@ Aşağıdaki değerler `scripts/evaluate.py` ile ölçülmüş, git commit `0861
 | Taslak kalitesi (0-100) | 93.6 | 95.8 | 94.6 | 95.8 | 94.7 |
 | KVKK sızıntısı | 0 kaçak | 0 kaçak | 0 kaçak | 0 kaçak | 0 kaçak |
 
-Ablasyon karşılaştırması, hibrit sistemin bilerek zayıf tutulmuş bag-of-words baseline karşısındaki katkısını gösterir: örneğin geliştirme setinde sınıflandırma doğruluğu **1.0'a karşı 0.5385**, tutulmuş sette **1.0'a karşı 0.375**. Kalibrasyon tarafında ECE geliştirme setinde 0.1882'den sıcaklık ölçekleme (T=0.25) sonrası 0.0081'e iner. Uçtan uca işlem, evrak başına yaklaşık 0.1-0.5 sn (geliştirme setinde medyan 0.1355 sn) sürer. Depo CI rozetine göre **508 test** geçmektedir.
+Ablasyon karşılaştırması, hibrit sistemin bilerek zayıf tutulmuş bag-of-words baseline karşısındaki katkısını gösterir: örneğin geliştirme setinde sınıflandırma doğruluğu **1.0'a karşı 0.5385**, tutulmuş sette **1.0'a karşı 0.375**. Kalibrasyon tarafında ECE geliştirme setinde 0.1882'den sıcaklık ölçekleme (T=0.25) sonrası 0.0081'e iner. Uçtan uca işlem, evrak başına yaklaşık 0.1-0.5 sn (geliştirme setinde medyan 0.1355 sn) sürer. Depo CI rozetine göre **632 test** geçmektedir.
 
 > [!WARNING]
 > Bu sayfadaki tüm sayılar doğrulanmış ölçümlerdir. Bir metriğin ölçüm koşulu (offline mod, ilgili commit) önemlidir; ölçülmemiş hiçbir değer gerçekmiş gibi sunulmaz. Metriklerin tam bağlamı, held-out disiplini ve tekrarlanabilirlik için [Değerlendirme ve Metrikler](Değerlendirme-ve-Metrikler) sayfasına bakınız.

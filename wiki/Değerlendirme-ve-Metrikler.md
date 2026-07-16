@@ -222,7 +222,7 @@ python scripts/evaluate.py --veri-dizini data/raw/kurgu_evraklar_heldout_v4 \
 python scripts/dayaniklilik_testi.py
 ```
 
-Testler ve sürekli entegrasyon için [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) sayfasına bakın (depo CI rozetine göre 508 test geçiyor; `pytest tests/` ile doğrulanır).
+Testler ve sürekli entegrasyon için [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) sayfasına bakın (depo CI rozetine göre 632 test geçiyor; `pytest tests/` ile doğrulanır).
 
 ---
 
@@ -245,5 +245,5 @@ Bu sayfadaki her sayı, adı geçen commit'te üretilmiş raporlara dayanır ve 
 - [Adversarial Dayanıklılık](Adversarial-Dayanıklılık) — v3/v4 setleri ve `dayaniklilik_testi.py`
 - [Veri Setleri](Veri-Setleri) — sentetik setler, etiket şeması, datasheet, KVKK ilkesi
 - [Şartname Uyum Matrisi](Şartname-Uyum-Matrisi) — her şartname maddesinin kanıt haritası
-- [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) — 508 test, CI iş akışı, kalite kapıları
+- [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) — 632 test, CI iş akışı, kalite kapıları
 - [Anayasal İlkeler ve Etik](Anayasal-İlkeler-ve-Etik) — değerlendirme bütünlüğü ve şeffaflık kuralları

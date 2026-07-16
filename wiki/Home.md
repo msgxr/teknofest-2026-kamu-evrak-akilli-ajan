@@ -24,7 +24,7 @@ Tasarımın temel felsefesi **offline-first** olmasıdır: çekirdek işlevselli
 | Yönlendirme birimi | **9** kamu birimi |
 | Mevzuat korpusu | **15** sentetik mevzuat metni |
 | Değerlendirme seti | **5** etiketli set (52 + 16 + 16 + 16 + 16 = 116 evrak) |
-| Test | **508 test** (depo CI rozeti) |
+| Test | **632 test** (depo CI rozeti) |
 | Çalışma modu | **Offline-first** — LLM olmadan tam işlevsel |
 | Bağımlılık | Framework'süz saf Python (çekirdek) |
 | Lisans | Apache 2.0 — Telif: AGENTRA TECH |
@@ -102,7 +102,7 @@ Kod yapısını, ajan mimarisini ve katkı konvansiyonlarını öğrenin.
 
 - [Geliştirici Rehberi](Geliştirici-Rehberi) — yeni ajan ekleme, konvansiyonlar
 - [Sistem Mimarisi](Sistem-Mimarisi) — AgentState veri akışı, dizin haritası
-- [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) — 508 test, kalite kapıları
+- [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) — 632 test, kalite kapıları
 - [REST API](REST-API) · [MCP Sunucusu](MCP-Sunucusu) · [Komut Satırı (CLI) ve Demo](Komut-Satırı-ve-Demo)
 
 ---

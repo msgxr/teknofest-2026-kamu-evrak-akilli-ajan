@@ -1,9 +1,9 @@
 # Test ve Sürekli Entegrasyon 🧪
 
-Bu sayfa, projenin test felsefesini, `tests/` altındaki **42 test dosyasında** toplanan test takımını (depo CI rozetine göre **508 test**), GitHub Actions sürekli tümleştirme (CI) iş akışını ve kalite kapılarını belgeler. Amaç, offline-first hibrit mimarinin her katmanının otomatik olarak doğrulanması ve jüri/geliştirici için tekrarlanabilir bir güvence zinciri sunmaktır.
+Bu sayfa, projenin test felsefesini, `tests/` altındaki **42 test dosyasında** toplanan test takımını (depo CI rozetine göre **632 test**), GitHub Actions sürekli tümleştirme (CI) iş akışını ve kalite kapılarını belgeler. Amaç, offline-first hibrit mimarinin her katmanının otomatik olarak doğrulanması ve jüri/geliştirici için tekrarlanabilir bir güvence zinciri sunmaktır.
 
 > [!NOTE]
-> **TL;DR** — Test paketi `pytest tests/` ile çalışır; depo CI rozetine göre **508 test** geçer. Testler üç düzeydedir: birim (her ajan/yardımcı modül izole), uçtan uca (11-ajan orkestrasyonu tam hat) ve metamorfik (etiket-koruyan bozulmalar altında invaryans). CI (`.github/workflows/ci.yml`) her `push` ve `pull_request`'te Python 3.9 ve 3.12 üzerinde derleme denetimi + testler + 5 evraklık hızlı değerlendirme smoke'u çalıştırır. Değerlendirme bütünlüğü, held-out disiplini ve göreli yol kuralları CI seviyesinde korunur.
+> **TL;DR** — Test paketi `pytest tests/` ile çalışır; depo CI rozetine göre **632 test** geçer. Testler üç düzeydedir: birim (her ajan/yardımcı modül izole), uçtan uca (11-ajan orkestrasyonu tam hat) ve metamorfik (etiket-koruyan bozulmalar altında invaryans). CI (`.github/workflows/ci.yml`) her `push` ve `pull_request`'te Python 3.9 ve 3.12 üzerinde derleme denetimi + testler + 5 evraklık hızlı değerlendirme smoke'u çalıştırır. Değerlendirme bütünlüğü, held-out disiplini ve göreli yol kuralları CI seviyesinde korunur.
 
 ---
 
@@ -130,7 +130,7 @@ Ayrıntı: [Triage ve Önceliklendirme](Triage-ve-Önceliklendirme), [KVKK ve An
 Ayrıntı: [Değerlendirme ve Metrikler](Değerlendirme-ve-Metrikler), [REST API](REST-API), [MCP Sunucusu](MCP-Sunucusu), [Web Arayüzü](Web-Arayüzü).
 
 > [!NOTE]
-> Test **dosyası** sayısı ile test **fonksiyonu** sayısı farklıdır: 42 dosya, parametrize edilmiş durumlarla birlikte depo CI rozetine göre **508 test** olarak koşar. Kesin sayıyı görmek için CI rozetine veya `pytest tests/` özet satırına bakınız.
+> Test **dosyası** sayısı ile test **fonksiyonu** sayısı farklıdır: 42 dosya, parametrize edilmiş durumlarla birlikte depo CI rozetine göre **632 test** olarak koşar. Kesin sayıyı görmek için CI rozetine veya `pytest tests/` özet satırına bakınız.
 
 ---
 

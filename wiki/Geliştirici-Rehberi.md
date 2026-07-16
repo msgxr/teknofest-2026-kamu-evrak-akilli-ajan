@@ -312,7 +312,7 @@ pytest tests/ --cov=src --cov-report=html    # kapsama raporu
 python -m compileall -q src scripts          # derleme / py39 sözdizimi denetimi
 ```
 
-- Bir PR açmadan önce **tüm testler yerelde yeşil olmalıdır**. Depo CI rozetine göre 508 test geçmektedir.
+- Bir PR açmadan önce **tüm testler yerelde yeşil olmalıdır**. Depo CI rozetine göre 632 test geçmektedir.
 - Metrik fonksiyonları (`scripts/evaluate.py`) pipeline importundan ayrılmıştır (gecikmeli import); `tests/test_evaluation.py` ve `tests/test_benchmark.py` bunları pipeline yüklemeden doğrudan test eder.
 - Davranış değiştiren her PR'a test eşlik eder; kod + test aynı commit'te gelir.
 

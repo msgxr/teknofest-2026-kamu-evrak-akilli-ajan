@@ -96,7 +96,7 @@
 # Uygulama Durumu: Çalışan Sistem
 
 - Uçtan uca çalışır durumda: CLI + Streamlit web arayüzü + konsol demo senaryosu
-- 489 birim ve entegrasyon testi sürekli yeşil (`pytest tests/`, 13.07.2026)
+- 632 birim ve entegrasyon testi sürekli yeşil (`pytest tests/`, 16.07.2026)
 - Bağımlılık disiplini: çekirdek kurulum minimal; OCR/semantik arama/LLM opsiyonel katman
 - Değerlendirme aracı (scripts/evaluate.py): sınıflandırma, yönlendirme, eksik bilgi ve süre metriklerini otomatik raporlar
 - 100 etiketli sentetik evrak (52 geliştirme + 16 tutulmuş v1 + 16 tutulmuş v2 + 16 adversarial v3) + 15 belgelik mevzuat korpusu

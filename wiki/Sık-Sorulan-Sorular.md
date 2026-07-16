@@ -164,7 +164,7 @@ Bu, "gerçek zamana yakın sonuç üretme" beklentisini karşılar — ki bu, de
 
 ### S: Kaç test var?
 
-Depo CI rozetine göre **508 test** geçmektedir; `pytest tests/` ile doğrulanır. Ayrıntı: [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon).
+Depo CI rozetine göre **632 test** geçmektedir; `pytest tests/` ile doğrulanır. Ayrıntı: [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon).
 
 ---
 

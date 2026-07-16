@@ -14,6 +14,19 @@ sürümleme [Semantik Sürümleme](https://semver.org/lang/tr/) ilkelerine dayan
 
 ### Düzeltildi
 
+- **Doküman test sayıları güncel ölçümle senkronlandı (632 test / 42 modül; şeffaflık):**
+  Test paketi bu sürüme dek 508'den **632 test / 42 modüle** büyümüştü, ancak
+  jüri-görünür belgeler eski sayıları gösteriyordu: README (rozet, özet tablo,
+  mimari mermaid, test bölümü ve açılır modül listesi — listede eksik olan
+  `test_asistan`, `test_asistan_hesap`, `test_bulanik`, `test_resmi_pdf`
+  eklendi), `docs/teknik_rapor.md` (§5 not(4)'teki **508** ile satır 206'daki
+  **489** aynı belgede birbiriyle çelişiyordu), `presentations/on_degerlendirme_sunumu.md`
+  (+ `.pptx` yeniden üretildi) ve 11 wiki sayfası. Tümü **16.07.2026** itibarıyla
+  ölçülen `pytest tests/` çıktısıyla hizalandı (632 geçti, 1 ortam-bağımlı test
+  atlandı: `reportlab` kurulu dalı). Kod ve ölçülen metrikler değişmedi — dev
+  eval'i temiz HEAD'de yeniden koşulduğunda commit'li raporlarla birebir aynı
+  çıktı; düzeltme yalnızca dokümantasyon dürüstlüğüdür.
+
 - **Adversarial (v3) sınırlılıklarından üçü ilkesel olarak giderildi (şartname izi: Uygulama-35 / G1):**
   Held-out hatasına dosyaya özel kural yazılmadan, genel kurallarla:
   (1) **Yapısal İlgi denetimi** — "İlgi" alan etiketi yalnızca iki noktalı

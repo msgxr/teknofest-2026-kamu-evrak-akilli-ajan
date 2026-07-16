@@ -122,7 +122,7 @@ Görev 2, çıkarılan bilgi ve mevzuata göre Resmî Yazışma Yönetmeliği'ne
 - **3 koşullu kapı** orkestratörde uygulanır: Kapı 1 okunabilirlik (en az 30 anlamlı — harf/rakam — karakter), Kapı 2 dil (Türkçe değilse taslak atlanır, analiz devam eder), Kapı 3 düşük güven (sınıflandırma/yönlendirme güveni < 0.6 ise "insan onayı gerekli" işareti). Karar **bloklanmaz**, insan-döngüde önerilir.
 - **Güvenlik sınırları merkezidir:** güvenilmeyen metin 200.000 karakterde kırpılır (`_apply_girdi_siniri`); OCR'da PDF 50 sayfa, görüntü ~40 MP, DPI 150 ile sınırlıdır (CWE-400 / decompression-bomb savunması).
 - **LLM tamamen opsiyoneldir:** `APP_OFFLINE=1` katı kilidi hiçbir metnin dışarı gönderilmemesini garanti eder (KVKK/gizlilik). Tüm HTTP çağrıları harici SDK olmadan stdlib `urllib` ile yapılır.
-- **Test:** depo CI rozetine göre 508 test geçer; `pytest tests/` ile doğrulanır (bkz. [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon)).
+- **Test:** depo CI rozetine göre 632 test geçer; `pytest tests/` ile doğrulanır (bkz. [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon)).
 
 İlgili sayfalar: [Sistem Mimarisi](Sistem-Mimarisi), [Orkestratör ve Koşullu Kapılar](Orkestratör-ve-Koşullu-Kapılar), [Model Bilgileri](Model-Bilgileri).
 

@@ -367,7 +367,7 @@ Sistemin tasarım felsefesi **"opsiyonel bağımlılık yoksa zarif fallback"**t
 Kurulumu doğrulamak için hızlı bir bütünlük testi:
 
 ```bash
-pytest tests/            # 508 test (depo CI rozeti) yeşil olmalı
+pytest tests/            # 632 test (depo CI rozeti) yeşil olmalı
 python -m src.main --input data/raw/kurgu_evraklar/dilekce_01.txt
 ```
 

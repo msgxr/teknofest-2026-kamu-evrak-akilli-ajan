@@ -148,7 +148,7 @@ Bu yönlerin hiçbiri offline çekirdeğin bağımsız çalışabilirliğini boz
 Proje **Apache 2.0** lisanslıdır (telif: AGENTRA TECH). Katkılar yol haritasının hızını doğrudan etkiler.
 
 - **Kod ve mimari** — yeni ajan ekleme, konvansiyonlar ve mimari kararlar için [Geliştirici Rehberi](Geliştirici-Rehberi).
-- **Test ve CI** — kalite kapıları ve test haritası için [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon); depo CI rozetine göre 508 test yeşil (`pytest tests/`).
+- **Test ve CI** — kalite kapıları ve test haritası için [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon); depo CI rozetine göre 632 test yeşil (`pytest tests/`).
 - **Veri** — sentetik set/etiket şeması katkıları için [Veri Setleri](Veri-Setleri); etiket anahtarları `src/agents/missing_info_agent.py` içindeki `ZORUNLU_ALANLAR` ile birebir uyumlu olmalıdır (ör. tutanak için `imzalar`, `imza` değil).
 - **Etik ve uyum** — güvenlik bildirimi ve KVKK kanalı için depodaki `SECURITY.md`.
 

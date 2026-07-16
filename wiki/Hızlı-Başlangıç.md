@@ -160,7 +160,7 @@ pytest tests/
 ```
 
 > [!NOTE]
-> Depo CI rozetine göre **508 test** geçmektedir. Testler birim ve uçtan uca senaryoları kapsar; kurulum sonrası ilk doğrulama adımı olarak önerilir. Test haritası ve kalite kapıları için [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) sayfasına bakın.
+> Depo CI rozetine göre **632 test** geçmektedir. Testler birim ve uçtan uca senaryoları kapsar; kurulum sonrası ilk doğrulama adımı olarak önerilir. Test haritası ve kalite kapıları için [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) sayfasına bakın.
 
 ## 9. Değerlendirme Koşusu (isteğe bağlı)
 

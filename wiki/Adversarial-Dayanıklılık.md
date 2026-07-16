@@ -198,4 +198,4 @@ Bu ilkelerin geniş çerçevesi için bkz. [Anayasal İlkeler ve Etik](Anayasal-
 - [Veri Setleri](Veri-Setleri) — sentetik evrak setleri, etiket şeması, datasheet
 - [Görev 1 — Okuma ve Analiz](Görev-1-Okuma-ve-Analiz) — sınıflandırma, bilgi çıkarımı, eksik bilgi
 - [Anayasal İlkeler ve Etik](Anayasal-İlkeler-ve-Etik) — şeffaflık, değerlendirme bütünlüğü
-- [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) — 508 test (depo CI rozeti), kalite kapıları
+- [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon) — 632 test (depo CI rozeti), kalite kapıları

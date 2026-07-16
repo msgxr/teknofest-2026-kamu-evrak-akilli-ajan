@@ -198,7 +198,7 @@ Güvenlik yaklaşımının bütünü için [Anayasal İlkeler ve Etik](Anayasal-
 
 ## Ajan Ekleme ve Katkı
 
-Yeni bir ajan eklemek, ortak sözleşmeye uymayı gerektirir: `run(state)` imzası, `AgentState` üzerinden okuma/yazma ve `_load_agents` içinde kayıt. Ayrıntılı adımlar ve mimari kararlar için [Geliştirici Rehberi](Geliştirici-Rehberi) sayfasına bakın. Ajanların davranışı, `tests/` altındaki kapsamlı test paketiyle (508 test — depo CI rozeti) doğrulanır — bkz. [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon).
+Yeni bir ajan eklemek, ortak sözleşmeye uymayı gerektirir: `run(state)` imzası, `AgentState` üzerinden okuma/yazma ve `_load_agents` içinde kayıt. Ayrıntılı adımlar ve mimari kararlar için [Geliştirici Rehberi](Geliştirici-Rehberi) sayfasına bakın. Ajanların davranışı, `tests/` altındaki kapsamlı test paketiyle (632 test — depo CI rozeti) doğrulanır — bkz. [Test ve Sürekli Entegrasyon](Test-ve-Sürekli-Entegrasyon).
 
 ---
 
