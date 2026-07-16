@@ -245,10 +245,17 @@ def new_slide(prs, dark=False):
     return slide
 
 
+def _baslik_genisligi(title, size=29):
+    """Başlık metninin yaklaşık genişliği (inç) — alt çizgi tam başlığı kapsasın diye."""
+    dar = set("iıIlj.·:,'!| ")
+    w = sum(0.12 if ch in dar else 0.225 for ch in title)
+    return min(12.1, w * (size / 29.0))
+
+
 def header(slide, kicker, title, accent=RED):
     textbox(slide, 0.62, 0.38, 12.1, 0.34, [P([R(kicker.upper(), accent, True, 13, SEMI)])])
-    textbox(slide, 0.58, 0.68, 12.2, 0.74, [P([R(title, INK, True, 29, SEMI)])])
-    rect(slide, 0.64, 1.48, 1.05, 0.07, accent)
+    textbox(slide, 0.62, 0.68, 12.2, 0.74, [P([R(title, INK, True, 29, SEMI)])])
+    rect(slide, 0.63, 1.5, _baslik_genisligi(title), 0.05, accent)
 
 
 def footer(slide, n):
@@ -279,7 +286,7 @@ def slayt_kapak(prs):
     textbox(s, 0.9, 1.5, 9.0, 0.42,
             [P([R("TEKNOFEST 2026 · YAPAY ZEKA DİL AJANLARI YARIŞMASI", C("8FB0E8"), True, 14, SEMI)])])
     textbox(s, 0.88, 1.98, 11.0, 1.2, [P([R("AGENTRA TECH", WHITE, True, 56, SEMI)])])
-    rect(s, 0.94, 3.24, 3.3, 0.06, RED)
+    rect(s, 0.92, 3.26, 4.95, 0.06, RED)
     textbox(s, 0.9, 3.5, 11.6, 1.05,
             [P([R("Takım Tanıtım Sunumu", WHITE, True, 26, SEMI)], space_after=3),
              P([R("Kamu Evrak ve Yazışma Süreçleri için Akıllı Agent Destek Sistemi · 1. Senaryo",
@@ -301,7 +308,7 @@ def slayt_kapak(prs):
 # ----------------------------------------------------------------------------
 def slayt_kunye(prs, n):
     s = new_slide(prs)
-    header(s, "Bir Bakışta", "Takım Künyemiz")
+    header(s, "Takımımız", "Kısaca Biz")
     tiles = [
         ("4", "", "Takım üyesi", SEYMA),
         ("1", "", "Takım kaptanı", RED),
@@ -316,12 +323,11 @@ def slayt_kunye(prs, n):
     rrect(s, 0.62, 3.58, 12.09, 1.28, tint(RED, 0.95), line=tint(RED, 0.6), line_w=1.5, radius=0.06)
     rect(s, 0.62, 3.58, 0.1, 1.28, RED)
     textbox(s, 0.98, 3.74, 11.5, 1.02,
-            [P([R("AGENTRA TECH", INK, True, 16, SEMI),
-                R(" — TEKNOFEST 2026 Yapay Zeka Dil Ajanları Yarışması 1. Senaryo için kurulmuş, ",
-                  INK, False, 15.5, BODY),
-                R("Türkçe dil teknolojileri ve akıllı ajan sistemlerine", INK, True, 15.5, SEMI),
-                R(" odaklı 4 kişilik öğrenci takımı.", INK, False, 15.5, BODY)], line=1.14),
-             P([R("Kimliğimizin merkezinde “agent” odağı vardır: her kararı izlenebilir, açık kaynak bir çözüm.",
+            [P([R("Biz ", INK, False, 15.5, BODY), R("AGENTRA TECH", INK, True, 16, SEMI),
+                R("; TEKNOFEST 2026 için bir araya gelen, ", INK, False, 15.5, BODY),
+                R("Türkçe dil teknolojileri ve akıllı ajan sistemleri", INK, True, 15.5, SEMI),
+                R(" üzerine çalışan 4 kişilik bir öğrenci takımıyız.", INK, False, 15.5, BODY)], line=1.14),
+             P([R("Adımızın merkezinde “agent” var: kararları izlenebilir, tamamen açık kaynak bir sistem geliştiriyoruz.",
                  C("6B4A50"), False, 13, BODY)], space_before=4)])
     # üye şeridi
     members = [("Şeyma Nur Çebi", SEYMA), ("Muhammed Sina Gün", SINA),
