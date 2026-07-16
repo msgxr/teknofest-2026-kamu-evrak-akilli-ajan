@@ -332,7 +332,7 @@ def slayt_kunye(prs, n):
     textbox(s, 0.98, 3.98, 11.5, 1.2,
             [P([R("Biz ", INK, False, 16, BODY), R("AGENTRA TECH", SILVER, False, 16.5, SEMI),
                 R("; TEKNOFEST 2026 için bir araya gelen, ", INK, False, 16, BODY),
-                R("Türkçe dil teknolojileri ve akıllı ajan sistemleri", SILVER, False, 16, SEMI),
+                R("akıllı ajan sistemleri", SILVER, False, 16, SEMI),
                 R(" üzerine çalışan 4 kişilik bir öğrenci takımıyız.", INK, False, 16, BODY)], line=1.16),
              P([R("Adımızın merkezinde “agent” var: kararları izlenebilir, tamamen açık kaynak bir sistem geliştiriyoruz.",
                  MUTED, False, 13.5, BODY)], space_before=6)])
@@ -441,13 +441,24 @@ def slayt_uyeler(prs, n):
     header(s, "Ekip & Organizasyon", "Ekibimiz")
     members = [
         ("Şeyma Nur Çebi", "TAKIM KAPTANI · YAZILIM", "Yazılım Müh. · 3. Sınıf · Arel Üni.",
-         "Görev 1 içerik analizi: sınıflandırma, bilgi çıkarımı, mevzuat RAG; değerlendirme ve entegrasyon.", True, "foto_seyma.png"),
+         "Görev 1 içerik analizi hattı: tür sınıflandırma, bilgi çıkarımı ve BM25 tabanlı "
+         "mevzuat önerisi (RAG). Değerlendirme metrikleri ve uçtan uca entegrasyon; "
+         "kaptan olarak ekip koordinasyonu.",
+         True, "foto_seyma.png"),
         ("Muhammed Sina Gün", "YAZILIM", "Bilgisayar Müh. · 3. Sınıf · Arel Üni.",
-         "Mimari ve orkestrasyon; model-agnostik LLM katmanı; Görev 2 taslak üretimi (OCR, özet).", False, "foto_sina.png"),
+         "Sistem mimarisi ve orkestratör tasarımı; model-agnostik LLM katmanı "
+         "(offline/çevrimiçi otomatik tespit). OCR ve özetleme ajanları; Görev 2 "
+         "resmî yazı taslağı ve format öz-denetimi.",
+         False, "foto_sina.png"),
         ("Emine Elik", "VERİ · TEST · DOKÜMAN", "Maden Müh. · 1. Sınıf · Cerrahpaşa Üni.",
-         "Veri seti ve etiketleme; test kapsamı; dokümantasyon; sunum ve demo; şartname uyumu.", False, "foto_emine.png"),
+         "Sentetik kurgu evrak veri setleri ve etiketleme; 500+ otomatik testle kapsam "
+         "güvencesi; teknik rapor ve dokümantasyon; sunum ve demo hazırlığı; "
+         "TEKNOFEST şartname uyum takibi.",
+         False, "foto_emine.png"),
         ("Zeynep Akel", "YAZILIM", "Yazılım Müh. · 3. Sınıf · Biruni Üni.",
-         "Görev 1 eksik bilgi; Görev 2 yönlendirme ve kullanıcı etkileşimi; triyaj, KVKK; web arayüzü.", False, "foto_zeynep.png"),
+         "Görev 1 eksik bilgi tespiti; Görev 2 birim yönlendirme, kullanıcı bilgilendirme "
+         "ve eksik bilgi talebi. Önceliklendirme/triyaj, KVKK maskeleme ve web arayüzü.",
+         False, "foto_zeynep.png"),
     ]
     pos = [(0.62, 1.68), (6.72, 1.68), (0.62, 4.16), (6.72, 4.16)]
     cw, ch = 6.0, 2.36
@@ -458,8 +469,8 @@ def slayt_uyeler(prs, n):
         textbox(s, x + 1.42, y + 0.34, cw - 1.6, 0.42, [P([R(name, INK, False, 17.5, SEMI)])])
         textbox(s, x + 1.44, y + 0.86, cw - 1.6, 0.34, [P([R(akademik, SILVER, False, 12, SEMI)])])
         pill(s, x + 1.44, y + 1.22, min(cw - 1.6, 0.6 + len(role) * 0.098), 0.34, role, size=10.5)
-        textbox(s, x + 0.34, y + 1.7, cw - 0.62, 0.62,
-                [P([R(desc, MUTED, False, 12.5, BODY)], line=1.06)])
+        textbox(s, x + 0.34, y + 1.62, cw - 0.58, 0.72,
+                [P([R(desc, MUTED, False, 11.5, BODY)], line=1.05)])
         if cap:
             pill(s, x + cw - 1.5, y + 0.28, 1.3, 0.36, "★ KAPTAN", fill=SILVER,
                  tcolor=DARKTEXT, size=10.5, border=None)
@@ -509,9 +520,17 @@ def slayt_gorev_dagilimi(prs, n):
         ("Eksik bilgi talebi", "Zeynep"),
         ("Altyapı: veri · test · doküman", "Emine"),
     ])
-    textbox(s, 0.62, 5.98, 12.0, 0.4,
-            [P([R("Her yetenek bir sorumluya ve gerçek bir kod modülüne bağlıdır.",
-                 MUTED, False, 12, BODY)])])
+    textbox(s, 0.62, 5.94, 12.09, 0.9,
+            [P([R("Her yetenek bir sorumluya ve gerçek bir kod modülüne (11 uzman ajan + "
+                  "orkestratör) bağlıdır.  ", MUTED, False, 11.5, BODY),
+                R("Şeyma Nur", SILVER, False, 11.5, SEMI),
+                R(" içerik analizi + koordinasyon/entegrasyon · ", MUTED, False, 11.5, BODY),
+                R("Sina", SILVER, False, 11.5, SEMI),
+                R(" mimari, OCR, özet, taslak · ", MUTED, False, 11.5, BODY),
+                R("Zeynep", SILVER, False, 11.5, SEMI),
+                R(" eksik bilgi, yönlendirme, etkileşim, KVKK · ", MUTED, False, 11.5, BODY),
+                R("Emine", SILVER, False, 11.5, SEMI),
+                R(" veri, test, doküman altyapısı.", MUTED, False, 11.5, BODY)], line=1.18)])
     footer(s, n)
     return s
 
