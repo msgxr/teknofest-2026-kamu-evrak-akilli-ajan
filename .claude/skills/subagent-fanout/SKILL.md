@@ -1,12 +1,12 @@
 ---
 name: subagent-fanout
-description: Parallelize independent sub-jobs across fresh-context subagents instead of one bloated context. Use when a goal branches into many independent pieces.
-when_to_use: analyze N items, fix M files, search K sources, anything embarrassingly parallel
+description: Bağımsız alt işleri tek bir şişmiş context yerine taze-context'li subagent'lara dağıtarak paralelleştir. Bir hedef çok sayıda bağımsız parçaya dallandığında kullan.
+when_to_use: N öğe analiz et, M dosya düzelt, K kaynak ara, utanç verici derecede paralel her şey
 ---
 # Subagent Fan-out
-One context loaded with ten jobs' worth of material is the exact shape that triggers context rot. Ten small contexts don't.
-- Spawn one subagent per independent unit (one file, one source, one check). Each gets a fresh context window.
-- An **orchestrator** synthesizes their results — it never does the per-unit work itself.
-- Give each worker a tight role and only the input it needs.
-- Use ONLY when the pieces are genuinely independent. Sequential dependencies stay in one chain.
-Fan-out for breadth (research, multi-file edits, multi-source verification). Keep it serial when step N needs step N-1's output.
+On işlik malzemeyle yüklü tek bir context, tam olarak context rot'u tetikleyen şekildir. On küçük context tetiklemez.
+- Her bağımsız birim için bir subagent üret (bir dosya, bir kaynak, bir kontrol). Her biri taze bir context penceresi alır.
+- Bir **orkestratör** onların sonuçlarını sentezler — birim başına işi asla kendisi yapmaz.
+- Her işçiye dar bir rol ve yalnızca ihtiyaç duyduğu girdiyi ver.
+- YALNIZCA parçalar gerçekten bağımsızken kullan. Sıralı bağımlılıklar tek bir zincirde kalır.
+Genişlik için fan-out uygula (araştırma, çok-dosyalı düzenlemeler, çok-kaynaklı doğrulama). N. adım N-1. adımın çıktısına ihtiyaç duyduğunda sıralı (serial) tut.

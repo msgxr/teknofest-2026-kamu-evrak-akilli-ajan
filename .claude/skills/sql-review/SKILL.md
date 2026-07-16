@@ -1,13 +1,13 @@
 ---
 name: sql-review
-description: Review SQL and ORM queries for correctness, safety, and performance before they ship.
-when_to_use: new query, a migration, an N+1 suspicion, a slow endpoint
+description: SQL ve ORM sorgularını yayına çıkmadan önce doğruluk, güvenlik ve performans açısından incele.
+when_to_use: yeni sorgu, bir migration, N+1 şüphesi, yavaş bir uç nokta (endpoint)
 ---
 # SQL Review
-- **Injection** — parameterized, always. No string interpolation into SQL.
-- **N+1** — a query inside a loop? Replace with a join or a batched IN.
-- **Missing index** — does the WHERE/JOIN/ORDER BY hit an indexed column? If not, the table scan will surface at scale.
-- **Unbounded** — SELECT with no LIMIT on a growing table; a JOIN that fans out rows.
-- **Transactions** — multi-write operations wrapped so a partial failure can't corrupt state.
-- **Migrations** — reversible (up AND down), and safe on a live table (no blocking lock on a hot table at peak).
-Output: each issue with the line and the rewrite. Show the EXPLAIN if performance is the concern.
+- **Injection** — her zaman parametreli. SQL'e string interpolasyonu yok.
+- **N+1** — döngü içinde bir sorgu mu var? Bir join ya da toplu (batched) IN ile değiştir.
+- **Eksik index** — WHERE/JOIN/ORDER BY indexli bir kolona mı vuruyor? Vurmuyorsa, ölçek büyüdükçe tablo taraması (table scan) su yüzüne çıkar.
+- **Sınırsız (unbounded)** — büyüyen bir tabloda LIMIT'siz SELECT; satırları çoğaltan (fan-out) bir JOIN.
+- **Transaction'lar** — çok-yazışlı (multi-write) işlemler, kısmi bir başarısızlık durumu bozamayacak şekilde sarmalanmış.
+- **Migration'lar** — geri döndürülebilir (up VE down) ve canlı tabloda güvenli (yoğun bir tabloda tepe (peak) anında bloklayan lock yok).
+Çıktı: her sorun, satırı ve düzeltilmiş hâliyle (rewrite). Performans kaygıysa EXPLAIN'i göster.

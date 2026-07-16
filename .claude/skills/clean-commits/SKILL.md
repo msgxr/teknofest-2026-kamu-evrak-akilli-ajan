@@ -1,12 +1,12 @@
 ---
 name: clean-commits
-description: Turn messy WIP into clean, atomic commits with messages that explain why. Use before opening a PR.
-when_to_use: before a PR, messy history, "squash this", commit message help
+description: Dağınık WIP'i, nedenini açıklayan mesajlarla temiz ve atomik commit'lere dönüştürün. PR açmadan önce kullanın.
+when_to_use: PR öncesi, dağınık geçmiş, "bunu squash'la", commit mesajı yardımı
 ---
-# Clean Commits
-- **Atomic** — one logical change per commit. Refactor and behavior change go in separate commits.
-- **Message** — subject says WHAT in imperative ("Fix null pointer in user lookup"), body says WHY. "Fix bug" is useless.
-- **Specific** — "Fix login failing when email has uppercase chars" tells the next person exactly what happened.
-- Reorder/squash WIP and "fix typo" commits into the real changes (`git rebase -i`).
-- Never mix an unrelated fix into a feature commit.
-A good history is a debugging tool: `git bisect` and `git blame` only work if commits are atomic and messages explain intent.
+# Temiz Commit'ler (Clean Commits)
+- **Atomik** — commit başına tek mantıksal değişiklik. Yeniden düzenleme (refactor) ve davranış değişikliği ayrı commit'lere gider.
+- **Mesaj** — konu satırı NE yapıldığını emir kipiyle söyler ("Kullanıcı aramasındaki null pointer'ı düzelt"), gövde NEDEN'i söyler. "Hata düzeltildi" işe yaramaz.
+- **Spesifik** — "E-postada büyük harf olunca başarısız olan girişi düzelt" bir sonraki kişiye tam olarak ne olduğunu anlatır.
+- WIP ve "yazım hatası düzeltildi" commit'lerini gerçek değişikliklere yeniden sırala/squash'la (`git rebase -i`).
+- Alakasız bir düzeltmeyi asla bir özellik commit'ine karıştırma.
+İyi bir geçmiş, bir hata ayıklama aracıdır: `git bisect` ve `git blame` yalnızca commit'ler atomik ve mesajlar niyeti açıklıyorsa çalışır.

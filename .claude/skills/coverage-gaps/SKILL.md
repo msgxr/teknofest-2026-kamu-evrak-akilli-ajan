@@ -1,12 +1,12 @@
 ---
 name: coverage-gaps
-description: Find the untested code paths that actually matter, not just the coverage percentage. Use after adding tests.
-when_to_use: "improve coverage", after writing tests, pre-merge quality check
+description: Yalnızca kapsam yüzdesini değil, gerçekten önemli olan test edilmemiş kod yollarını bulun. Test ekledikten sonra kullanın.
+when_to_use: "kapsamı iyileştir", test yazdıktan sonra, birleştirme-öncesi (pre-merge) kalite kontrolü
 ---
-# Coverage Gaps
-Coverage % is a vanity metric. Hunt the gaps that bite:
-- **Error paths** — the 500, the timeout, the empty/null input, the malformed payload. Almost always untested.
-- **Boundaries** — 0, 1, max, off-by-one, empty collection.
-- **Branches** — every `if/else` and `catch` exercised, not just the happy line.
-- **Concurrency / order** — anything stateful tested in isolation AND in sequence.
-Skip tests that assert a constructor sets a property — worthless. Test behavior, not implementation. Output: the 3-5 highest-risk untested paths, ranked by blast radius, with the test to add.
+# Kapsam Boşlukları (Coverage Gaps)
+Kapsam yüzdesi bir gösteriş metriğidir. Isıran boşlukları avla:
+- **Hata yolları** — 500, timeout, boş/null girdi, bozuk yük (payload). Neredeyse her zaman test edilmemiştir.
+- **Sınırlar** — 0, 1, maksimum, bir-eksik (off-by-one), boş koleksiyon.
+- **Dallar** — sadece mutlu satır değil, her `if/else` ve `catch` çalıştırılmış olmalı.
+- **Eşzamanlılık / sıra** — durum tutan (stateful) her şey hem izole HEM DE sırayla test edilmiş olmalı.
+Bir yapıcının (constructor) bir özelliği ayarladığını doğrulayan testleri atla — değersiz. Uygulamayı değil davranışı test et. Çıktı: patlama yarıçapına (blast radius) göre sıralanmış, eklenecek testiyle birlikte en yüksek riskli 3-5 test edilmemiş yol.

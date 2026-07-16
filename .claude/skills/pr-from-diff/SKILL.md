@@ -1,13 +1,13 @@
 ---
 name: pr-from-diff
-description: Write a PR description a reviewer can approve fast. Use when opening any pull request.
-when_to_use: opening a PR, "write the PR body", review prep
+description: Bir gözden geçirenin (reviewer) hızlıca onaylayabileceği bir PR açıklaması yazın. Herhangi bir pull request açarken kullanın.
+when_to_use: PR açma, "PR gövdesini yaz", gözden geçirme hazırlığı
 ---
-# PR from Diff
-A reviewer should understand the change without reading every line. Structure:
-- **What & why** — the problem and the approach, 2-3 sentences.
-- **Changes** — bullet the meaningful ones (skip noise like formatting).
-- **How to verify** — the exact steps/commands the reviewer runs to confirm it works.
-- **Risks / out of scope** — what could break, what you deliberately didn't do.
-- **Screenshots** for UI.
-Flag any decision the reviewer should weigh in on. Keep the PR small — if the diff is huge, say what could be split out. No "fixes stuff".
+# Diff'ten PR (PR from Diff)
+Bir gözden geçiren, her satırı okumadan değişikliği anlayabilmeli. Yapı:
+- **Ne & neden** — problem ve yaklaşım, 2-3 cümle.
+- **Değişiklikler** — anlamlı olanları madde madde yaz (biçimlendirme gibi gürültüyü atla).
+- **Nasıl doğrulanır** — gözden geçirenin çalıştığını teyit etmek için çalıştıracağı tam adımlar/komutlar.
+- **Riskler / kapsam dışı** — neyin bozulabileceği, bilerek neyi yapmadığın.
+- UI için **ekran görüntüleri**.
+Gözden geçirenin tartması gereken her kararı işaretle. PR'ı küçük tut — diff çok büyükse, neyin ayrılabileceğini söyle. "Bir şeyleri düzeltir" (fixes stuff) yok.

@@ -1,55 +1,55 @@
 ---
 name: broken-window-check
-description: Before picking new work, smoke-test the last "completed" feature. If it's broken, revert and re-open it before touching anything else. Kills the "looks shipped, isn't shipped" bug across sessions.
-when_to_use: start of any session in a multi-session project, right after reading progress notes and running init.sh
+description: Yeni iş seçmeden önce, en son "tamamlandı" denen özelliği duman testinden (smoke-test) geçir. Bozuksa, başka bir şeye dokunmadan önce geri al (revert) ve yeniden aç. Oturumlar arası "sevk edilmiş görünüyor, sevk edilmemiş" hatasını öldürür.
+when_to_use: çok-oturumlu bir projede herhangi bir oturumun başı, ilerleme notlarını okuduktan ve init.sh çalıştırdıktan hemen sonra
 ---
 
 # Broken-Window Check
 
-Across shift-notes-driven sessions (see `shift-notes`), agents will sometimes mark a feature complete after unit tests pass — even when the feature is end-to-end broken. The next session opens the repo, sees a green git log, and builds on top of a broken foundation. By the time anyone notices, three features are stacked on the crack.
+Vardiya-notu odaklı (shift-notes) oturumlar boyunca, ajanlar bazen birim testleri geçtikten sonra bir özelliği tamamlandı olarak işaretler — özellik uçtan uca bozuk olsa bile. Sonraki oturum depoyu açar, yeşil bir git log görür ve bozuk bir temelin üzerine inşa eder. Biri fark ettiğinde, çatlağın üzerine üç özellik yığılmıştır.
 
-**The check:** before picking new work, exercise the most recently "completed" feature end-to-end. If it fails, treat it as your only job this session.
+**Kontrol:** yeni iş seçmeden önce, en son "tamamlanan" özelliği uçtan uca çalıştır. Başarısız olursa, bu oturumdaki tek işin olarak kabul et.
 
-## The sequence — run in order, no skipping
+## Sıra — sırayla çalıştır, atlama yok
 
-1. **Read the last "done" entry** in the shift notes / feature list (whichever the project uses).
-2. **Drive the feature end-to-end** using the actual runtime path — browser automation, HTTP request, CLI invocation. Not the unit test.
-3. **Compare observed behavior to the spec** — the `steps` field on the feature, or the acceptance criteria in the spec.
-4. **If it works** — proceed to normal work selection. Note the check in the shift notes ("verified feature N still green").
-5. **If it fails** —
-   - `git revert` the commit that claimed completion (do not force-push).
-   - Set that feature's status back to `not-done` in the feature list.
-   - Note in shift notes: "reverted feature N, cause: <one line>".
-   - Fix it. That is your entire session.
+1. **Son "done" girdisini oku** — vardiya notlarında / özellik listesinde (proje hangisini kullanıyorsa).
+2. **Özelliği uçtan uca sür** — gerçek çalışma zamanı (runtime) yolunu kullanarak: tarayıcı otomasyonu, HTTP isteği, CLI çağrısı. Birim testi değil.
+3. **Gözlemlenen davranışı spec ile karşılaştır** — özellikteki `steps` alanı veya spec'teki kabul kriterleri.
+4. **Çalışıyorsa** — normal iş seçimine geç. Kontrolü vardiya notlarına düş ("N özelliği hâlâ yeşil doğrulandı").
+5. **Başarısız olursa** —
+   - Tamamlandığını iddia eden commit'i `git revert` et (force-push yapma).
+   - O özelliğin durumunu özellik listesinde `not-done`'a geri al.
+   - Vardiya notlarına düş: "N özelliği geri alındı, sebep: <tek satır>".
+   - Düzelt. Tüm oturumun bu.
 
-Do not pick new work on top of a broken previous feature. Ever.
+Bozuk bir önceki özelliğin üzerine asla yeni iş seçme. Hiçbir zaman.
 
-## What "end-to-end" means
+## "Uçtan uca" ne demek
 
-The check must exercise the path the user actually takes. Anything less is theater.
+Kontrol, kullanıcının gerçekten izlediği yolu çalıştırmalı. Bundan azı tiyatrodur.
 
-| Feature shape | Valid check | Invalid check |
+| Özellik şekli | Geçerli kontrol | Geçersiz kontrol |
 |---|---|---|
-| Web UI button | Puppeteer/Playwright click → observe DOM | `expect(handler).toHaveBeenCalled()` |
-| HTTP endpoint | `curl` the route → check status + body | Unit test on the handler function |
-| CLI flag | Invoke the binary with the flag → observe output | Import the parser, assert on the AST |
-| Background job | Trigger it → wait → assert side effect | Assert the job function returns |
+| Web UI butonu | Puppeteer/Playwright tıklama → DOM gözlemle | `expect(handler).toHaveBeenCalled()` |
+| HTTP endpoint | Route'u `curl`'le → status + body kontrol et | Handler fonksiyonunda birim testi |
+| CLI flag | Binary'yi flag ile çağır → çıktıyı gözlemle | Parser'ı import et, AST üzerinde assert et |
+| Arka plan işi (background job) | Tetikle → bekle → yan etkiyi assert et | İş fonksiyonunun döndüğünü assert et |
 
-## Red flags — the check is not doing its job
+## Kırmızı bayraklar — kontrol işini yapmıyor
 
-- **You're reading tests instead of running the feature.** Tests can pass while the feature is broken (wrong route, missing CORS, config mismatch). Drive the runtime.
-- **You add a mock to make the check pass.** The mock is the bug. Remove it, watch the failure, that's the real state.
-- **You "fix" by editing the feature list to match reality** ("oh it never supported X"). No. Revert. Re-open. Fix the code or negotiate scope in the spec, not the ledger.
-- **You skip the check because "it worked yesterday".** Yesterday's session doesn't run today's dev server.
+- **Özelliği çalıştırmak yerine testleri okuyorsun.** Testler geçerken özellik bozuk olabilir (yanlış route, eksik CORS, config uyumsuzluğu). Runtime'ı sür.
+- **Kontrolü geçirmek için bir mock ekliyorsun.** Mock, hatanın kendisi. Kaldır, başarısızlığı izle, gerçek durum budur.
+- **Gerçeği yansıtması için özellik listesini düzenleyerek "düzeltiyorsun"** ("aa, X'i hiç desteklemiyormuş"). Hayır. Geri al. Yeniden aç. Defteri değil, kodu düzelt ya da spec'te kapsamı müzakere et.
+- **"Dün çalışıyordu" diye kontrolü atlıyorsun.** Dünkü oturum, bugünkü dev sunucusunu çalıştırmaz.
 
-## Cost
+## Maliyet
 
-The check is 30-90 seconds per session in a healthy project. In a project that's about to go sideways, it saves hours. The dropout in premature-completion rate is roughly 4x when the check is enforced vs. not (measured in shift-work-style agent runs).
+Kontrol, sağlıklı bir projede oturum başına 30-90 saniyedir. Yoldan çıkmak üzere olan bir projede saatler kazandırır. Kontrol uygulandığında, uygulanmadığına kıyasla erken-tamamlanma oranındaki düşüş kabaca 4 kattır (vardiya-işi tarzı ajan koşularında ölçülmüştür).
 
-## Pairs with
+## Şununla eşleşir
 
-- `shift-notes` — the ledger the check reads and writes.
-- `adversarial-verify` — run this on the current session's diff *before* claiming done, so the next session doesn't have to broken-window you.
-- `verification-before-completion` — the general form of "don't claim without evidence".
+- `shift-notes` — kontrolün okuduğu ve yazdığı defter.
+- `adversarial-verify` — tamamlandı iddia etmeden *önce* bunu mevcut oturumun diff'inde çalıştır, ki sonraki oturumun sana broken-window yapması gerekmesin.
+- `verification-before-completion` — "kanıt olmadan iddia etme"nin genel biçimi.
 
-If every session enforces the check, the compounding-error mode of shift-work agents stops compounding.
+Her oturum kontrolü uygularsa, vardiya-işi ajanlarının bileşik-hata (compounding-error) modu bileşmeyi durdurur.

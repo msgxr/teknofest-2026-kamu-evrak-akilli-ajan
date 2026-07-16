@@ -1,12 +1,12 @@
 ---
 name: rebase-safely
-description: Rebase, squash, or rewrite history without losing work or breaking shared branches. Use before any history rewrite.
-when_to_use: rebase, squash, "update my branch", interactive rebase, force-push
+description: İşi kaybetmeden veya paylaşılan dalları (branch) bozmadan rebase yapın, squash'layın ya da geçmişi yeniden yazın. Herhangi bir geçmiş yeniden yazımından önce kullanın.
+when_to_use: rebase, squash, "dalımı güncelle", interaktif rebase, force-push
 ---
-# Rebase Safely
-1. **Backup first** — `git branch backup/<name>` before any rewrite. Free undo.
-2. Rebase onto the latest base: `git fetch; git rebase origin/main`.
-3. Resolve conflicts one commit at a time. Test after the rebase, not just that it "completed".
-4. **Never rewrite shared history** — if others pulled the branch, rebasing it forces them into pain. Rewrite only your own un-pushed/un-shared commits.
-5. Push with `--force-with-lease`, never bare `--force` (lease refuses if someone else pushed).
-If anything goes sideways: `git reflog` finds the pre-rebase state; `git reset --hard backup/<name>` restores it.
+# Güvenli Rebase (Rebase Safely)
+1. **Önce yedekle** — herhangi bir yeniden yazımdan önce `git branch backup/<name>`. Bedava geri alma.
+2. En güncel tabanın üzerine rebase yap: `git fetch; git rebase origin/main`.
+3. Çatışmaları (conflict) commit commit çöz. Rebase'ten sonra test et, sadece "tamamlandı" olmasına değil.
+4. **Paylaşılan geçmişi asla yeniden yazma** — başkaları dalı çektiyse (pull), onu rebase'lemek onları acıya sokar. Yalnızca kendi push'lanmamış/paylaşılmamış commit'lerini yeniden yaz.
+5. `--force-with-lease` ile push'la, asla çıplak `--force` ile değil (lease, başkası push'ladıysa reddeder).
+Bir şey ters giderse: `git reflog` rebase-öncesi durumu bulur; `git reset --hard backup/<name>` onu geri yükler.

@@ -1,39 +1,40 @@
 ---
 name: systematic-debugging
-description: Use for ANY bug, test failure, crash, or unexpected behavior. Forces
-  reproduce-then-isolate before proposing a fix. Stops the agent from guessing.
-when_to_use: a test fails, a crash, wrong output, "it worked yesterday", a flaky failure
+description: Herhangi bir hata, test başarısızlığı, çökme veya beklenmedik davranış için
+  kullanın. Bir düzeltme önermeden önce önce-yeniden-üret-sonra-izole-et disiplinini
+  dayatır. Ajanın tahmin yürütmesini engeller.
+when_to_use: bir test başarısız olduğunda, bir çökme, yanlış çıktı, "dün çalışıyordu", kararsız (flaky) bir başarısızlık
 ---
 
-# Systematic Debugging
+# Sistematik Hata Ayıklama (Systematic Debugging)
 
-The single most expensive agent failure: seeing an error and immediately generating a
-"fix" based on the error type, without reading what actually happened. Don't.
+En pahalı ajan hatası tek başına şudur: bir hatayı görüp, gerçekte ne olduğunu okumadan,
+yalnızca hata türüne bakarak hemen bir "düzeltme" üretmek. Yapma.
 
-## The loop
+## Döngü
 
-1. **Read the whole error.** The entire message and stack trace. A TypeError can mean a
-   hundred different things — the trace tells you which one. Quote the exact line that throws.
+1. **Hatanın tamamını oku.** Tüm mesaj ve yığın izini (stack trace). Bir TypeError yüz
+   farklı şey anlamına gelebilir — hangisi olduğunu izin (trace) söyler. Hatayı fırlatan tam satırı alıntıla.
 
-2. **Reproduce it first.** If you can't reproduce it, you can't verify a fix. Write the
-   smallest input that triggers it. "I think this fixes it" is gambling, not debugging.
+2. **Önce yeniden üret.** Yeniden üretemiyorsan, bir düzeltmeyi doğrulayamazsın. Hatayı
+   tetikleyen en küçük girdiyi yaz. "Sanırım bu düzeltir" hata ayıklama değil, kumardır.
 
-3. **Form one hypothesis, name it.** "I think the value is null because the upstream call
-   returns 204 with no body." State it before you touch anything.
+3. **Tek bir hipotez kur, adını koy.** "Sanırım değer null, çünkü üst-akıştaki (upstream) çağrı
+   gövdesiz 204 döndürüyor." Hiçbir şeye dokunmadan önce bunu ifade et.
 
-4. **Change one thing. Test. Repeat.** If you change three things and it works, you don't
-   know which one fixed it — and the other two may have added new bugs.
+4. **Tek bir şey değiştir. Test et. Tekrarla.** Üç şeyi değiştirip çalışırsa, hangisinin
+   düzelttiğini bilemezsin — ve diğer ikisi yeni hatalar eklemiş olabilir.
 
-5. **Fix the root cause, not the symptom.** A null check that hides a null is not a fix.
-   Find why it's null. The underlying bug will resurface differently if you only patch the crash.
+5. **Belirtiyi değil kök nedeni düzelt.** Bir null'ı gizleyen null kontrolü bir düzeltme değildir.
+   Neden null olduğunu bul. Yalnızca çökmeyi yamarsan, altta yatan hata farklı bir biçimde yeniden ortaya çıkar.
 
-## Stop conditions
+## Durma koşulları
 
-- If 3 hypotheses fail, STOP and report: what you tried, what you saw, what you suspect.
-  "I've tried X and Y, here's the output, I think it's Z but I'm not sure" beats 20 silent
-  random attempts.
-- Never add a workaround you don't understand.
+- 3 hipotez başarısız olursa, DUR ve raporla: ne denedin, ne gördün, neden şüpheleniyorsun.
+  "X ve Y'yi denedim, çıktı burada, sanırım sebep Z ama emin değilim" ifadesi, 20 sessiz
+  rastgele denemeden iyidir.
+- Anlamadığın bir geçici çözümü (workaround) asla ekleme.
 
-## Output
+## Çıktı
 
-End with: the root cause (one sentence), the minimal fix, and the test that now proves it.
+Şununla bitir: kök neden (tek cümle), minimal düzeltme ve artık bunu kanıtlayan test.

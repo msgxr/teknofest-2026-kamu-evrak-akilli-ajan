@@ -1,13 +1,13 @@
 ---
 name: write-failing-test-first
-description: Before fixing any bug, write a test that reproduces it and watch it fail. Use for every bug fix.
-when_to_use: fixing a bug, "make X work", a reported defect
+description: Herhangi bir hatayı düzeltmeden önce, onu yeniden üreten bir test yazın ve başarısız olmasını izleyin. Her hata düzeltmesi için kullanın.
+when_to_use: bir hatayı düzeltme, "X'i çalıştır", raporlanmış bir kusur (defect)
 ---
-# Write the Failing Test First
-The only proof you fixed a bug is a test that failed before and passes after.
-1. Write the smallest test that reproduces the reported behavior.
-2. Run it. **Watch it fail** for the right reason (read the assertion, not just red).
-3. Now fix the code.
-4. Run the test. It passes. Run the FULL suite — you didn't break anything else.
-If you can't write the test easily, the architecture is telling you something (tight coupling). Say so.
-Never: fix first, test after (you'll write a test that passes regardless). Never: skip the watch-it-fail step.
+# Önce Başarısız Testi Yaz (Write the Failing Test First)
+Bir hatayı düzelttiğinin tek kanıtı, önce başarısız olan sonra geçen bir testtir.
+1. Raporlanan davranışı yeniden üreten en küçük testi yaz.
+2. Çalıştır. **Başarısız olmasını izle** ve doğru nedenden dolayı olduğunu gör (sadece kırmızıya değil, doğrulamaya (assertion) bak).
+3. Şimdi kodu düzelt.
+4. Testi çalıştır. Geçiyor. TÜM paketi (suite) çalıştır — başka bir şeyi bozmadın.
+Testi kolayca yazamıyorsan, mimari sana bir şey söylüyordur (sıkı bağlılık — tight coupling). Bunu belirt.
+Asla: önce düzeltip sonra test yazma (nasıl olsa geçen bir test yazarsın). Asla: başarısız-olmasını-izle adımını atlama.

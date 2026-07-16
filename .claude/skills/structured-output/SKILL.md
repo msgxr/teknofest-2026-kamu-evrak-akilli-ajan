@@ -1,54 +1,54 @@
 ---
 name: structured-output
-description: Get JSON out of the model reliably. Prefer tool_use with a schema over prompted-JSON, validate on receive, retry on parse fail. Use when downstream code will parse the response.
-when_to_use: extracting structured data, agent-to-agent handoff, verifier verdicts, anything a script has to json.loads
+description: Modelden güvenilir şekilde JSON al. Prompt'lanmış-JSON yerine schema'lı tool_use tercih et, alınırken doğrula, parse başarısızlığında retry yap. Yanıtı downstream kod parse edecekse kullan.
+when_to_use: yapılandırılmış veri çıkarma, ajanlar arası devir (handoff), verifier verdict'leri, bir script'in json.loads yapması gereken her şey
 ---
 
 # Structured Output
 
-Prompted JSON — "reply as JSON" in the system prompt — fails on ~2-8% of calls in the wild: stray prose before the object, trailing commas, unescaped quotes, code fences. That failure rate is fine for a demo and fatal for a loop that runs a thousand times.
+Prompt'lanmış JSON — system prompt'ta "JSON olarak yanıtla" — vahşi doğada çağrıların ~%2-8'inde başarısız olur: nesneden önce başıboş düzyazı, trailing comma'lar, escape'lenmemiş tırnaklar, code fence'ler. Bu başarısızlık oranı bir demo için sorun değil ama bin kez çalışan bir loop için ölümcüldür.
 
-## The hierarchy — use the strongest that fits
+## Hiyerarşi — uyan en güçlüsünü kullan
 
-1. **Tool use with schema** (best) — declare a tool with a JSON Schema for its input. Force the model to call that tool. The API validates the arguments against the schema before you see them. Malformed JSON never leaves the model. Use this whenever the downstream is a real parser.
+1. **Schema'lı tool use** (en iyi) — girdisi için bir JSON Schema'ya sahip bir tool tanımla. Modeli o tool'u çağırmaya zorla. API, argümanları sen görmeden önce schema'ya karşı doğrular. Bozuk JSON modelden hiç çıkmaz. Downstream gerçek bir parser olduğunda her zaman bunu kullan.
 
-2. **JSON mode / `response_format`** (good) — where supported. Guarantees a valid JSON object at the top level; does not guarantee schema conformance. Cheap upgrade over prompted-JSON.
+2. **JSON mode / `response_format`** (iyi) — desteklenen yerlerde. En üst seviyede geçerli bir JSON nesnesi garanti eder; schema uyumunu garanti etmez. Prompt'lanmış-JSON'a göre ucuz bir yükseltme.
 
-3. **Prompted JSON with strict rules** (fallback) — for models/tiers without tool use. Say "output ONLY the JSON object, no code fences, no prose", give an example, and validate on receive. Assume ~5% failure and handle it.
+3. **Katı kurallarla prompt'lanmış JSON** (fallback) — tool use olmayan modeller/tier'lar için. "SADECE JSON nesnesini çıkar, code fence yok, düzyazı yok" de, bir örnek ver ve alınırken doğrula. ~%5 başarısızlık varsay ve bunu ele al.
 
-## The validate-and-retry pattern
+## validate-and-retry deseni
 
 ```
 call → parse → if fail: retry once with the parse error appended → parse → if fail: hard fail
 ```
 
-- **One retry, not a loop.** If the model can't produce it in two tries, the schema is too complex or the prompt is wrong. Log and stop.
-- **Feed the parse error back verbatim** on retry — the model will fix specific issues ("expected string at line 3") that it can't guess from a generic "please try again".
-- **Never silently coerce.** If a required field is missing, fail loudly. Auto-defaults hide prompt bugs.
+- **Bir retry, bir loop değil.** Model iki denemede üretemiyorsa, schema fazla karmaşık ya da prompt yanlış. Logla ve dur.
+- **Parse hatasını retry'da olduğu gibi (verbatim) geri besle** — model, genel bir "lütfen tekrar dene"den tahmin edemeyeceği belirli sorunları ("expected string at line 3") düzeltir.
+- **Asla sessizce coerce etme.** Zorunlu bir alan eksikse, gürültülü şekilde başarısız ol. Auto-default'lar prompt bug'larını gizler.
 
-## Schema design — keep it flat
+## Schema tasarımı — düz tut
 
-- **Flat objects beat nested.** Every level of nesting is another chance to hallucinate.
-- **Enums over free strings.** `"severity": "high|medium|low"` not `"severity": "..."`.
-- **Optional fields default to null explicitly** in the schema. Don't ask the model to "omit if unknown".
-- **No `additionalProperties: true`** without a reason. If the model can add fields, it will, and they'll be inconsistent.
+- **Düz nesneler nested'a yeğdir.** Her nesting seviyesi bir başka hallucinate şansıdır.
+- **Free string yerine enum.** `"severity": "high|medium|low"`, `"severity": "..."` değil.
+- **Opsiyonel alanlar schema'da açıkça null'a default'lansın.** Modele "bilinmiyorsa çıkar (omit)" deme.
+- **Gerekçesiz `additionalProperties: true` yok.** Model alan ekleyebiliyorsa, ekler ve tutarsız olurlar.
 
-## When free JSON is acceptable
+## Free JSON ne zaman kabul edilebilir
 
-- Single scalar field, low-stakes (`{"answer": "yes"}`).
-- Human-in-the-loop reviewing every output.
-- Prototype throwaway.
+- Tek scalar alan, düşük riskli (`{"answer": "yes"}`).
+- Human-in-the-loop her çıktıyı gözden geçiriyor.
+- Atılacak (throwaway) prototip.
 
-Otherwise use tool_use.
+Aksi hâlde tool_use kullan.
 
-## Red flags
+## Kırmızı bayraklar
 
-- **Regex to extract JSON from a code fence.** You're one prompt tweak away from breakage. Use tool_use.
-- **`json.loads` with a bare `try/except: pass`.** Silent failure — you'll be debugging a downstream nil for hours.
-- **Schema is a wall of `oneOf`/`anyOf`.** Split into multiple tools and let the model choose which to call.
-- **"Just add 'ONLY JSON' to the system prompt" in a hot loop.** Works 95% of the time. That's the problem.
-- **Different structured output on retry with same input.** Set temperature to 0 for extraction tasks.
+- **Bir code fence'ten JSON çıkarmak için regex.** Bir prompt değişikliği uzağında kırılmaya hazırsın. tool_use kullan.
+- **Çıplak `try/except: pass` ile `json.loads`.** Sessiz başarısızlık — saatlerce bir downstream nil'i debug edeceksin.
+- **Schema bir `oneOf`/`anyOf` duvarı.** Birden çok tool'a böl ve modelin hangisini çağıracağını seçmesine izin ver.
+- **Bir hot loop'ta "system prompt'a sadece 'SADECE JSON' ekle".** Zamanın %95'inde çalışır. Sorun da bu.
+- **Aynı girdiyle retry'da farklı structured output.** Çıkarım (extraction) görevleri için temperature'ı 0'a ayarla.
 
-## Loopkit-adjacent
+## Loopkit'e bitişik (adjacent)
 
-Loopkit's `adversarial-verify` output is `{"passes": bool, "failures": [...]}` — that is exactly the shape this skill formalizes. When you compose skills, keep every machine-consumed hop tool_use'd.
+Loopkit'in `adversarial-verify` çıktısı `{"passes": bool, "failures": [...]}` şeklindedir — bu tam olarak bu skill'in resmileştirdiği (formalize) şekildir. Skill'leri kompoze ederken, makine tarafından tüketilen her hop'u tool_use'lu tut.

@@ -1,13 +1,13 @@
 ---
 name: changelog-from-diff
-description: Turn a set of commits or a diff into a clean, user-facing changelog entry. Use before a release or PR description.
-when_to_use: cutting a release, writing release notes, summarizing a branch
+description: Bir dizi commit'i veya bir diff'i temiz, kullanıcıya dönük bir changelog girdisine dönüştürün. Bir sürüm (release) veya PR açıklamasından önce kullanın.
+when_to_use: sürüm çıkarma, sürüm notları yazma, bir dalı özetleme
 ---
-# Changelog from Diff
-Read the actual diff/commits, not the commit messages (they lie).
-Group into: **Added · Changed · Fixed · Removed · Security** (skip empty groups).
-Each line: user-facing impact, not implementation. "Fixed login failing for emails with uppercase characters" — not "fixed bug in user lookup".
-- Lead with what the user notices. Bury internals.
-- Call out breaking changes loudly, with the migration step.
-- Link the PR/issue. No marketing fluff.
-Output: markdown ready to paste. If a change has no user impact, leave it out.
+# Diff'ten Changelog (Changelog from Diff)
+Commit mesajlarını değil, gerçek diff'i/commit'leri oku (mesajlar yalan söyler).
+Şu gruplara ayır: **Eklendi · Değişti · Düzeltildi · Kaldırıldı · Güvenlik** (boş grupları atla).
+Her satır: uygulama detayını değil, kullanıcıya dönük etkiyi anlatır. "Büyük harf içeren e-postalarda başarısız olan girişi düzeltti" — "kullanıcı aramasındaki hatayı düzeltti" değil.
+- Kullanıcının fark ettiğiyle başla. İç detayları göm
+- Bozan değişiklikleri (breaking changes) yüksek sesle, göç (migration) adımıyla birlikte belirt.
+- PR/issue bağlantısını ver. Pazarlama süsü yok.
+Çıktı: yapıştırılmaya hazır markdown. Bir değişikliğin kullanıcıya etkisi yoksa, dışarıda bırak.

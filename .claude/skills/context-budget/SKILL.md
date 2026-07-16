@@ -1,12 +1,12 @@
 ---
 name: context-budget
-description: Keep the agent's context lean so accuracy doesn't collapse. Use on long sessions, big files, or when the agent starts hallucinating.
-when_to_use: long session, huge file dump, agent forgetting earlier steps, accuracy dropping
+description: Ajanın context'ini yalın tut ki doğruluk çökmesin. Uzun oturumlarda, büyük dosyalarda veya ajan halüsinasyon görmeye başladığında kullan.
+when_to_use: uzun oturum, devasa dosya dökümü, ajan önceki adımları unutuyor, doğruluk düşüyor
 ---
 # Context Budget
-More context is not better. Past a threshold, accuracy falls off a cliff (context rot).
-- **Don't dump whole files** — read the relevant function/section, not the 2000-line module.
-- **Summarize, don't accumulate** — replace a 200K-token transcript with a 4K recap of the load-bearing facts.
-- **Drop dead context** — once a sub-task is done, its detail leaves the window. Keep the decision, drop the trace.
-- **State on disk, not in context** — progress goes to a file the next turn re-reads, not into an ever-growing prompt.
-A bloated standing context (CLAUDE.md) taxes every single turn. Trim weekly. If the agent is confidently wrong, suspect the context before the model.
+Daha fazla context daha iyi değildir. Bir eşiğin ötesinde, doğruluk uçurumdan düşer (context rot).
+- **Tüm dosyaları dökme** — 2000 satırlık modülü değil, ilgili fonksiyonu/bölümü oku.
+- **Biriktirme, özetle** — 200K token'lık bir transcript'i, yük taşıyan gerçeklerin 4K'lık bir özetiyle değiştir.
+- **Ölü context'i at** — bir alt görev bitince, ayrıntısı pencereden çıkar. Kararı tut, izi (trace) at.
+- **Durum diskte olsun, context'te değil** — ilerleme, sürekli büyüyen bir prompt'a değil, bir sonraki turun yeniden okuduğu bir dosyaya gider.
+Şişmiş bir kalıcı context (CLAUDE.md) her turu vergilendirir. Haftalık kırp. Ajan kendinden emin bir şekilde yanılıyorsa, modelden önce context'ten şüphelen.

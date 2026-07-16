@@ -1,12 +1,12 @@
 ---
 name: simplify
-description: Reduce a change to the minimum that solves the problem. Use when code is over-engineered or a diff is bloated.
-when_to_use: over-abstraction, a 200-line diff for a small ask, premature generality
+description: Bir değişikliği, sorunu çözen en küçük hale indir. Kod aşırı mühendislik ürünüyse ya da bir diff şişkinse kullan.
+when_to_use: aşırı soyutlama, küçük bir istek için 200 satırlık diff, erken genellik
 ---
 # Simplify
-Over-engineering is the default failure mode. Cut it:
-- **Premature abstraction** — a class/strategy/factory for one caller. Inline it. Abstract on the THIRD use, not the first.
-- **Speculative config** — a parameter/flag/env var for something that never changes. Hardcode it until there's a real reason.
-- **Dead flexibility** — an interface with one implementation, a generic with one type. Delete the indirection.
-- **Defensive noise** — null checks on values that can't be null, try/except for errors that can't happen. Handle only real failure modes.
-Test: can you justify every changed line by a direct connection to what was asked? If a line is there "while I was in there", revert it.
+Aşırı mühendislik (over-engineering) varsayılan başarısızlık modudur. Kes at:
+- **Erken soyutlama (premature abstraction)** — tek çağıran için bir class/strategy/factory. Satır içine al (inline). ÜÇÜNCÜ kullanımda soyutla, ilkinde değil.
+- **Spekülatif config** — hiç değişmeyen bir şey için parametre/flag/env var. Gerçek bir sebep çıkana kadar sabit kodla (hardcode).
+- **Ölü esneklik** — tek implementasyonu olan bir interface, tek tipi olan bir generic. Dolaylılığı sil.
+- **Savunmacı gürültü** — null olamayacak değerlerde null kontrolleri, olamayacak hatalar için try/except. Yalnızca gerçek başarısızlık modlarını ele al.
+Test: değişen her satırı, istenenle doğrudan bir bağ üzerinden gerekçelendirebilir misin? Bir satır "hazır oradayken" diye eklenmişse, geri al (revert).

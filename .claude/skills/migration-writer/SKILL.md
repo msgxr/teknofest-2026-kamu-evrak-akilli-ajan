@@ -1,12 +1,12 @@
 ---
 name: migration-writer
-description: Write safe, reversible database migrations for this repo's conventions. Use for any schema change.
-when_to_use: add/alter a table, column, index, or constraint
+description: Bu deponun geleneklerine uygun, güvenli ve geri döndürülebilir veritabanı migration'ları yaz. Herhangi bir şema değişikliği için kullan.
+when_to_use: bir tablo, kolon, index veya kısıt (constraint) ekle/değiştir
 ---
 # Migration Writer
-1. Read the current schema first. Match the repo's migration tool and naming (`NNN_<verb>_<noun>`).
-2. Write BOTH up and down. A migration you can't reverse is a migration you can't deploy safely.
-3. **Live-safe**: on a hot table, adding a NOT NULL column with no default, or an index without CONCURRENTLY, takes a blocking lock. Split into steps: add nullable → backfill → add constraint.
-4. Backfill large tables in batches, not one statement.
-5. Never edit an already-merged migration — add a new one.
-Test with a dry-run before committing. Output the migration + the exact deploy order.
+1. Önce mevcut şemayı oku. Deponun migration aracını ve adlandırmasını (`NNN_<verb>_<noun>`) izle.
+2. HEM up HEM down yaz. Geri alamadığın bir migration, güvenle deploy edemeyeceğin bir migration'dır.
+3. **Canlıda güvenli (live-safe)**: yoğun bir tabloda, varsayılansız (default) bir NOT NULL kolon eklemek ya da CONCURRENTLY olmadan bir index eklemek bloklayan bir lock alır. Adımlara böl: nullable ekle → geri doldur (backfill) → kısıt ekle.
+4. Büyük tabloları tek bir ifadeyle değil, gruplar (batch) hâlinde geri doldur.
+5. Zaten merge edilmiş bir migration'ı asla düzenleme — yenisini ekle.
+Commit'lemeden önce dry-run ile test et. Çıktı: migration + tam deploy sırası.

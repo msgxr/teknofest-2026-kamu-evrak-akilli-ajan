@@ -1,11 +1,11 @@
 ---
 name: kill-dead-code
-description: Find and remove unreachable/unused code safely. Use during cleanup or before a refactor.
-when_to_use: cleanup, "remove unused", before refactoring, dead branches
+description: Ulaşılamayan/kullanılmayan kodu güvenle bul ve kaldır. Temizlik sırasında veya bir refactor öncesinde kullan.
+when_to_use: temizlik, "kullanılmayanı kaldır", refactor öncesi, ölü dallar
 ---
 # Kill Dead Code
-1. **Prove it's dead** — no references (grep the symbol across the repo, including dynamic/string usage and tests). Unused export ≠ dead if it's a public API.
-2. Check it's not feature-flagged off (dead today, alive when the flag flips).
-3. Delete it AND its now-orphaned tests, imports, and config.
-4. Run the full suite + a build. Dead code removal should change behavior in exactly zero ways.
-Bias to delete: every line someone has to read is a cost. But never delete what you can't prove is unreachable — say "I think X is unused, confirm?" instead of guessing.
+1. **Ölü olduğunu kanıtla** — referans yok (sembolü depo genelinde grep'le; dinamik/string kullanımı ve testler dahil). Kullanılmayan export ≠ ölü, eğer bir public API ise.
+2. Feature-flag ile kapatılmadığından emin ol (bugün ölü, flag açılınca canlı).
+3. Onu VE artık öksüz kalan testlerini, importlarını ve config'ini sil.
+4. Tüm test paketini (suite) + bir build çalıştır. Ölü kod kaldırma, davranışı tam olarak sıfır şekilde değiştirmelidir.
+Silmeye eğilimli ol: birinin okumak zorunda olduğu her satır bir maliyettir. Ama ulaşılamaz olduğunu kanıtlayamadığını asla silme — tahmin etmek yerine "Sanırım X kullanılmıyor, onaylıyor musun?" de.

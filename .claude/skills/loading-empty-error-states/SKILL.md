@@ -1,12 +1,12 @@
 ---
 name: loading-empty-error-states
-description: Design the three states every data UI forgets. Use for any component that fetches or lists data.
-when_to_use: a list, a fetch, a dashboard, anything async in the UI
+description: Her veri arayüzünün (UI) unuttuğu üç durumu tasarla. Veri çeken (fetch) veya listeleyen herhangi bir bileşen için kullan.
+when_to_use: bir liste, bir fetch, bir dashboard, arayüzdeki herhangi bir asenkron şey
 ---
 # Loading / Empty / Error States
-AI-built UIs handle the happy path and crash on the other three. Design all four:
-- **Loading** — skeletons that match the final layout (not a centered spinner that shifts everything).
-- **Empty** — a real first-run state: what it is, and the one action to fill it. Not a blank box.
-- **Error** — what failed, in human terms, plus a retry. Never a raw stack trace or silent nothing.
-- **Partial** — slow/streaming data, optimistic updates that can roll back.
-For each fetch in the diff, confirm all four exist. The empty and error states are where products feel broken.
+Yapay zeka ile üretilen arayüzler mutlu yolu (happy path) ele alır ve diğer üçünde çöker. Dördünü de tasarla:
+- **Loading** — nihai düzene uyan iskeletler (skeleton) (her şeyi kaydıran ortalanmış bir spinner değil).
+- **Empty** — gerçek bir ilk-çalıştırma (first-run) durumu: ne olduğu ve onu doldurmak için tek eylem. Boş bir kutu değil.
+- **Error** — neyin başarısız olduğu, insani terimlerle, artı bir yeniden dene (retry). Asla ham bir stack trace veya sessiz bir hiçlik.
+- **Partial** — yavaş/streaming veri, geri alınabilen (roll back) iyimser güncellemeler (optimistic updates).
+Diff'teki her fetch için dördünün de var olduğunu doğrula. Ürünlerin bozuk hissettirdiği yer empty ve error durumlarıdır.

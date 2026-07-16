@@ -1,12 +1,12 @@
 ---
 name: read-the-trace
-description: Extract the actual cause from a stack trace instead of pattern-matching the error type. Use on any crash or exception.
-when_to_use: a stack trace, an exception, "TypeError/NullPointer/undefined", a crash log
+description: Hata türüne göre örüntü eşleştirmek yerine yığın izinden (stack trace) gerçek nedeni çıkarın. Herhangi bir çökme veya istisnada (exception) kullanın.
+when_to_use: bir yığın izi (stack trace), bir istisna, "TypeError/NullPointer/undefined", bir çökme günlüğü
 ---
-# Read the Trace
-LLMs love to see "TypeError" and generate a generic fix without reading the trace. Don't.
-- Find the **deepest frame in YOUR code** — not the library frame at the top. That's where the bad value entered.
-- Read the actual values: what was null/undefined/wrong-type, and where it came from.
-- Trace it one level up: why was that value bad? The root is usually 1-2 frames above the throw.
-- Reproduce with that exact input before fixing.
-A TypeError can mean a hundred things. The trace tells you which one — read all of it, including the "caused by".
+# İzi Oku (Read the Trace)
+LLM'ler "TypeError" görüp izi okumadan genel bir düzeltme üretmeye bayılır. Yapma.
+- **KENDİ kodundaki en derin çerçeveyi (frame)** bul — en üstteki kütüphane çerçevesini değil. Kötü değerin girdiği yer orasıdır.
+- Gerçek değerleri oku: ne null/undefined/yanlış-tür idi ve nereden geldi.
+- Bir seviye yukarı izle: o değer neden kötüydü? Kök genellikle fırlatmadan 1-2 çerçeve yukarıdadır.
+- Düzeltmeden önce tam olarak o girdiyle yeniden üret.
+Bir TypeError yüz şey anlamına gelebilir. İz hangisi olduğunu söyler — "caused by" dahil hepsini oku.

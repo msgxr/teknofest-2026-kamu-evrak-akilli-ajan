@@ -1,11 +1,11 @@
 ---
 name: schema-diff
-description: Compare two schema states and surface the risky changes. Use before applying migrations or after a model change.
-when_to_use: reviewing a migration, "what changed in the schema", pre-deploy check
+description: İki şema durumunu karşılaştır ve riskli değişiklikleri su yüzüne çıkar. Migration'ları uygulamadan önce veya bir model değişikliğinden sonra kullan.
+when_to_use: bir migration'ı incelerken, "şemada ne değişti", deploy öncesi kontrol
 ---
 # Schema Diff
-Diff old vs new schema. Flag by risk:
-- **Destructive** (high): dropped column/table, narrowed type, new NOT NULL on existing rows, dropped index a query relies on.
-- **Locking** (high at scale): index without CONCURRENTLY, type change that rewrites the table.
-- **Safe**: new nullable column, new table, new index CONCURRENTLY.
-For each destructive change: is data lost? is it reversible? is there a backfill? Output a risk-ranked list and a go/no-go with the safe rollout order.
+Eski şema ile yeniyi diff'le. Riske göre işaretle:
+- **Yıkıcı (destructive)** (yüksek): düşürülen (dropped) kolon/tablo, daraltılan tip, mevcut satırlar üzerinde yeni NOT NULL, bir sorgunun dayandığı düşürülen index.
+- **Kilitleyici (locking)** (ölçekte yüksek): CONCURRENTLY olmadan index, tabloyu yeniden yazan tip değişikliği.
+- **Güvenli**: yeni nullable kolon, yeni tablo, yeni CONCURRENTLY index.
+Her yıkıcı değişiklik için: veri kaybı var mı? geri döndürülebilir mi? bir geri doldurma (backfill) var mı? Çıktı: riske göre sıralı bir liste ve güvenli yayına-alma (rollout) sırasıyla bir git/gitme (go/no-go) kararı.

@@ -1,13 +1,13 @@
 ---
 name: decision-record
-description: Capture an architectural decision so the next session (or engineer) knows WHY. Use after any non-obvious technical choice.
-when_to_use: picked a library/pattern/schema, a tradeoff was made, a hard-to-reverse choice
+description: Bir mimari kararı, bir sonraki oturumun (veya mühendisin) NEDEN'ini bilmesi için kaydedin. Herhangi bir aşikâr olmayan teknik seçimden sonra kullanın.
+when_to_use: bir kütüphane/desen/şema seçildi, bir ödünleşim (tradeoff) yapıldı, geri alması zor bir seçim
 ---
-# Decision Record (ADR)
-Write a short file `docs/decisions/NNN-<slug>.md`:
-- **Context** — what forced a decision. The constraints.
-- **Options** — the 2-3 real candidates, one line each.
-- **Decision** — what you picked, dated.
-- **Why** — the tradeoff. What you gave up. "We picked Postgres over Mongo because we need real joins; we accept heavier ops."
-- **Consequences** — what this now makes easy and hard.
-Hard-to-reverse choices (schema, auth, data store) MUST get one. Future-you will ask "why on earth did we do this" — answer it now.
+# Karar Kaydı (ADR)
+Kısa bir dosya yaz `docs/decisions/NNN-<slug>.md`:
+- **Bağlam (Context)** — kararı zorlayan neydi. Kısıtlar.
+- **Seçenekler (Options)** — 2-3 gerçek aday, her biri tek satır.
+- **Karar (Decision)** — ne seçtin, tarihiyle.
+- **Neden (Why)** — ödünleşim. Neyden vazgeçtin. "Mongo yerine Postgres'i seçtik çünkü gerçek join'lere ihtiyacımız var; daha ağır operasyonu kabul ediyoruz."
+- **Sonuçlar (Consequences)** — bunun artık neyi kolay, neyi zor kıldığı.
+Geri alması zor seçimler (şema, kimlik doğrulama (auth), veri deposu) MUTLAKA bir tane almalı. Gelecekteki sen "bunu da neden yaptık ki" diye soracak — şimdi yanıtla.

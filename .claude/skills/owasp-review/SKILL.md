@@ -1,15 +1,15 @@
 ---
 name: owasp-review
-description: Security-review a diff against the OWASP Top 10. Use before merging anything that touches auth, input handling, queries, or external calls.
-when_to_use: new endpoint, auth/session change, user input, raw query, file upload, deserialization
+description: Bir diff'i OWASP Top 10'a karşı güvenlik açısından incele. Auth, girdi işleme, sorgu veya harici çağrılara dokunan herhangi bir şeyi merge etmeden önce kullan.
+when_to_use: yeni endpoint, auth/oturum değişikliği, kullanıcı girdisi, ham sorgu, dosya yükleme, deserialization
 ---
 # OWASP Review
-Check the diff for each, with the exact line:
-- **Injection** — any string-built SQL/shell/HTML. Demand parameterized queries / escaping.
-- **Broken access control** — does it verify the user OWNS the resource, not just that they're logged in?
-- **Auth** — secrets in code? tokens without expiry? password compare not constant-time?
-- **SSRF** — user-controlled URL fetched server-side without an allowlist.
-- **Sensitive data** — PII/secrets logged, returned in errors, or sent unencrypted.
-- **Deserialization** — untrusted input into pickle/yaml.load/eval.
-- **Dependency** — a new package with known CVEs or no maintenance.
-Output: a list of {line, risk, fix}. If clean, say so explicitly. Never assume input is safe because "it comes from our frontend".
+Diff'i her madde için, tam satırıyla kontrol et:
+- **Injection** — string ile inşa edilmiş herhangi bir SQL/shell/HTML. Parameterized query / escaping talep et.
+- **Broken access control** — kullanıcının kaynağın SAHİBİ olduğunu mu doğruluyor, yoksa yalnızca giriş yapmış olmasını mı? 
+- **Auth** — kod içinde secret'lar mı var? süresiz (expiry'siz) token'lar mı? şifre karşılaştırması constant-time değil mi?
+- **SSRF** — kullanıcı kontrolündeki bir URL, allowlist olmadan sunucu tarafında fetch ediliyor.
+- **Sensitive data** — PII/secret'lar loglanıyor, hatalarda döndürülüyor veya şifresiz gönderiliyor.
+- **Deserialization** — güvenilmeyen girdinin pickle/yaml.load/eval içine geçmesi.
+- **Dependency** — bilinen CVE'leri olan veya bakımsız yeni bir paket.
+Çıktı: bir {line, risk, fix} listesi. Temizse, bunu açıkça söyle. "Bizim frontend'imizden geliyor" diye girdiyi asla güvenli varsayma.

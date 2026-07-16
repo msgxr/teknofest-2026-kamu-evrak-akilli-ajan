@@ -1,12 +1,12 @@
 ---
 name: bisect-regression
-description: Find the exact commit that introduced a bug. Use when something worked before and broke, and you don't know which change did it.
-when_to_use: "it worked last week", a regression, unclear which commit broke it
+description: Bir hatayı ortaya çıkaran tam commit'i bulun. Daha önce çalışan bir şey bozulduğunda ve hangi değişikliğin buna yol açtığını bilmediğinizde kullanın.
+when_to_use: "geçen hafta çalışıyordu", bir regresyon, hangi commit'in bozduğu belirsiz
 ---
-# Bisect the Regression
-1. Find a known-good commit and a known-bad one. Confirm both by actually checking out and testing.
+# Regresyonu İkiye Böl (Bisect the Regression)
+1. Bilinen bir iyi commit ve bilinen bir kötü commit bul. Her ikisini de gerçekten checkout edip test ederek doğrula.
 2. `git bisect start; git bisect bad <bad>; git bisect good <good>`.
-3. At each step, run the SMALLEST test that distinguishes good from bad. Mark `git bisect good/bad`.
-4. When git names the first bad commit, read its diff. The bug is in those lines — don't guess elsewhere.
-5. `git bisect reset`. Report: the commit, the line, the one-sentence cause.
-Automate it: `git bisect run ./repro.sh` if you have a script that exits non-zero on the bug.
+3. Her adımda, iyiyi kötüden ayıran EN KÜÇÜK testi çalıştır. `git bisect good/bad` ile işaretle.
+4. git ilk kötü commit'i adlandırdığında, onun diff'ini oku. Hata o satırlardadır — başka yeri tahmin etme.
+5. `git bisect reset`. Raporla: commit, satır, tek cümlelik neden.
+Otomatikleştir: hata durumunda sıfır-olmayan çıkış veren bir betiğin varsa `git bisect run ./repro.sh`.

@@ -1,12 +1,12 @@
 ---
 name: tool-restraint
-description: Don't over-equip an agent with tools/MCP servers. More tools = more ways to fail and a higher cognitive load. Use when wiring tools or an agent underperforms.
-when_to_use: adding MCP servers, an agent with many tools, "give it access to everything"
+description: Bir ajanı araçlarla/MCP sunucularıyla aşırı donatma. Daha fazla araç = başarısız olmak için daha fazla yol ve daha yüksek bilişsel yük. Araç bağlarken veya bir ajan düşük performans gösterdiğinde kullan.
+when_to_use: MCP sunucuları eklemek, çok araçlı bir ajan, "her şeye erişim ver"
 ---
 # Tool Restraint
-Loading an agent with 14 MCP servers "just in case" makes it slower and dumber, not more capable — tool-use agents hit sharp capability cliffs as cognitive load rises.
-- Enable **only** the servers the current work actually uses. Remove the rest.
-- Prefer official servers for credentialed tools; never install five speculatively.
-- Each tool's description eats context on every turn — fewer, sharper tools beat a junk drawer.
-- Before adding a write-scoped server, add a hook that logs every call.
-If the agent picks the wrong tool or thrashes, the fix is usually fewer tools with clearer descriptions, not a smarter model.
+Bir ajanı "ne olur ne olmaz" diye 14 MCP sunucusuyla yüklemek onu daha yetenekli değil, daha yavaş ve daha aptal yapar — araç kullanan (tool-use) ajanlar, bilişsel yük yükseldikçe keskin yetenek uçurumlarına çarpar.
+- **Yalnızca** mevcut işin gerçekten kullandığı sunucuları etkinleştir. Gerisini kaldır.
+- Kimlik gerektiren (credentialed) araçlar için resmi sunucuları tercih et; asla beşini spekülatif olarak kurma.
+- Her aracın açıklaması her turda context yer; daha az ama keskin araçlar bir çekmece dolusu abur cuburu yener.
+- Yazma yetkili (write-scoped) bir sunucu eklemeden önce, her çağrıyı loglayan bir hook ekle.
+Ajan yanlış aracı seçer ya da bocalarsa (thrash), çözüm genellikle daha akıllı bir model değil, daha net açıklamalı daha az araçtır.

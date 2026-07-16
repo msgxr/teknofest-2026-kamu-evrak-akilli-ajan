@@ -1,12 +1,12 @@
 ---
 name: reduce-nesting
-description: Flatten deeply nested conditionals into readable, early-return code. Use on any function with 3+ levels of indentation.
-when_to_use: arrow-shaped code, 3+ nested ifs, a function that's hard to follow
+description: Derinlemesine iç içe geçmiş koşulları okunabilir, erken-dönüşlü (early-return) koda düzleştir. 3+ girinti seviyesi olan herhangi bir fonksiyonda kullan.
+when_to_use: ok-şeklinde (arrow-shaped) kod, 3+ iç içe if, takip etmesi zor bir fonksiyon
 ---
 # Reduce Nesting
-Deep nesting hides bugs in the branches you didn't read.
-- **Guard clauses** — handle the invalid/edge cases first and return early. The happy path drops to the left margin.
-- **Invert conditions** — `if (!valid) return;` instead of wrapping the whole body in `if (valid) {...}`.
-- **Extract** — a nested block doing one thing becomes a named function.
-- **Replace flag-then-branch** — return the result directly instead of setting a variable to return later.
-Target: no function deeper than 2-3 levels. If you still need more, the function is doing too much — split it.
+Derin iç içe geçme, okumadığın dallardaki hataları gizler.
+- **Guard clause'lar** — geçersiz/kenar durumları önce ele al ve erken dön. Mutlu yol (happy path) sol marja iner.
+- **Koşulları tersine çevir** — tüm gövdeyi `if (valid) {...}` içine sarmak yerine `if (!valid) return;`.
+- **Ayır (extract)** — tek bir iş yapan iç içe blok, adlandırılmış bir fonksiyona dönüşür.
+- **Flag-sonra-dallan'ı değiştir** — sonra döndürmek için bir değişken atamak yerine sonucu doğrudan döndür.
+Hedef: hiçbir fonksiyon 2-3 seviyeden derin olmasın. Hâlâ daha fazlasına ihtiyacın varsa, fonksiyon çok fazla iş yapıyordur — böl.

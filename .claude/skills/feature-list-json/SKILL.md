@@ -1,14 +1,14 @@
 ---
 name: feature-list-json
-description: Enumerate every end-to-end feature as strict JSON entries with passes:false, editable-passes-only discipline, and priority order. The ledger fresh-context sessions read to know what's done, what's next, and what they're forbidden to touch.
-when_to_use: initializer agent building the master feature list at scaffold time, coding agent flipping a single passes field after E2E verification, auditing that description/steps/tests fields were not silently edited
+description: Her uçtan uca özelliği, passes:false ile katı JSON girdileri olarak listele; yalnızca-passes-düzenlenebilir disiplini ve öncelik sırasıyla. Temiz-bağlam (fresh-context) oturumlarının neyin bittiğini, sıradakini ve dokunmalarının yasak olduğunu bilmek için okuduğu defter (ledger).
+when_to_use: iskele (scaffold) aşamasında ana özellik listesini kuran başlatıcı (initializer) ajan, uçtan uca (E2E) doğrulamadan sonra tek bir passes alanını çeviren kodlayıcı ajan, description/steps/tests alanlarının sessizce düzenlenmediğini denetleme
 ---
 
 # feature_list.json
 
-The ledger of every feature the product will eventually have. Fresh-context sessions read it to pick work; they flip exactly one boolean when done. JSON, not Markdown — the syntactic strictness is load-bearing. Prose gets edited freely; data gets edited carefully.
+Ürünün eninde sonunda sahip olacağı her özelliğin defteri (ledger). Temiz-bağlam oturumları iş seçmek için onu okur; bittiğinde tam olarak bir boolean çevirir. Markdown değil JSON — sözdizimsel katılık yük taşır (load-bearing). Düz metin (prose) serbestçe düzenlenir; veri dikkatle düzenlenir.
 
-Format per entry:
+Girdi başına format:
 
 ```json
 {
@@ -25,57 +25,57 @@ Format per entry:
 }
 ```
 
-Categories: `functional`, `ux`, `data`, `infra`. Order the array in implementation order — the top is the next thing to build.
+Kategoriler: `functional`, `ux`, `data`, `infra`. Diziyi uygulama (implementation) sırasına göre sırala — en üstteki, sıradaki inşa edilecek şeydir.
 
-## When to apply
+## Ne zaman uygulanır
 
-- **Initializer agent** at scaffold time: produce the full list, every entry `passes: false`. Aim for breadth — 200 well-scoped entries beats 30 vague ones.
-- **Coding agent** at end of session: after end-to-end verification, flip exactly one `passes` from `false` to `true`.
-- **Any session** at start: `jq '[.[] | select(.passes==false)] | length'` to see remaining work; pick the topmost unblocked entry.
+- **Başlatıcı (initializer) ajan** iskele aşamasında: tam listeyi üret, her girdi `passes: false`. Genişliği hedefle — iyi kapsamlanmış 200 girdi, belirsiz 30 girdiyi yener.
+- **Kodlayıcı ajan** oturum sonunda: uçtan uca doğrulamadan sonra, tam olarak bir `passes` alanını `false`'tan `true`'ya çevir.
+- **Herhangi bir oturum** başlangıçta: kalan işi görmek için `jq '[.[] | select(.passes==false)] | length'`; en üstteki engellenmemiş (unblocked) girdiyi seç.
 
-## Procedure — initializer
+## Prosedür — başlatıcı (initializer)
 
-1. Enumerate every user-observable behavior the spec implies. Login, list rendering, empty states, error states, keyboard shortcuts, mobile layout — all of it.
-2. Write each as one entry. `description` is one sentence, `steps` is a user's actual action sequence (not implementation notes).
-3. Order the array so an agent walking top-to-bottom builds prerequisites before dependents.
-4. Every `passes` starts `false`. No exceptions, not even for the smoke test.
-5. Validate: `jq '. | length'` returns your count; `jq '[.[] | select(.passes==true)] | length'` returns 0.
+1. Şartnamenin (spec) ima ettiği kullanıcı tarafından gözlemlenebilir her davranışı listele. Giriş (login), liste render'ı, boş durumlar, hata durumları, klavye kısayolları, mobil yerleşim — hepsi.
+2. Her birini bir girdi olarak yaz. `description` tek cümledir, `steps` bir kullanıcının gerçek eylem dizisidir (uygulama notları değil).
+3. Diziyi öyle sırala ki üstten alta yürüyen bir ajan, bağımlıları (dependents) inşa etmeden önce ön koşulları (prerequisites) inşa etsin.
+4. Her `passes` `false` başlar. İstisna yok, duman testi (smoke test) için bile.
+5. Doğrula: `jq '. | length'` sayını döndürür; `jq '[.[] | select(.passes==true)] | length'` 0 döndürür.
 
-## Procedure — coding agent
+## Prosedür — kodlayıcı ajan
 
-1. Read the file. Do not edit yet.
-2. Pick the topmost entry with `passes: false` and satisfied prerequisites. If the top is blocked, drop to the deepest unblocked entry.
-3. Implement. Test. Verify end-to-end via the runtime path (browser automation, HTTP, CLI) — not unit tests alone. See [[broken-window-check]] for what E2E means.
-4. Only after E2E green: flip that single entry's `passes` to `true`.
-5. Diff the file. The diff must be exactly one `false` → `true`. Nothing else.
+1. Dosyayı oku. Henüz düzenleme.
+2. `passes: false` olan ve ön koşulları karşılanan en üstteki girdiyi seç. En üstteki engelliyse, en derindeki engellenmemiş girdiye in.
+3. Uygula. Test et. Çalışma zamanı (runtime) yolu üzerinden uçtan uca doğrula (tarayıcı otomasyonu, HTTP, CLI) — yalnızca birim testleri değil. E2E'nin ne demek olduğu için bkz. [[broken-window-check]].
+4. Yalnızca E2E yeşile döndükten sonra: o tek girdinin `passes` alanını `true`'ya çevir.
+5. Dosyanın diff'ini al. Diff tam olarak bir `false` → `true` olmalı. Başka hiçbir şey değil.
 
-## Anti-patterns
+## Anti-desenler (Anti-patterns)
 
-- **Editing `description`, `steps`, or `category`** — it is unacceptable to remove or edit these fields because it lets missing functionality slip past future sessions. The ledger is append-only in every field except `passes`.
-- **Flipping `passes: true` on unit-test evidence** — unit tests pass while routes are misrouted, CORS is broken, or the button is unwired. Only end-to-end evidence flips the bit. See [[verification-before-completion]].
-- **Flipping multiple entries in one session** — the single-feature-per-session rule (see [[one-feature-per-session]]) exists because packed sessions ship everything half-done. One flip per session.
-- **Adding new entries mid-project without spec change** — if scope grew, note it in [[shift-notes]] and flag for a re-scope, don't quietly extend the ledger.
-- **Deleting "obsolete" entries** — if a feature is no longer needed, leave it and mark it `passes: true` with a note, or negotiate removal explicitly. Silent deletion breaks priority counting.
-- **Markdown or YAML instead of JSON** — measured in shift-work agent runs, JSON cuts spurious field edits ~7x vs. Markdown and premature-pass marking ~2x. The strictness does the work.
+- **`description`, `steps` veya `category` düzenleme** — bu alanları kaldırmak veya düzenlemek kabul edilemez çünkü eksik işlevselliğin gelecekteki oturumların gözünden kaçmasına izin verir. Defter, `passes` dışındaki her alanda yalnızca-ekleme (append-only) niteliğindedir.
+- **Birim-testi kanıtıyla `passes: true` çevirme** — birim testleri geçerken rotalar yanlış yönlendirilmiş (misrouted), CORS bozuk veya buton bağlanmamış (unwired) olabilir. Yalnızca uçtan uca kanıt biti çevirir. Bkz. [[verification-before-completion]].
+- **Tek oturumda birden fazla girdi çevirme** — oturum başına tek-özellik kuralı (bkz. [[one-feature-per-session]]) vardır çünkü tıka basa dolu oturumlar her şeyi yarım gönderir. Oturum başına bir çevirme.
+- **Şartname (spec) değişikliği olmadan proje ortasında yeni girdi ekleme** — kapsam büyüdüyse, bunu [[shift-notes]]'a not düş ve yeniden-kapsamlama (re-scope) için işaretle; defteri sessizce genişletme.
+- **"Eskimiş" girdileri silme** — bir özellik artık gerekmiyorsa, bırak ve bir notla `passes: true` işaretle veya kaldırmayı açıkça müzakere et. Sessiz silme, öncelik sayımını bozar.
+- **JSON yerine Markdown veya YAML** — vardiya-işçisi (shift-work) ajan koşularında ölçüldüğünde, JSON, Markdown'a kıyasla sahte alan düzenlemelerini ~7 kat ve erken pass işaretlemeyi ~2 kat azaltır. Katılık işi yapan şeydir.
 
-## Audit check
+## Denetim kontrolü (Audit check)
 
-At session end, before committing:
+Oturum sonunda, commit'lemeden önce:
 
 ```bash
 git diff feature_list.json | grep -E '^[-+]' | grep -v 'passes'
 ```
 
-If this prints anything other than the file header, you edited a forbidden field. Revert those hunks. Only `"passes": false` ↔ `"passes": true` lines are allowed to change.
+Bu, dosya başlığı (header) dışında bir şey yazdırıyorsa, yasak bir alan düzenlemişsin demektir. O parçaları (hunks) geri al. Yalnızca `"passes": false` ↔ `"passes": true` satırlarının değişmesine izin verilir.
 
-## When NOT to apply
+## Ne zaman uygulanmaz
 
-- Projects under ~20 features — the overhead of writing the list exceeds the benefit; a flat TODO in [[shift-notes]] is enough.
-- Solo one-shot sessions with no handoff — the ledger's whole purpose is cross-session discipline.
+- ~20 özelliğin altındaki projeler — listeyi yazmanın ek yükü (overhead), faydasını aşar; [[shift-notes]] içindeki düz bir TODO yeterlidir.
+- Devir teslimi (handoff) olmayan tek-atışlık (one-shot) tek oturumlar — defterin bütün amacı oturumlar-arası disiplindir.
 
-## Related
+## İlgili
 
-- [[shift-notes]] — the prose companion; feature_list.json holds state, shift-notes holds context.
-- [[broken-window-check]] — what "end-to-end verified" means before you flip a bit.
-- [[one-feature-per-session]] — the rule that limits you to one flip per session.
-- [[verification-before-completion]] — the general form of "no bit-flip without runtime evidence".
+- [[shift-notes]] — düz metin (prose) tamamlayıcısı; feature_list.json durumu (state) tutar, shift-notes bağlamı (context) tutar.
+- [[broken-window-check]] — biti çevirmeden önce "uçtan uca doğrulandı"nın ne demek olduğu.
+- [[one-feature-per-session]] — seni oturum başına tek çevirmeyle sınırlayan kural.
+- [[verification-before-completion]] — "çalışma zamanı kanıtı olmadan bit çevirme yok"un genel biçimi.
