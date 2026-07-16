@@ -1,6 +1,6 @@
 ---
 name: using-loopkit
-description: loopkit-etkin bir projede herhangi bir konuşmaya başlarken kullan — loopkit'in 49 skill'inin nasıl bulunup kullanılacağını belirler; açıklayıcı sorular dahil HERHANGİ bir yanıttan önce skill çağrısı gerektirir.
+description: loopkit-etkin bir projede herhangi bir konuşmaya başlarken kullan — loopkit'in 53 skill'inin nasıl bulunup kullanılacağını belirler; açıklayıcı sorular dahil HERHANGİ bir yanıttan önce skill çağrısı gerektirir.
 ---
 
 # Loopkit Kullanımı
@@ -23,7 +23,7 @@ Ardından "[amaç] için [skill] kullanılıyor" diye duyur ve skill'i aynen izl
 
 Skill'ler `.claude/skills/<name>/SKILL.md` konumundaki dosyalardır. Her birinin `name` ve `description` içeren YAML frontmatter'ı vardır (description bir tetikleyici ifadedir, özet değil). Tetiği görevinle eşleştiğinde SKILL.md'sini okuyarak bir skill yükle.
 
-## Skill yönlendirme (49 skill, 10 hat)
+## Skill yönlendirme (53 skill, 10 hat)
 
 | Görev şekli | İlk skill |
 |---|---|
