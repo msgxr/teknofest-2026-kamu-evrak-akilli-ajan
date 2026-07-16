@@ -4,8 +4,9 @@ Bu dizin yarışma sunumlarını içerir.
 
 ## Dosyalar
 
+- `Agentra_Tech_Takim_Tanitim_Sunum.pptx` — **Takım Tanıtım Sunumu** (görsel/diyagramlı/kod bloklu, kurumsal tasarım). Kaynağı `.md` değil, doğrudan `scripts/build_takim_tanitim_sunum.py` script'idir (native PowerPoint diyagramları çizer).
 - `on_degerlendirme_sunumu.md` — Ön değerlendirme sunumunun slayt kaynak metni (konuşmacı notlarıyla)
-- `on_degerlendirme_sunumu.pptx` — Ön değerlendirme sunumu (12 Temmuz teslim)
+- `on_degerlendirme_sunumu.pptx` — Ön değerlendirme sunumu
 - `final_sunumu.pptx` — Final sunumu (Ağustos)
 
 ## Üretim
