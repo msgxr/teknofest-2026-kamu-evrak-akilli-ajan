@@ -1,13 +1,13 @@
 ---
 name: spec-first
-description: Write the goal spec on disk before the agent acts, so it can't drift. Use before any multi-step task.
-when_to_use: a task with more than 2 steps, a long-running job, "build X", agent drifting
+description: Ajan eyleme geçmeden önce hedef spec'ini diske yaz, böylece sapamaz. Herhangi bir çok adımlı görevden önce kullan.
+when_to_use: 2'den fazla adımı olan bir görev, uzun süren bir iş, "X'i inşa et", ajanın sapması
 ---
-# Spec First
-Without an external contract, the agent drifts after ~3 iterations — and the failure looks like progress (code written, tests pass, wrong goal solved).
-Write `PROMPT.md` BEFORE acting:
-- **Goal** — one sentence.
-- **Done when** — concrete, checkable conditions. "Test suite green: <cmd>".
-- **Never touch** — files/areas off-limits.
-- **Stop if** — more than N files outside scope change; a passing test starts failing.
-The agent re-reads this file every iteration. State (what's done) goes in a separate `IMPLEMENTATION_PLAN.md` it updates in place. If you can't write "done when" concretely, the task isn't ready — clarify before coding.
+# Önce Spec
+Harici bir sözleşme olmadan, ajan ~3 iterasyondan sonra sapar — ve başarısızlık ilerleme gibi görünür (kod yazılmış, testler geçiyor, yanlış hedef çözülmüş).
+Eyleme geçmeden ÖNCE `PROMPT.md` yaz:
+- **Hedef (Goal)** — tek cümle.
+- **Tamamlanınca (Done when)** — somut, kontrol edilebilir koşullar. "Test paketi yeşil: <cmd>".
+- **Asla dokunma (Never touch)** — sınır dışı dosyalar/alanlar.
+- **Şu durumda dur (Stop if)** — kapsam dışında N'den fazla dosya değişirse; geçen bir test başarısız olmaya başlarsa.
+Ajan bu dosyayı her iterasyonda yeniden okur. Durum (ne yapıldığı) ayrı bir `IMPLEMENTATION_PLAN.md` dosyasına gider ve orada yerinde güncellenir. "done when"i somut yazamıyorsan, görev hazır değildir — kodlamadan önce netleştir.

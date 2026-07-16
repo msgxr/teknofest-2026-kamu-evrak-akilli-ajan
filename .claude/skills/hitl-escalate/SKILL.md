@@ -1,35 +1,35 @@
 ---
 name: hitl-escalate
-description: Escalate blocked runs to a human via configured channel or fallback to BLOCKED.md and exit the loop. Use when the loop hits an ambiguous spec, a missing credential, a destructive action needing approval, or 3+ consecutive verify failures on the same task.
-when_to_use: the loop hit an ambiguous spec, a missing credential, a destructive action needing approval, or 3+ consecutive verify failures on same task
+description: Bloklanmış çalışmaları, yapılandırılmış kanal üzerinden bir insana yükselt (escalate) veya BLOCKED.md'ye geri düş ve döngüden çık. Döngü belirsiz bir spec'e, eksik bir kimlik bilgisine (credential), onay gerektiren yıkıcı bir eyleme ya da aynı görevde 3+ ardışık verify başarısızlığına takıldığında kullan.
+when_to_use: döngü belirsiz bir spec'e, eksik bir kimlik bilgisine, onay gerektiren yıkıcı bir eyleme ya da aynı görevde 3+ ardışık verify başarısızlığına takıldı
 ---
 
-# Human-in-the-Loop Escalate
+# İnsan-Döngüde (Human-in-the-Loop) Yükseltme
 
-Long-running agent loops fail in a specific way when they meet a question they can't answer: they guess. The guess ships, the next session builds on it, and by the time a human looks the divergence is three commits deep. This skill is the release valve — when the agent is stuck, it stops and asks, cleanly, in a shape the human can act on.
+Uzun-ömürlü ajan döngüleri, cevaplayamadıkları bir soruyla karşılaştıklarında belirli bir biçimde başarısız olur: tahmin ederler. Tahmin gönderilir, sonraki oturum onun üzerine inşa eder ve bir insan baktığında sapma üç commit derinliğindedir. Bu skill, tahliye vanasıdır — ajan takıldığında durur ve insanın üzerine eyleme geçebileceği bir biçimde, temizce sorar.
 
-## Trigger — escalate when any of these are true
+## Tetik — bunlardan herhangi biri doğruysa yükselt
 
-- **Ambiguous spec.** `PROMPT.md` admits two implementations and the choice changes user-visible behavior.
-- **Missing credential.** A required env var, API key, or config file is absent, and there is no sanctioned way for the agent to create one.
-- **Destructive action needing approval.** Dropping a table, force-pushing, deleting user data, spending money, sending mail to real recipients.
-- **3+ consecutive `/verify` failures on the same task.** The loop is thrashing. Stop and get a human eye before the fourth attempt.
-- **External dependency down.** A third-party service the feature needs is unreachable and no offline path exists.
+- **Belirsiz spec.** `PROMPT.md` iki uygulamaya (implementation) izin veriyor ve seçim kullanıcıya-görünür davranışı değiştiriyor.
+- **Eksik kimlik bilgisi (credential).** Gerekli bir env var, API key veya config dosyası yok ve ajanın birini oluşturması için onaylı bir yol bulunmuyor.
+- **Onay gerektiren yıkıcı eylem.** Bir tabloyu düşürmek (drop), force-push yapmak, kullanıcı verisini silmek, para harcamak, gerçek alıcılara e-posta göndermek.
+- **Aynı görevde 3+ ardışık `/verify` başarısızlığı.** Döngü debeleniyor (thrashing). Dördüncü denemeden önce dur ve bir insan gözü al.
+- **Harici bağımlılık çökük.** Özelliğin ihtiyaç duyduğu üçüncü-taraf bir servise erişilemiyor ve çevrimdışı (offline) bir yol yok.
 
-If none of the above hold, do not escalate. Guessing is bad; escalating on a solvable problem is also bad (it trains humans to ignore the channel).
+Yukarıdakilerin hiçbiri geçerli değilse, yükseltme. Tahmin etmek kötüdür; çözülebilir bir problemde yükseltmek de kötüdür (insanları kanalı görmezden gelmeye alıştırır).
 
-## Primary action — call the human via the configured channel
+## Birincil eylem — yapılandırılmış kanal üzerinden insanı çağır
 
-Read `LOOPKIT_HITL_CHANNEL`. Supported values:
+`LOOPKIT_HITL_CHANNEL`'ı oku. Desteklenen değerler:
 
-| Value | Shape |
+| Değer | Biçim |
 |---|---|
-| `telegram` | POST to `https://api.telegram.org/bot$LOOPKIT_HITL_TELEGRAM_TOKEN/sendMessage` with `chat_id=$LOOPKIT_HITL_TELEGRAM_CHAT`, `text=<question + repo + short context>`. |
-| `slack` | POST JSON `{"text": "..."}` to `$LOOPKIT_HITL_SLACK_WEBHOOK` (incoming-webhook URL). |
-| `dial` | Run `$LOOPKIT_HITL_DIAL_CMD` with the message on stdin. Whatever the operator wired up — SMS gateway, ntfy, phone call, pager. |
-| `none` (or unset) | Skip the primary action. Go straight to fallback. |
+| `telegram` | `chat_id=$LOOPKIT_HITL_TELEGRAM_CHAT`, `text=<soru + repo + kısa bağlam>` ile `https://api.telegram.org/bot$LOOPKIT_HITL_TELEGRAM_TOKEN/sendMessage` adresine POST. |
+| `slack` | `$LOOPKIT_HITL_SLACK_WEBHOOK` (incoming-webhook URL) adresine JSON `{"text": "..."}` POST'la. |
+| `dial` | Mesaj stdin'de olacak şekilde `$LOOPKIT_HITL_DIAL_CMD`'yi çalıştır. Operatör ne bağladıysa — SMS gateway, ntfy, telefon araması, çağrı cihazı (pager). |
+| `none` (veya ayarlanmamış) | Birincil eylemi atla. Doğrudan geri-düşüşe (fallback) geç. |
 
-Message body — always these five lines, in this order:
+Mesaj gövdesi — her zaman bu beş satır, bu sırayla:
 
 ```
 [loopkit] blocked in <repo-name> on <ISO timestamp>
@@ -39,11 +39,11 @@ Attempted: <one-line what you tried>
 Choices: <A | B | C>
 ```
 
-Non-2xx from the channel is a soft failure. Log it, then fall through to the fallback so the loop still exits cleanly.
+Kanaldan gelen 2xx-olmayan yanıt yumuşak bir başarısızlıktır. Logla, ardından döngünün yine de temizce çıkması için geri-düşüşe (fallback) devam et.
 
-## Fallback — write BLOCKED.md and exit
+## Geri-düşüş (Fallback) — BLOCKED.md yaz ve çık
 
-Whether the primary succeeds or fails, always write `./BLOCKED.md` at the repo root with exactly four sections:
+Birincil eylem başarılı olsun ya da olmasın, repo kökünde her zaman tam olarak dört bölümle `./BLOCKED.md` yaz:
 
 ```markdown
 # Blocked
@@ -63,22 +63,22 @@ Whether the primary succeeds or fails, always write `./BLOCKED.md` at the repo r
 - C) <option> — <consequence>
 ```
 
-Then `exit 2`. The loop runner (`run.sh`) checks for `BLOCKED.md` at the head of each iteration and exits with code 2 if it exists — that stops the loop until a human clears it.
+Sonra `exit 2`. Döngü çalıştırıcı (`run.sh`), her yinelemenin başında `BLOCKED.md`'yi kontrol eder ve varsa kod 2 ile çıkar — bu, bir insan temizleyene kadar döngüyü durdurur.
 
-## Human unblocks
+## İnsan blokajı kaldırır
 
-The human reads `BLOCKED.md`, edits `PROMPT.md` / drops the credential / approves the destructive step, then `rm BLOCKED.md` and restarts `run.sh`. The deleted `BLOCKED.md` is the unblock signal.
+İnsan `BLOCKED.md`'yi okur, `PROMPT.md`'yi düzenler / kimlik bilgisini yerleştirir / yıkıcı adımı onaylar, ardından `rm BLOCKED.md` yapıp `run.sh`'yi yeniden başlatır. Silinmiş `BLOCKED.md`, blokaj-kaldırma sinyalidir.
 
-## Anti-patterns — do not do these
+## Anti-desenler — bunları yapma
 
-- **Do not fabricate an answer.** "I'll assume the user meant X" is how divergence starts. Assume nothing under ambiguity — escalate.
-- **Do not loop endlessly.** After the third consecutive `/verify` failure on the same task, escalate. The fourth attempt is not going to succeed by the same reasoning that failed thrice.
-- **Do not silently swallow the missing credential.** Do not commit a placeholder, do not disable the feature, do not "TODO" the auth. Ask.
-- **Do not escalate for questions the repo already answers.** Read `AGENTS.md`, `PROMPT.md`, and the last three commits first. Escalation is expensive human attention — spend it on real ambiguity.
-- **Do not skip writing `BLOCKED.md` because the primary channel succeeded.** The file is the loop's exit contract. Without it, `run.sh` keeps spinning.
+- **Bir cevap uydurma.** "Kullanıcının X'i kastettiğini varsayacağım" sapmanın başladığı yoldur. Belirsizlik altında hiçbir şey varsayma — yükselt.
+- **Sonsuza kadar döngüye girme.** Aynı görevde üçüncü ardışık `/verify` başarısızlığından sonra yükselt. Dördüncü deneme, üç kez başarısız olan aynı muhakemeyle başarılı olmayacak.
+- **Eksik kimlik bilgisini sessizce yutma.** Yer tutucu (placeholder) commit'leme, özelliği devre dışı bırakma, auth'u "TODO"ya bırakma. Sor.
+- **Repo'nun zaten cevapladığı sorular için yükseltme.** Önce `AGENTS.md`, `PROMPT.md` ve son üç commit'i oku. Yükseltme, pahalı insan dikkatidir — onu gerçek belirsizliğe harca.
+- **Birincil kanal başarılı oldu diye `BLOCKED.md` yazmayı atlama.** Dosya, döngünün çıkış sözleşmesidir. O olmadan `run.sh` dönmeye devam eder.
 
-## Pairs with
+## Şunlarla eşleşir
 
-- `adversarial-verify` — the source of the 3-verify-failure trigger.
-- `shift-notes` — after escalating, note the block in `IMPLEMENTATION_PLAN.md` so the next session (post-unblock) has full context.
-- `spec-first` — an ambiguous `PROMPT.md` is a spec-first failure; the human's unblock should tighten the spec, not just answer the one-off.
+- `adversarial-verify` — 3-verify-başarısızlığı tetiğinin kaynağı.
+- `shift-notes` — yükselttikten sonra, sonraki oturumun (blokaj-kaldırma sonrası) tam bağlama sahip olması için blokajı `IMPLEMENTATION_PLAN.md`'ye not düş.
+- `spec-first` — belirsiz bir `PROMPT.md`, bir spec-first başarısızlığıdır; insanın blokaj-kaldırması yalnızca tek seferlik soruyu cevaplamakla kalmayıp spec'i sıkılaştırmalıdır.

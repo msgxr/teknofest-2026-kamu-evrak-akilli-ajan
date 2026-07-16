@@ -1,27 +1,27 @@
 ---
 name: active-memory-reminder
-description: Before compaction Loopkit extracts decisions into claude-decisions.json (machine-readable). Read it alongside claude-progress.txt at session start — prose is for humans, JSON is for the loop.
-when_to_use: session start, after /clear, after compaction — before touching code; whenever a decision from a prior session is load-bearing for what you are about to do
+description: Sıkıştırma (compaction) öncesinde Loopkit, kararları claude-decisions.json içine çıkarır (makine-okunur). Oturum başında onu claude-progress.txt ile birlikte oku — düz metin (prose) insanlar içindir, JSON döngü içindir.
+when_to_use: oturum başı, /clear sonrası, sıkıştırma (compaction) sonrası — koda dokunmadan önce; önceki bir oturumdan gelen bir karar, yapmak üzere olduğun şey için belirleyici (load-bearing) olduğunda
 ---
 
-# Active Memory Reminder
+# Aktif Hafıza Hatırlatıcısı
 
-Loopkit splits shift-notes across two files on purpose:
+Loopkit, shift-notes'u bilinçli olarak iki dosyaya böler:
 
-- **`claude-progress.txt`** — free-form prose. Human-readable narrative of what the last session did, what is in flight, what to pick up next. Wins for context and intent. Loses when the model needs to *decide* whether a decision was made.
-- **`claude-decisions.json`** — machine-readable array of `{ts, decision}` entries, appended by the loopkit `pre-compact` hook every time the transcript is about to be compacted. Wins for durability of specific choices ("chose Postgres over SQLite because…", "rejected the polling approach", "tried htmx and switched to Alpine").
+- **`claude-progress.txt`** — serbest biçimli düz metin (prose). Son oturumun ne yaptığına, neyin uçuşta olduğuna, sırada neyin ele alınacağına dair insan-okunur bir anlatı. Bağlam ve niyet için üstündür. Model bir kararın verilip verilmediğine *karar vermek* zorunda kaldığında zayıf kalır.
+- **`claude-decisions.json`** — `{ts, decision}` girdilerinden oluşan makine-okunur bir dizi; transkript her sıkıştırılmak üzereyken loopkit `pre-compact` hook'u tarafından eklenir. Belirli seçimlerin kalıcılığı için üstündür ("SQLite yerine Postgres seçildi çünkü…", "polling yaklaşımı reddedildi", "htmx denendi ve Alpine'a geçildi").
 
-Compaction is where reasoning dies. The summarizer keeps the shape of the work but strips the *why*. `claude-decisions.json` is the durable side-channel that survives that. This is the same pattern Meta's NapMem paper calls out for behavioral-state-decay in long-running agents: prose degrades faster than structured facts because the model rewrites prose freely and edits structured data carefully (also why loopkit uses JSON for `feature_list.json`; see [[feature-list-json]]).
+Muhakemenin (reasoning) öldüğü yer sıkıştırmadır. Özetleyici, işin biçimini korur ama *neden*ini söküp atar. `claude-decisions.json`, bunu atlatan kalıcı yan-kanaldır (side-channel). Bu, Meta'nın NapMem makalesinin uzun-ömürlü ajanlarda davranışsal-durum-bozunması (behavioral-state-decay) için işaret ettiği desenin aynısıdır: düz metin, yapılandırılmış gerçeklerden daha hızlı bozunur çünkü model düz metni serbestçe yeniden yazar, yapılandırılmış veriyi ise dikkatle düzenler (loopkit'in `feature_list.json` için JSON kullanmasının nedeni de budur; bkz. [[feature-list-json]]).
 
-## When to apply
+## Ne zaman uygulanmalı
 
-- **Session start / post-/clear / post-compact.** Read `claude-decisions.json` right after `claude-progress.txt` and before you look at code. If both files disagree, the JSON is the more recent hard record of a specific choice; the prose gives you the reason.
-- **Before re-litigating a design choice.** If you're about to propose "let's use X instead of Y," grep `claude-decisions.json` first. If a prior session already rejected X and wrote it down, don't burn the token budget re-deriving that.
-- **When picking up mid-implementation work.** Decisions frame constraints the progress file may not restate.
+- **Oturum başı / /clear sonrası / sıkıştırma sonrası.** `claude-decisions.json`'ı, `claude-progress.txt`'nin hemen ardından ve koda bakmadan önce oku. İki dosya çelişiyorsa, JSON belirli bir seçimin daha yeni ve sert kaydıdır; düz metin sana nedenini verir.
+- **Bir tasarım seçimini yeniden tartışmaya açmadan önce.** "Y yerine X kullanalım" önermek üzereysen, önce `claude-decisions.json`'ı grep'le. Önceki bir oturum X'i zaten reddetmiş ve yazmışsa, bunu yeniden türetmek için token bütçesini yakma.
+- **Yarım kalmış uygulama işini devraldığında.** Kararlar, ilerleme dosyasının yeniden ifade etmeyebileceği kısıtları çerçeveler.
 
-## File contract
+## Dosya sözleşmesi
 
-`claude-decisions.json` is a JSON array. Every entry is `{ts, decision}`:
+`claude-decisions.json` bir JSON dizisidir. Her girdi `{ts, decision}`'dır:
 
 ```json
 [
@@ -31,25 +31,25 @@ Compaction is where reasoning dies. The summarizer keeps the shape of the work b
 ]
 ```
 
-Constraints:
-- Append-only in normal operation. The `pre-compact` hook appends; sessions read.
-- You MAY add a decision by hand if you make one mid-session that the hook won't catch (e.g., a decision made in code, not prose). Use the same shape. Do not rewrite or delete existing entries — they are the durable record.
-- If entries contradict, newer wins, but note the contradiction in `claude-progress.txt` so the reason is captured.
+Kısıtlar:
+- Normal işleyişte yalnızca ekleme (append-only). `pre-compact` hook'u ekler; oturumlar okur.
+- Hook'un yakalamayacağı bir kararı oturum ortasında verirsen (ör. düz metinde değil, kodda verilen bir karar) elle EKLEYEBİLİRSİN. Aynı biçimi kullan. Mevcut girdileri yeniden yazma veya silme — onlar kalıcı kayıttır.
+- Girdiler çelişirse yeni olan kazanır, ancak nedenin kayda geçmesi için çelişkiyi `claude-progress.txt`'ye not düş.
 
-## The hook
+## Hook
 
-`.claude/hooks/pre-compact` runs on both manual (`/compact`) and auto compaction. It skims the transcript for phrases matching `decided|chose|rejected|tried and failed|switched from .* to|going with|not going to`, dedupes, caps at 20 per compaction, timestamps each, and appends. It is silent-safe: any failure logs to stderr and exits 0 so compaction is never blocked.
+`.claude/hooks/pre-compact`, hem manuel (`/compact`) hem de otomatik sıkıştırmada çalışır. Transkripti `decided|chose|rejected|tried and failed|switched from .* to|going with|not going to` ile eşleşen ifadeler için tarar, tekrarları ayıklar (dedupe), sıkıştırma başına 20 ile sınırlar, her birine zaman damgası basar ve ekler. Sessiz-güvenlidir (silent-safe): herhangi bir hata stderr'e loglanır ve 0 ile çıkar, böylece sıkıştırma asla bloklanmaz.
 
-## Anti-patterns
+## Anti-desenler
 
-- **Reading `claude-progress.txt` and skipping `claude-decisions.json`.** You will re-open settled questions. The prose file often omits *why we didn't do the other thing* — that's what the JSON is for.
-- **Editing or deleting past decisions to "clean them up."** Same rule as `feature_list.json` steps and descriptions: durable structured records are load-bearing. Contradict them in a new entry; don't erase the old one.
-- **Storing prose in `claude-decisions.json`.** It is not a second progress file. Entries are single decisions with a timestamp, nothing else.
-- **Assuming the hook caught it.** The regex catches most decisions but not all. If you made a decision the transcript won't obviously match, add it by hand before ending the session.
+- **`claude-progress.txt`'yi okuyup `claude-decisions.json`'ı atlamak.** Kapanmış soruları yeniden açarsın. Düz metin dosyası çoğu zaman *öbür şeyi neden yapmadığımızı* atlar — JSON tam da bunun içindir.
+- **Geçmiş kararları "temizlemek" için düzenlemek veya silmek.** `feature_list.json` adımları ve açıklamalarıyla aynı kural: kalıcı yapılandırılmış kayıtlar belirleyicidir (load-bearing). Onları yeni bir girdide çürüt; eskisini silme.
+- **`claude-decisions.json` içinde düz metin saklamak.** O, ikinci bir ilerleme dosyası değildir. Girdiler, zaman damgalı tek kararlardır, başka hiçbir şey değil.
+- **Hook'un yakaladığını varsaymak.** regex çoğu kararı yakalar ama hepsini değil. Transkriptin bariz biçimde eşleştirmeyeceği bir karar verdiysen, oturumu bitirmeden önce elle ekle.
 
-## Related
+## İlgili
 
-- [[progress-reading-protocol]] — session-opening sequence; step 2b reads this file.
-- [[feature-list-json]] — the other structured-over-prose file loopkit relies on.
-- [[shift-notes]] — the prose companion this file is paired with.
-- [[clean-state-contract]] — session-end discipline that keeps the pairing usable.
+- [[progress-reading-protocol]] — oturum-açılış sırası; adım 2b bu dosyayı okur.
+- [[feature-list-json]] — loopkit'in dayandığı, düz-metin-yerine-yapılandırma diğer dosyası.
+- [[shift-notes]] — bu dosyanın eşleştiği düz metin muadili.
+- [[clean-state-contract]] — bu eşleşmeyi kullanılabilir tutan oturum-sonu disiplini.

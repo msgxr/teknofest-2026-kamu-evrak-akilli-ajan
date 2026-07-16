@@ -1,46 +1,46 @@
 ---
 name: self-eval-bias
-description: Detect and interrupt the pattern where an agent confidently praises work it just produced instead of reviewing it critically. Same-context grading is not review — it's rationalization.
-when_to_use: about to grade or accept output produced in the same context that generated it, reviewer verdict is high-confidence positive with no cited concrete evidence, deciding whether to spawn a separate reviewer persona vs self-review
+description: Bir ajanın az önce ürettiği işi eleştirel biçimde incelemek yerine kendinden emin bir şekilde övdüğü deseni tespit et ve kes. Aynı-bağlam içinde notlandırma inceleme değildir — rasyonalizasyondur.
+when_to_use: onu üreten aynı bağlamda üretilmiş çıktıyı notlandırmak veya kabul etmek üzere, denetçi kararı somut kanıt gösterilmeden yüksek-güvenli olumlu, ayrı bir denetçi persona başlatmaya karşı öz-inceleme arasında karar verme
 ---
 
-# Self-Eval Bias
+# Öz-Değerlendirme Yanlılığı (Self-Eval Bias)
 
-An agent that just produced a plan, a diff, or a report cannot fairly grade it in the same context. The reasoning that justified writing it is still loaded — every doubt was already resolved in favor of shipping. Asked to review, the same context reliably returns "looks good, ship it." This is not review. It is rationalization wearing a review's uniform.
+Az önce bir plan, bir diff veya bir rapor üretmiş bir ajan, onu aynı bağlamda adilce notlandıramaz. Onu yazmayı haklı çıkaran akıl yürütme hâlâ yüklü — her şüphe zaten göndermeden yana çözülmüştü. İncelemesi istendiğinde, aynı bağlam güvenilir biçimde "iyi görünüyor, gönder" döndürür. Bu inceleme değildir. İncelemenin üniformasını giymiş rasyonalizasyondur.
 
-The pattern shows up hardest in planner/generator/evaluator architectures where the evaluator drifts toward leniency over long runs — the prompts it reads fill up with the generator's reasoning, and skepticism erodes. (See Prithvi's March 2026 post on the three-agent harness: https://blog.anthropic.com/three-agent-harness-march-2026.)
+Desen en çok, değerlendiricinin uzun koşularda hoşgörüye kaydığı planner/generator/evaluator mimarilerinde ortaya çıkar — okuduğu prompt'lar generator'ın akıl yürütmesiyle dolar ve şüphecilik aşınır. (Üç-ajan koşumu (three-agent harness) hakkında Prithvi'nin Mart 2026 yazısına bakın: https://blog.anthropic.com/three-agent-harness-march-2026.)
 
-## When to apply
+## Ne zaman uygulanır
 
-- You just wrote code, a plan, or a claim, and the next step is "confirm it's correct".
-- A reviewer verdict comes back positive with no cited line numbers, no failing case explored, no counter-example attempted.
-- You're about to mark a feature `passes: true`, close an issue, or hand off to the next session.
-- The evaluator persona in a multi-agent loop has agreed with the last N generator outputs in a row.
+- Az önce kod, bir plan veya bir iddia yazdın ve sonraki adım "doğru olduğunu teyit et".
+- Bir denetçi kararı, gösterilen satır numaraları olmadan, keşfedilmiş başarısız bir vaka olmadan, denenmiş bir karşı örnek olmadan olumlu döner.
+- Bir özelliği `passes: true` işaretlemek, bir issue kapatmak veya sonraki oturuma devretmek üzeresin.
+- Çok-ajanlı bir döngüdeki değerlendirici persona, son N generator çıktısıyla arka arkaya hemfikir oldu.
 
-## Procedure
+## Prosedür
 
-1. **Notice the same-context tell.** If the review verdict lands in under three sentences and contains "looks correct", "this should work", or "no issues found" without a cited artifact — treat the verdict as unwritten.
-2. **Force a fresh persona.** Drop the generation context. Open a new subagent, or at minimum re-prompt with only the artifact (diff, plan, output) and the acceptance criteria — no reasoning trail, no self-justification.
-3. **Demand concrete evidence, not verdicts.** The reviewer must cite: the file:line it inspected, the input it ran, the observed output, and the criterion it matched against. "LGTM" without these is a null review — discard it.
-4. **Adversarially probe.** Ask the reviewer for the strongest case where the artifact fails. If it can't produce one, the review didn't happen — the reviewer just agreed.
-5. **Run the artifact.** For code, exercise it end-to-end (see [[broken-window-check]]). For a plan, walk the first two steps concretely. Same-context confidence collapses fast against a runtime.
-6. **Rotate the reviewer periodically.** In long multi-agent loops, re-prompt the evaluator from scratch every ~5 sprints — leniency drift compounds silently.
+1. **Aynı-bağlam işaretini fark et.** İnceleme kararı üç cümlenin altında gelir ve gösterilen bir artefakt olmadan "doğru görünüyor", "bu çalışmalı" veya "sorun bulunamadı" içeriyorsa — kararı yazılmamış say.
+2. **Taze bir persona zorla.** Üretim bağlamını bırak. Yeni bir subagent aç ya da en azından yalnızca artefakt (diff, plan, çıktı) ve kabul kriterleriyle yeniden prompt'la — akıl yürütme izi yok, öz-gerekçelendirme yok.
+3. **Karar değil, somut kanıt talep et.** Denetçi şunları göstermeli: incelediği file:line, çalıştırdığı girdi, gözlemlenen çıktı ve karşılaştırdığı kriter. Bunlar olmadan "LGTM" boş bir incelemedir — at gitsin.
+4. **Düşmanca yokla.** Denetçiden artefaktın başarısız olduğu en güçlü vakayı iste. Üretemiyorsa, inceleme gerçekleşmedi — denetçi sadece hemfikir oldu.
+5. **Artefaktı çalıştır.** Kod için, onu uçtan uca çalıştır (bkz. [[broken-window-check]]). Bir plan için, ilk iki adımı somut olarak yürü. Aynı-bağlam güveni bir çalışma zamanına karşı hızla çöker.
+6. **Denetçiyi periyodik olarak döndür.** Uzun çok-ajanlı döngülerde, değerlendiriciyi ~5 sprint'te bir sıfırdan yeniden prompt'la — hoşgörü kayması sessizce birikir.
 
-## Anti-patterns
+## Anti-desenler
 
-- **Self-review in the same turn.** "Let me double-check my work" followed by immediate approval. The doubt has to cost something to be real.
-- **Praise as evidence.** "This is a clean, well-structured implementation" is a vibe, not a finding. Findings cite lines.
-- **Positive verdict, empty failure_scenario.** If the reviewer can't describe what a failure would look like, they didn't look for one.
-- **Rubber-stamping across a run.** N consecutive "approved" verdicts from the same evaluator without a single rejection is a red flag, not a track record.
-- **Fixing the criterion instead of the artifact.** Reviewer notices a gap, then edits the spec to say the gap is out of scope. The gap is in the artifact. Fix that.
+- **Aynı turda öz-inceleme.** "İşimi bir kez daha kontrol edeyim"i hemen ardından gelen onay izler. Şüphenin gerçek olması için bir bedeli olmalı.
+- **Kanıt olarak övgü.** "Bu temiz, iyi yapılandırılmış bir implementasyon" bir hava (vibe)dır, bir bulgu değil. Bulgular satır gösterir.
+- **Olumlu karar, boş failure_scenario.** Denetçi bir başarısızlığın nasıl görüneceğini tanımlayamıyorsa, bir tane aramadı demektir.
+- **Bir koşu boyunca lastik damga (rubber-stamping).** Aynı değerlendiriciden tek bir ret olmadan gelen N ardışık "onaylandı" kararı bir kırmızı bayraktır, bir sicil değil.
+- **Artefakt yerine kriteri düzeltme.** Denetçi bir boşluk fark eder, sonra boşluğun kapsam dışı olduğunu söylemek için spec'i düzenler. Boşluk artefaktta. Onu düzelt.
 
-## When NOT to apply
+## Ne zaman UYGULANMAZ
 
-- The output is trivial and cheap to redo if wrong (a one-line rename, a config toggle).
-- A separate reviewer with a fresh context already ran and cited concrete evidence — the check has been done, don't loop on it.
+- Çıktı önemsiz ve yanlışsa yeniden yapması ucuz (tek satırlık bir yeniden adlandırma, bir config anahtarı).
+- Taze bir bağlama sahip ayrı bir denetçi zaten çalıştı ve somut kanıt gösterdi — kontrol yapıldı, üzerinde döngüye girme.
 
-## Related
+## İlgili
 
-- [[broken-window-check]] — the runtime-driven version of "don't trust the last claim".
-- [[adversarial-verify]] — the structural form of "find the strongest failure case".
-- [[shift-notes]] — where you record what the fresh-persona review actually found.
+- [[broken-window-check]] — "son iddiaya güvenme"nin çalışma zamanı güdümlü sürümü.
+- [[adversarial-verify]] — "en güçlü başarısızlık vakasını bul"un yapısal biçimi.
+- [[shift-notes]] — taze-persona incelemesinin gerçekte ne bulduğunu kaydettiğin yer.

@@ -1,16 +1,16 @@
 ---
 name: shift-notes
-description: Write and read the between-session handoff file so a fresh agent with no memory can pick up where the last one stopped without re-deriving context. Structured prose, not JSON — the model writes prose better.
-when_to_use: end of any session in a multi-session project, start of the next one; pairs with broken-window-check and feature-list state files
+description: Hafızası olmayan yeni bir ajanın, bağlamı yeniden türetmeden bir öncekinin bıraktığı yerden devam edebilmesi için oturumlar-arası devir (handoff) dosyasını yaz ve oku. Yapılandırılmış düz metin (prose), JSON değil — model düz metni daha iyi yazar.
+when_to_use: çok-oturumlu bir projede herhangi bir oturumun sonu, bir sonrakinin başı; broken-window-check ve feature-list durum dosyalarıyla eşleşir
 ---
 
-# Shift Notes
+# Vardiya Notları (Shift Notes)
 
-The hard problem in long-running agents is not doing work in one session — it's bridging the context gap between sessions. Every fresh agent starts with zero memory. If it has to reconstruct project state from the code, it burns 5-10 minutes and a chunk of context before writing a line. If it has a well-shaped handoff file, that drops to 30-60 seconds.
+Uzun-ömürlü ajanlardaki zor problem, bir oturumda iş yapmak değildir — oturumlar arasındaki bağlam boşluğunu köprülemektir. Her yeni ajan sıfır hafızayla başlar. Proje durumunu koddan yeniden inşa etmek zorunda kalırsa, tek satır yazmadan önce 5-10 dakika ve bir yığın bağlam yakar. İyi biçimlenmiş bir devir dosyası varsa, bu 30-60 saniyeye düşer.
 
-That handoff file is `claude-progress.txt` (or equivalent). Prose, not JSON. The model writes prose more naturally, and the read is cheap.
+O devir dosyası `claude-progress.txt`'dir (veya muadili). Düz metin, JSON değil. Model düz metni daha doğal yazar ve okuması ucuzdur.
 
-## The format — write into this shape
+## Biçim — bu şekle yaz
 
 ```
 # Project: <name>
@@ -34,40 +34,40 @@ That handoff file is `claude-progress.txt` (or equivalent). Prose, not JSON. The
 <free-form prose: gotchas, flaky tests, environment quirks>
 ```
 
-Enforced softly by the prompt, not by validation. Free text is the point — the notes section is where the previous shift warns the next one about the thing that isn't captured anywhere else.
+Doğrulamayla değil, prompt tarafından yumuşakça dayatılır. Serbest metin işin özüdür — notlar bölümü, önceki vardiyanın başka hiçbir yerde kayda geçmeyen şey hakkında sonrakini uyardığı yerdir.
 
-## Writing the notes — at end of session
+## Notları yazma — oturum sonunda
 
-- **Move the completed feature** from "in progress" to "done".
-- **Recommend the next feature** in "what's next" with a one-line reason (unblocks-N, low-risk, prerequisite-for-M).
-- **Notes-for-next-session** is the highest-leverage field. Use it for: flaky tests you hit, dependencies that surprised you, spec ambiguities you resolved one way (so the next agent doesn't re-litigate), env vars that need to be set.
-- **Do not delete "done" entries.** They're audit trail. If the section gets long, that's a signal to compact the whole notes file at v0.2 milestones, not to prune mid-project.
+- **Tamamlanan özelliği** "devam eden"den "bitti"ye taşı.
+- **Sonraki özelliği** "sırada ne var" bölümünde tek satırlık bir gerekçeyle öner (N'i-açar, düşük-risk, M-için-önkoşul).
+- **Sonraki-oturum-için-notlar** en yüksek kaldıraçlı alandır. Şunlar için kullan: karşılaştığın kararsız (flaky) testler, seni şaşırtan bağımlılıklar, tek bir şekilde çözdüğün spec belirsizlikleri (böylece sonraki ajan yeniden tartışmaz), ayarlanması gereken env var'lar.
+- **"Bitti" girdilerini silme.** Onlar denetim izidir (audit trail). Bölüm uzarsa, bu, proje ortasında budamak için değil, tüm notlar dosyasını v0.2 kilometre taşlarında sıkıştırmak için bir sinyaldir.
 
-## Reading the notes — at start of session
+## Notları okuma — oturum başında
 
-- Read the whole file. It's small.
-- **If shift notes and git log disagree, trust the git log.** The notes can be truncated by a crashed session; the log can't. This is a load-bearing rule.
-- Cross-reference "what's done" against the feature list. If the notes claim done but the feature list says not-done, run `broken-window-check`.
-- Pick work from "what's next" unless it's stale (a new session already picked it).
+- Tüm dosyayı oku. Küçüktür.
+- **Vardiya notları ile git log çelişirse, git log'a güven.** Notlar, çöken bir oturum tarafından kesilebilir (truncated); log kesilemez. Bu, belirleyici (load-bearing) bir kuraldır.
+- "Ne yapıldı"yı feature list'e karşı çapraz-kontrol et. Notlar bitti diyor ama feature list bitmedi diyorsa, `broken-window-check` çalıştır.
+- Bayatlamadıkça (yeni bir oturum onu zaten aldıysa) işi "sırada ne var"dan seç.
 
-## Red flags
+## Kırmızı bayraklar
 
-- **Notes rewritten every session from scratch.** Lose history, lose audit trail. Append and edit in place, don't overwrite.
-- **"What's done" section grows unboundedly.** Fine up to ~40 entries. Past that, compact by feature milestone.
-- **Ambiguous "in progress" prose.** The next session will misread "the button is wired but the state doesn't refresh" as "done" if you write "button works". Be precise about what fails.
-- **Notes drift out of sync with the feature list.** Feature list is source of truth for pass/fail state; notes are the prose gloss. When they disagree, the list wins.
-- **JSON handoff file.** Tried and abandoned — the model wrote shorter, less useful notes when forced into JSON. Prose wins for prose.
+- **Notların her oturumda sıfırdan yeniden yazılması.** Geçmişi kaybedersin, denetim izini kaybedersin. Ekle ve yerinde düzenle, üzerine yazma.
+- **"Ne yapıldı" bölümünün sınırsızca büyümesi.** ~40 girdiye kadar sorun yok. Ondan sonra, özellik kilometre taşına göre sıkıştır.
+- **Belirsiz "devam eden" düz metin.** "buton çalışıyor" yazarsan, sonraki oturum "buton bağlı ama durum (state) yenilenmiyor"u "bitti" olarak yanlış okur. Neyin başarısız olduğu konusunda net ol.
+- **Notların feature list ile senkronizasyondan çıkması.** Feature list, geçti/kaldı durumu için doğruluk kaynağıdır (source of truth); notlar düz metin açıklamasıdır. Çeliştiklerinde liste kazanır.
+- **JSON devir dosyası.** Denendi ve terk edildi — model JSON'a zorlandığında daha kısa, daha az yararlı notlar yazdı. Düz metin işinde düz metin kazanır.
 
-## What NOT to put in the notes
+## Notlara NE konulMAMALI
 
-- Full file contents. Reference paths, not blobs.
-- Chain-of-thought for the session. Compact it into a status line.
-- Anything that belongs in the feature list (pass/fail state) or in git (what changed).
+- Tam dosya içerikleri. Blob'lar değil, yolları referans göster.
+- Oturumun düşünce zinciri (chain-of-thought). Onu tek bir durum satırına sıkıştır.
+- Feature list'e (geçti/kaldı durumu) veya git'e (neyin değiştiği) ait olan herhangi bir şey.
 
-## Pairs with
+## Şunlarla eşleşir
 
-- `broken-window-check` — reads the "what's done" list to know what to smoke-test.
-- `spec-first` — the spec is the contract; the notes are the ledger against it.
-- `context-budget` — the notes are the compact recap the context-budget skill wants.
+- `broken-window-check` — neyin duman-testinden (smoke-test) geçirileceğini bilmek için "ne yapıldı" listesini okur.
+- `spec-first` — spec sözleşmedir; notlar ona karşı tutulan defterdir (ledger).
+- `context-budget` — notlar, context-budget skill'inin istediği sıkıştırılmış özettir.
 
-The shift-notes file is the memory of the project. Treat it as load-bearing.
+shift-notes dosyası projenin hafızasıdır. Ona belirleyici (load-bearing) muamelesi yap.

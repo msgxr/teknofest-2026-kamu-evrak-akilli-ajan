@@ -1,96 +1,96 @@
 ---
 name: verification-before-completion
-description: Use before claiming work is complete, fixed, or passing — before committing, opening a PR, or handing off. Requires running the verification command in THIS turn and reading its output before any success claim.
+description: İşi tamamlandı, düzeltildi veya geçiyor olarak iddia etmeden önce kullan — commit'lemeden, PR açmadan veya devretmeden önce. Herhangi bir başarı iddiasından önce doğrulama komutunu BU turda çalıştırmayı ve çıktısını okumayı gerektirir.
 ---
 
-# Verification Before Completion
+# Tamamlanmadan Önce Doğrulama
 
-Claiming work done without fresh verification is dishonesty, not efficiency. `adversarial-verify` is the *what*; this skill is the *when* — the gate you pass through right before any completion claim.
+İşi taze bir doğrulama olmadan tamamlandı diye iddia etmek verimlilik değil, dürüstsüzlüktür. `adversarial-verify` *ne* olduğudur; bu skill *ne zaman* olduğudur — herhangi bir tamamlanma iddiasından hemen önce geçtiğin kapı.
 
-## The Iron Law
+## Demir Kural
 
 ```
 NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
 ```
 
-If you have not run the verification command in this message, you cannot claim it passes. Not "should", not "probably", not "based on the diff".
+Doğrulama komutunu bu mesajda çalıştırmadıysan, geçtiğini iddia edemezsin. "Geçmeli" değil, "muhtemelen" değil, "diff'e bakılırsa" değil.
 
-## The gate function
+## Kapı fonksiyonu
 
-Before writing "done" / "fixed" / "green" / "ready to merge" — even in your own head:
+"tamamlandı" / "düzeltildi" / "yeşil" / "birleştirmeye hazır" yazmadan önce — kendi kafanda bile:
 
-1. **Identify** — what exact command proves this claim?
-2. **Run** — execute it fresh, complete, in this turn.
-3. **Read** — full output, check exit code, count failures.
-4. **Verify** — does the output actually confirm the claim?
-5. **Only then** — make the claim, with the evidence attached.
+1. **Belirle (Identify)** — bu iddiayı tam olarak hangi komut kanıtlıyor?
+2. **Çalıştır (Run)** — taze, eksiksiz, bu turda yürüt.
+3. **Oku (Read)** — tam çıktı, çıkış kodunu kontrol et, başarısızlıkları say.
+4. **Doğrula (Verify)** — çıktı iddiayı gerçekten teyit ediyor mu?
+5. **Ancak o zaman** — iddiayı, kanıtı ekleyerek yap.
 
-Skip any step = you are lying to the user, not verifying.
+Herhangi bir adımı atla = kullanıcıya yalan söylüyorsun, doğrulamıyorsun.
 
-## Common false claims → what they actually need
+## Yaygın sahte iddialar → gerçekte neye ihtiyaç duydukları
 
-| Claim | Requires | Not sufficient |
+| İddia | Gerektirir | Yeterli değil |
 |---|---|---|
-| Tests pass | Fresh test run, exit 0, 0 failures | "should pass", previous run, "logic looks right" |
-| Linter clean | Linter output, 0 errors | Partial check, extrapolating from unrelated files |
-| Build succeeds | Build command, exit 0 | Linter passing, editor squiggles gone |
-| Bug fixed | Reproduce original symptom, watch it not happen | Code changed, "assumed" fixed |
-| Regression test works | Red → green cycle verified (revert fix, watch test fail, restore, watch pass) | Test passes once |
-| Agent/subagent completed | Read the VCS diff, verify claimed changes exist | Agent's own "success" report |
-| Spec satisfied | Line-by-line checklist against the plan | "Tests pass, phase complete" |
+| Testler geçiyor | Taze test koşusu, çıkış 0, 0 başarısızlık | "geçmeli", önceki koşu, "mantık doğru görünüyor" |
+| Linter temiz | Linter çıktısı, 0 hata | Kısmi kontrol, ilgisiz dosyalardan çıkarım yapma |
+| Build başarılı | Build komutu, çıkış 0 | Linter'ın geçmesi, editör kıvrımlarının (squiggles) kaybolması |
+| Hata düzeltildi | Orijinal belirtiyi yeniden üret, gerçekleşmediğini izle | Kod değişti, "varsayılan" düzeltme |
+| Regresyon testi çalışıyor | Kırmızı → yeşil döngüsü doğrulandı (düzeltmeyi geri al, testin başarısız olduğunu izle, geri yükle, geçtiğini izle) | Testin bir kez geçmesi |
+| Ajan/subagent tamamladı | VCS diff'ini oku, iddia edilen değişikliklerin var olduğunu doğrula | Ajanın kendi "başarı" raporu |
+| Spec karşılandı | Plana karşı satır satır kontrol listesi | "Testler geçiyor, faz tamam" |
 
-## Red flags — you are about to claim without verifying
+## Kırmızı bayraklar — doğrulamadan iddia etmek üzeresin
 
-- Words like "should", "probably", "seems to", "looks good"
-- Satisfaction language ("Great!", "Perfect!", "Done!") before running the command
-- About to commit / push / open PR without a verification block in this turn
-- Trusting a subagent's own success report
-- "Just this once" thinking, or "I'm tired, close enough"
-- Partial verification (linter passed, so build must)
+- "geçmeli", "muhtemelen", "gibi görünüyor", "iyi görünüyor" gibi kelimeler
+- Komutu çalıştırmadan önce memnuniyet dili ("Harika!", "Mükemmel!", "Tamam!")
+- Bu turda bir doğrulama bloğu olmadan commit / push / PR açmak üzere
+- Bir subagent'ın kendi başarı raporuna güvenmek
+- "Sadece bu seferlik" düşüncesi ya da "Yorgunum, yeterince yakın"
+- Kısmi doğrulama (linter geçti, o halde build de geçmeli)
 
-## Rationalization prevention
+## Rasyonalizasyonu önleme
 
-| Excuse | Reality |
+| Bahane | Gerçek |
 |---|---|
-| "Should work now" | RUN it. |
-| "I'm confident" | Confidence ≠ evidence. |
-| "Linter passed" | Linter ≠ compiler ≠ tests. |
-| "The agent said success" | Read the diff yourself. |
-| "Partial check is enough" | Partial proves nothing about the whole. |
-| "Different words, so rule doesn't apply" | Spirit over letter. |
+| "Artık çalışmalı" | ÇALIŞTIR onu. |
+| "Eminim" | Güven ≠ kanıt. |
+| "Linter geçti" | Linter ≠ derleyici ≠ testler. |
+| "Ajan başarı dedi" | Diff'i kendin oku. |
+| "Kısmi kontrol yeterli" | Kısmi, bütün hakkında hiçbir şey kanıtlamaz. |
+| "Farklı kelimeler, o yüzden kural geçmez" | Lafız değil ruh esastır. |
 
-## Patterns
+## Desenler
 
-**Tests**
-- Run the test command. See `34/34 pass`. Then say "all tests pass".
-- Never: "should pass now".
+**Testler**
+- Test komutunu çalıştır. `34/34 pass` gör. Sonra "tüm testler geçiyor" de.
+- Asla: "artık geçmeli".
 
-**Regression tests (real red-green)**
-- Write test → run (pass) → revert fix → run (MUST FAIL) → restore fix → run (pass).
-- Never: "I've added a regression test" without the red-green cycle.
+**Regresyon testleri (gerçek kırmızı-yeşil)**
+- Test yaz → çalıştır (geç) → düzeltmeyi geri al → çalıştır (BAŞARISIZ OLMALI) → düzeltmeyi geri yükle → çalıştır (geç).
+- Asla: kırmızı-yeşil döngüsü olmadan "bir regresyon testi ekledim".
 
 **Build**
-- Run the build. See exit 0. Then say "build passes".
-- Never: "linter passed, build should too".
+- Build'i çalıştır. Çıkış 0 gör. Sonra "build geçiyor" de.
+- Asla: "linter geçti, build de geçmeli".
 
-**Agent delegation**
-- Subagent reports success → check the VCS diff → verify the claimed change is actually there → report actual state.
-- Never: paste the agent's report and treat it as truth.
+**Ajan devri (delegation)**
+- Subagent başarı bildirir → VCS diff'ini kontrol et → iddia edilen değişikliğin gerçekten orada olduğunu doğrula → gerçek durumu bildir.
+- Asla: ajanın raporunu yapıştırıp gerçekmiş gibi kabul etme.
 
-## When this fires
+## Bu ne zaman tetiklenir
 
-Always, before:
-- Any variation of success / completion / fixed / passing / green
-- Committing, opening a PR, marking a task done, handing off
-- Moving to the next task
-- Any positive statement about the work's state
+Her zaman, şunlardan önce:
+- Başarı / tamamlanma / düzeltildi / geçiyor / yeşil ifadesinin herhangi bir varyasyonu
+- Commit'leme, PR açma, bir görevi tamamlandı işaretleme, devretme
+- Sonraki göreve geçme
+- İşin durumu hakkında herhangi bir olumlu ifade
 
-## Pair with
+## Şununla eşleştir
 
-- `adversarial-verify` — the 11 shortcuts agents take to fake "done"; run through the list, then run through this gate.
-- `clean-commits` — clean commits require verified content.
-- The `verifier` subagent — dispatch it; then verify its report against the diff (per the "Agent delegation" pattern above).
+- `adversarial-verify` — ajanların "tamamlandı"yı sahtelemek için aldığı 11 kısayol; listeyi baştan sona geç, sonra bu kapıdan geç.
+- `clean-commits` — temiz commit'ler doğrulanmış içerik gerektirir.
+- `verifier` subagent'ı — onu görevlendir; sonra raporunu diff'e karşı doğrula (yukarıdaki "Ajan devri" desenine göre).
 
-## The bottom line
+## Özet (bottom line)
 
-Run the command. Read the output. THEN claim the result. Non-negotiable.
+Komutu çalıştır. Çıktıyı oku. SONRA sonucu iddia et. Pazarlık konusu değil.

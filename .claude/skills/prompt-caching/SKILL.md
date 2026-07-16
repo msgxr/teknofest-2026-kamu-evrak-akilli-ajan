@@ -1,55 +1,55 @@
 ---
 name: prompt-caching
-description: Cache the parts of the prompt that don't change so a long-running loop stops paying full price on every turn. Use when the system prompt, tool defs, or reference docs are stable across many turns.
-when_to_use: long session, repeated large context, cost climbing, system prompt >1024 tokens, unchanged tool definitions across turns
+description: Prompt'un değişmeyen kısımlarını cache'le, böylece uzun-ömürlü bir döngü her turda tam fiyat ödemeyi bırakır. system prompt, tool tanımları (tool defs) veya referans dokümanlar birçok tur boyunca sabit olduğunda kullan.
+when_to_use: uzun oturum, tekrarlanan büyük bağlam, tırmanan maliyet, 1024 token üstü system prompt, turlar boyunca değişmeyen tool tanımları
 ---
 
 # Prompt Caching
 
-Every turn of a Plan→Act→Verify loop resends the same system prompt, the same tool definitions, and (usually) the same reference docs. Without cache breakpoints you pay full input price on all of it, every turn. With them, cached reads cost ~10% of the write.
+Bir Planla→Uygula→Doğrula döngüsünün her turu aynı system prompt'u, aynı tool tanımlarını ve (genellikle) aynı referans dokümanları yeniden gönderir. cache breakpoint'leri olmadan bunların hepsine, her turda tam input fiyatı ödersin. Onlarla birlikte, cache'lenmiş okumalar yazmanın ~%10'una mal olur.
 
-## Where to put breakpoints
+## Breakpoint'ler nereye konulmalı
 
-Cache from the top of the prompt down. The cache is prefix-matched — a break in the middle invalidates everything after it.
+Prompt'un tepesinden aşağıya doğru cache'le. cache, önek-eşleşmelidir (prefix-matched) — ortadaki bir kesme, kendisinden sonraki her şeyi geçersiz kılar.
 
-1. **System prompt** — mark the end of it as a breakpoint if it's >1024 tokens (Sonnet/Opus) or >2048 (Haiku).
-2. **Tool definitions** — cache immediately after, if the tool set is stable across the loop.
-3. **Large stable docs** — repo map, style guide, spec — before any turn-specific user text.
-4. **User message stem** — only if the same preamble repeats every turn.
+1. **System prompt** — 1024 token'dan (Sonnet/Opus) veya 2048'den (Haiku) büyükse, sonunu bir breakpoint olarak işaretle.
+2. **Tool tanımları** — tool seti döngü boyunca sabitse, hemen ardından cache'le.
+3. **Büyük sabit dokümanlar** — repo haritası, stil kılavuzu, spec — tura-özgü herhangi bir kullanıcı metninden önce.
+4. **Kullanıcı mesajı kökü (stem)** — yalnızca aynı önsöz (preamble) her turda tekrarlanıyorsa.
 
-Everything past the last breakpoint is billed fresh every turn. That's fine — that's where the changing content goes.
+Son breakpoint'ten sonraki her şey her turda yeniden faturalanır. Bu sorun değil — değişen içeriğin gittiği yer orasıdır.
 
-## TTL choice
+## TTL seçimi
 
-- **5-minute cache** (default) — for tight loops where turns are seconds apart. Free to write.
-- **1-hour cache** — for slow loops (human in the loop, background jobs). Write cost is higher; break-even is ~2 hits.
+- **5-dakikalık cache** (varsayılan) — turların saniyeler arayla olduğu sıkı döngüler için. Yazması ücretsiz.
+- **1-saatlik cache** — yavaş döngüler için (insan döngüde, arka plan işleri). Yazma maliyeti daha yüksek; başabaş (break-even) ~2 isabet.
 
-Pick 5m unless you know turns are minutes apart.
+Turların dakikalar arayla olduğunu bilmiyorsan 5dk seç.
 
-## Staleness rules — cache invalidation is silent
+## Bayatlama kuralları — cache geçersizleştirme sessizdir
 
-- **Any byte change** above the breakpoint invalidates the cache from that point.
-- **Reordering** tools or messages counts as change.
-- **Trailing whitespace** counts as change.
-- **A different model version** counts as change.
+- Breakpoint'in üstündeki **herhangi bir bayt değişikliği**, cache'i o noktadan itibaren geçersiz kılar.
+- Tool'ları veya mesajları **yeniden sıralamak** değişiklik sayılır.
+- **Sondaki boşluk (trailing whitespace)** değişiklik sayılır.
+- **Farklı bir model sürümü** değişiklik sayılır.
 
-If cost isn't dropping, log the cache-hit metric. Do not assume.
+Maliyet düşmüyorsa, cache-hit metriğini logla. Varsayma.
 
-## When NOT to cache
+## Ne zaman cache'lenMEMELİ
 
-- Prompt <1024 tokens — below the minimum block size, no savings.
-- One-shot calls — no reuse, cache write is wasted.
-- Highly dynamic system prompt (per-user templating) — cache misses will exceed hits.
+- Prompt <1024 token — minimum blok boyutunun altında, tasarruf yok.
+- Tek-seferlik (one-shot) çağrılar — yeniden kullanım yok, cache yazması boşa gider.
+- Yüksek düzeyde dinamik system prompt (kullanıcı-başına şablonlama) — cache ıskalamaları isabetleri aşar.
 
-## Red flags
+## Kırmızı bayraklar
 
-- **Cost graph flat after adding breakpoints** — you're invalidating on every turn. Diff two consecutive requests byte-for-byte above the breakpoint.
-- **Breakpoint after user message** — pointless; the user message changes every turn.
-- **Four+ breakpoints** — max is four; extras are ignored silently.
-- **Caching a prompt that gets edited mid-session** — one edit above the cut wipes all downstream savings.
+- **Breakpoint ekledikten sonra maliyet grafiği düz** — her turda geçersizleştiriyorsun. Breakpoint'in üstündeki iki ardışık isteği bayt-bayt diff'le.
+- **Kullanıcı mesajından sonra breakpoint** — anlamsız; kullanıcı mesajı her turda değişir.
+- **Dört+ breakpoint** — en fazla dört; fazlalıklar sessizce yok sayılır.
+- **Oturum ortasında düzenlenen bir prompt'u cache'lemek** — kesme noktasının üstündeki tek bir düzenleme, aşağı akıştaki tüm tasarrufları siler.
 
-## The math
+## Matematik
 
-Cache write ≈ 1.25× normal input. Cache read ≈ 0.1× normal input. So a stable 20K-token prefix hit N times: N=1 costs more than no-cache; N=2 breaks even; N=10 costs ~15% of no-cache. Long loops win big; short chats lose.
+Cache yazma ≈ 1.25× normal input. Cache okuma ≈ 0.1× normal input. Yani N kez isabet alan, sabit 20K-token'lık bir önek: N=1 cache'siz durumdan daha pahalıdır; N=2 başabaş gelir; N=10 cache'siz durumun ~%15'ine mal olur. Uzun döngüler büyük kazanır; kısa sohbetler kaybeder.
 
-Cache is the single biggest cost lever on a long-running agent. Set it once at the start of the loop, verify hits, forget it.
+Cache, uzun-ömürlü bir ajandaki tek en büyük maliyet kaldıracıdır. Döngünün başında bir kez ayarla, isabetleri doğrula, unut.

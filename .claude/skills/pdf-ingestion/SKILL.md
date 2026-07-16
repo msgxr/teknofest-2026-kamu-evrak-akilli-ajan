@@ -1,59 +1,59 @@
 ---
 name: pdf-ingestion
-description: Get a PDF into the model without blowing the context window or losing structure. Native PDF beats OCR-then-text for most cases; extract-then-summarize beats native for very long docs.
-when_to_use: user drops a PDF, "read this report", extracting tables/figures from a doc, long-form doc summarization, spec document that lives as PDF
+description: Bir PDF'i, context window'u patlatmadan veya yapıyı kaybetmeden modele sok. Çoğu durumda native PDF, OCR-sonra-metin yaklaşımını yener; çok uzun dokümanlarda çıkar-sonra-özetle, native'i yener.
+when_to_use: kullanıcı bir PDF bırakır, "bu raporu oku", bir dokümandan tablo/şekil çıkarma, uzun-biçimli doküman özetleme, PDF olarak duran spec dokümanı
 ---
 
-# PDF Ingestion
+# PDF İçe Alma (Ingestion)
 
-Three ways to feed a PDF to the model, in increasing order of preprocessing:
+Bir PDF'i modele beslemenin, artan ön-işleme (preprocessing) sırasıyla üç yolu:
 
-1. **Native PDF input** — pass the file directly. Model sees pages as images + extracted text. Best for docs under ~100 pages with meaningful layout (tables, figures, forms). Preserves structure.
+1. **Native PDF girişi** — dosyayı doğrudan geçir. Model, sayfaları görüntü + çıkarılmış metin olarak görür. Anlamlı yerleşimi (tablolar, şekiller, formlar) olan ~100 sayfa altındaki dokümanlar için en iyisi. Yapıyı korur.
 
-2. **Text extraction then send** — `pdftotext` / `pypdf` / equivalent, then send the text. Loses layout but cheap. Fine for prose-heavy docs where tables don't matter.
+2. **Metin çıkarma sonra gönder** — `pdftotext` / `pypdf` / muadili, ardından metni gönder. Yerleşimi kaybeder ama ucuzdur. Tabloların önemli olmadığı, düz-metin-ağırlıklı dokümanlar için uygundur.
 
-3. **Extract → chunk → summarize → send** — for docs >100 pages or when you'll query the same doc many times. Preprocess once, cache the summary.
+3. **Çıkar → parçala (chunk) → özetle → gönder** — 100 sayfadan büyük dokümanlar için ya da aynı dokümanı çok kez sorgulayacağın zaman. Bir kez ön-işle, özeti cache'le.
 
-## Deciding which path
+## Hangi yolu seçmeli
 
-| Doc shape | Path |
+| Doküman biçimi | Yol |
 |---|---|
-| <20 pages, layout matters (report, form, invoice) | Native |
-| <20 pages, pure prose (article, memo) | Text extraction |
-| 20-100 pages, mixed | Native, but chunk if context tight |
-| >100 pages | Extract → chunk → summarize |
-| Scanned PDF (no text layer) | OCR first (Tesseract or vision model), then treat as extracted text |
-| Tables are the point | Native — text extractors mangle tables |
-| Figures/diagrams are the point | Native + explicit "describe the figure on page N" prompt |
+| <20 sayfa, yerleşim önemli (rapor, form, fatura) | Native |
+| <20 sayfa, saf düz metin (makale, not) | Metin çıkarma |
+| 20-100 sayfa, karışık | Native, ama bağlam darsa parçala |
+| >100 sayfa | Çıkar → parçala → özetle |
+| Taranmış PDF (metin katmanı yok) | Önce OCR (Tesseract veya vision model), ardından çıkarılmış metin gibi işle |
+| Asıl mesele tablolar | Native — metin çıkarıcılar tabloları bozar |
+| Asıl mesele şekiller/diyagramlar | Native + açık "N. sayfadaki şekli tanımla" prompt'u |
 
-## Native PDF — the good defaults
+## Native PDF — iyi varsayılanlar
 
-- Cache the PDF at a prompt-caching breakpoint (see `prompt-caching`). Native PDFs are large — every uncached turn costs full input price on the whole doc.
-- Ask about **specific pages** ("summarize section 3.2 on page 14") rather than the whole doc. The model handles targeted queries better than "summarize this 80-page report".
-- Follow up with **page-cited claims** — "on which page does the doc say X?" — as a sanity check the model isn't hallucinating.
+- PDF'i bir prompt-caching breakpoint'inde cache'le (bkz. `prompt-caching`). Native PDF'ler büyüktür — cache'lenmemiş her tur, tüm doküman üzerinden tam input fiyatına mal olur.
+- Tüm doküman yerine **belirli sayfalar** hakkında sor ("14. sayfadaki 3.2 bölümünü özetle"). Model, hedefli sorguları "bu 80 sayfalık raporu özetle"den daha iyi ele alır.
+- Modelin halüsinasyon görmediğine dair bir sağlamlık kontrolü olarak **sayfa-atıflı iddialarla** devam et — "doküman X'i hangi sayfada söylüyor?".
 
-## Extract-then-send — the traps
+## Çıkar-sonra-gönder — tuzaklar
 
-- **`pdftotext` reading order.** Multi-column PDFs come out as interleaved lines. Use `pdftotext -layout` for column preservation, or `pdftotext -raw` for straight reading order — pick per doc, don't guess.
-- **Tables become word soup.** If tables are load-bearing, native or per-table image extraction. Not text.
-- **Headers/footers repeat on every page.** Strip them before sending, or the model will treat them as content.
-- **Footnotes drift** to random positions in the extracted stream. Filter or accept the noise.
+- **`pdftotext` okuma sırası.** Çok-sütunlu PDF'ler iç içe geçmiş satırlar olarak çıkar. Sütun korumak için `pdftotext -layout`, düz okuma sırası için `pdftotext -raw` kullan — doküman başına seç, tahmin etme.
+- **Tablolar kelime çorbasına döner.** Tablolar belirleyiciyse (load-bearing), native veya tablo-başına görüntü çıkarma. Metin değil.
+- **Üstbilgi/altbilgiler her sayfada tekrarlanır.** Göndermeden önce onları ayıkla, yoksa model onları içerik olarak ele alır.
+- **Dipnotlar**, çıkarılmış akışta rastgele konumlara **kayar**. Filtrele veya gürültüyü kabul et.
 
-## Extract → chunk → summarize (long docs)
+## Çıkar → parçala → özetle (uzun dokümanlar)
 
-- Chunk by section, not by token count. A section-aware split respects the doc's logic; a naive 4K-token split cuts sentences and tables.
-- Summarize per section into a "map" — 1-2 paragraphs each. Keep the map short enough to fit in context whole (~2-4K tokens for a 200-page doc).
-- Store the full section text alongside the map (paths in a manifest). Fetch on demand when a question needs detail beyond the summary.
-- Cache the map at a prompt-caching breakpoint so multi-turn Q&A over the doc doesn't reprocess.
+- Token sayısına göre değil, bölüme göre parçala. Bölüm-farkında bir ayrım, dokümanın mantığına saygı gösterir; naif bir 4K-token'lık ayrım, cümleleri ve tabloları keser.
+- Her bölümü bir "harita"ya (map) özetle — her biri 1-2 paragraf. Haritayı, bağlama bütün olarak sığacak kadar kısa tut (200 sayfalık bir doküman için ~2-4K token).
+- Tam bölüm metnini haritanın yanında sakla (bir manifest içinde yollar). Bir soru özetin ötesinde ayrıntı gerektirdiğinde talep üzerine getir (fetch).
+- Doküman üzerindeki çok-turlu soru-cevabın yeniden işlememesi için haritayı bir prompt-caching breakpoint'inde cache'le.
 
-## Red flags
+## Kırmızı bayraklar
 
-- **Sending a 200-page PDF native to answer one question.** Extract the relevant page range first.
-- **Trusting the text extractor on a form or invoice.** Layout carries meaning. Use native.
-- **OCR'ing a PDF that already has a text layer.** Check `pdftotext -q file.pdf -` first — if text comes out, no OCR needed.
-- **No page citations in output.** Model can hallucinate confidently across long PDFs. Force page numbers into the response format.
-- **Re-uploading the same PDF every turn without caching.** Cost climbs linearly; a 5-minute cache fixes it.
+- **Tek bir soruyu cevaplamak için 200 sayfalık bir PDF'i native göndermek.** Önce ilgili sayfa aralığını çıkar.
+- **Bir form veya faturada metin çıkarıcıya güvenmek.** Yerleşim anlam taşır. Native kullan.
+- **Zaten metin katmanı olan bir PDF'i OCR'lamak.** Önce `pdftotext -q file.pdf -` ile kontrol et — metin çıkıyorsa OCR gerekmez.
+- **Çıktıda sayfa atıfları yok.** Model, uzun PDF'ler boyunca kendinden emin biçimde halüsinasyon görebilir. Yanıt biçimine sayfa numaralarını zorla.
+- **Aynı PDF'i cache'lemeden her turda yeniden yüklemek.** Maliyet doğrusal tırmanır; 5 dakikalık bir cache bunu düzeltir.
 
-## Loopkit-adjacent
+## Loopkit-komşusu
 
-If the PDF is a spec, extract it into `PROMPT.md` via `spec-first` — the agent should re-read prose, not re-scan the PDF, on every turn.
+PDF bir spec ise, onu `spec-first` aracılığıyla `PROMPT.md`'ye çıkar — ajan her turda PDF'i yeniden taramak yerine düz metni yeniden okumalıdır.

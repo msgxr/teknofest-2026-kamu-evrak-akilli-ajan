@@ -1,39 +1,40 @@
 ---
 name: adversarial-verify
-description: Review a diff against the goal spec assuming the code is BROKEN. The reviewer
-  that lives in the maker's head always agrees with itself — this pulls review into a
-  hostile, separate pass. Invoke after every code change before marking work done.
-when_to_use: a code change is "done", before flipping a task to complete, before commit
+description: Bir diff'i, kodun BOZUK olduğunu varsayarak hedef spec'ine karşı incele.
+  Yapımcının kafasında yaşayan denetçi her zaman kendisiyle hemfikirdir — bu, incelemeyi
+  düşmanca, ayrı bir tura çeker. Her kod değişikliğinden sonra, işi tamamlandı işaretlemeden
+  önce çağır.
+when_to_use: bir kod değişikliği "tamamlandı", bir görevi tamamlandıya çevirmeden önce, commit'ten önce
 ---
 
-# Adversarial Verify
+# Düşmanca Doğrulama
 
-Default stance: **the code is broken until proven otherwise.** Your job is to find where.
-Do not be polite. Do not propose fixes. Do not run the code. Just hunt.
+Varsayılan duruş: **aksi kanıtlanana kadar kod bozuktur.** Görevin, nerede olduğunu bulmak.
+Nazik olma. Düzeltme önerme. Kodu çalıştırma. Sadece avlan.
 
-## Read first
+## Önce oku
 
-- The goal spec (PROMPT.md / the task). What does "done" actually require?
-- The diff. Every changed line.
+- Hedef spec (PROMPT.md / görev). "Tamamlandı" gerçekte neyi gerektiriyor?
+- Diff. Değişen her satır.
 
-## The 11 shortcuts agents take to fake "done" — check each
+## Ajanların "tamamlandı"yı sahtelemek için aldığı 11 kısayol — her birini kontrol et
 
-1. **Relaxed tests** — assertions weakened or deleted to make red go green.
-2. **Swallowed errors** — try/except that hides the failure instead of handling it.
-3. **Fake renames** — a function "fixed" by renaming, behavior unchanged.
-4. **Stub returns** — hardcoded return values that pass the one test, fail everything else.
-5. **Comment-as-fix** — the bug is now a TODO.
-6. **Happy-path only** — 500s, empty inputs, missing files unhandled.
-7. **Scope creep** — changes unrelated to the goal ("while I was in there").
-8. **Invented API** — a method/param that doesn't exist in the actual source.
-9. **Silent decision** — an architectural choice (schema, auth) made without flagging it.
-10. **Pass-by-mock** — the test mocks the exact thing it claims to verify.
-11. **Off-spec done** — code works, tests pass, but solves a goal that isn't the one asked.
+1. **Gevşetilmiş testler (relaxed tests)** — kırmızıyı yeşile çevirmek için zayıflatılmış veya silinmiş assertion'lar.
+2. **Yutulmuş hatalar (swallowed errors)** — başarısızlığı ele almak yerine gizleyen try/except.
+3. **Sahte yeniden adlandırmalar (fake renames)** — yeniden adlandırılarak "düzeltilmiş", davranışı değişmemiş bir fonksiyon.
+4. **Saplama dönüşler (stub returns)** — tek testi geçen ama diğer her şeyde başarısız olan, sabit kodlanmış dönüş değerleri.
+5. **Düzeltme yerine yorum (comment-as-fix)** — hata artık bir TODO.
+6. **Yalnızca mutlu yol (happy-path only)** — 500'ler, boş girdiler, eksik dosyalar ele alınmamış.
+7. **Kapsam kayması (scope creep)** — hedefle ilgisiz değişiklikler ("hazır oradayken").
+8. **Uydurulmuş API (invented API)** — gerçek kaynakta var olmayan bir metot/parametre.
+9. **Sessiz karar (silent decision)** — bayrak kaldırmadan yapılan mimari bir seçim (şema, auth).
+10. **Mock ile geçme (pass-by-mock)** — test, doğruladığını iddia ettiği şeyin ta kendisini mock'lar.
+11. **Spec dışı tamamlanma (off-spec done)** — kod çalışıyor, testler geçiyor, ama istenen hedeften başka bir hedefi çözüyor.
 
-## Output (JSON, no prose)
+## Çıktı (JSON, düz metin yok)
 
 ```json
 {"passes": false, "failures": [{"line": 42, "shortcut": "swallowed errors", "why": "..."}]}
 ```
 
-If it genuinely passes, say so in one line. Most of the time, it doesn't.
+Gerçekten geçiyorsa, tek satırda söyle. Çoğu zaman geçmez.
