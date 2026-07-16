@@ -1,0 +1,14 @@
+{
+  "_aciklama": "OPSİYONEL — offline-first korunur. Bu dosya .mcp.json olarak KOPYALANMADIKÇA pasiftir. Ağ/token gerektirir; çekirdek akış bunlar olmadan tam çalışır. Etkinleştirmek için: cp .mcp.json.ornek .mcp.json ve GITHUB_TOKEN ortam değişkenini ayarla.",
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}

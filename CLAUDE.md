@@ -113,3 +113,19 @@ python scripts/build_presentation.py                 # sunum PPTX üretimi
 5. **[Sonraki Adım ve Eylem Planı]** — ajanın sıradaki adımı + kullanıcıdan beklenen
 
 Küçük/tek adımlı işlerde şablon atlanabilir; öz-denetim her durumda yapılır.
+
+## Loopkit Döngü Sistemi (Planla → Uygula → Doğrula)
+
+Bu depoya [loopkit](https://github.com/Archive228/loopkit) döngü sistemi kuruldu (dosya
+haritası ve uyarlamalar: `docs/loopkit_kurulum.md`). Sözleşme: her oturum **tek özellik**,
+tamamlandı demeden önce **`/verify`** ile düşmanca doğrulama. Bu, yukarıdaki Anayasa İlke 5-7
+(önce planlama / ayrıştırma / öz-denetim) ile birebir örtüşür ve onun altında çalışır.
+
+- **Slash komutları:** `/spec` (icraat öncesi `PROMPT.md`), `/verify` (diff'e karşı düşmanca
+  tur + `verifier` subagent), `/polish` (6 kalite skill'i), `/next` (backlog önerisi).
+- **Skill yönlendirme:** görevine uyan bir tetik varsa, başka eylemden önce ilgili
+  `.claude/skills/<ad>/SKILL.md`'yi oku. Aşağıda içe aktarılan tabloyu izle.
+- **Sıralama:** Kullanıcı talimatı > bu Anayasa > `AGENTS.md` > loopkit skill'leri.
+
+@AGENTS.md
+@.claude/skills/using-loopkit/SKILL.md

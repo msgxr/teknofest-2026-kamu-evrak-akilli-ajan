@@ -1,0 +1,25 @@
+{
+  "_aciklama": "loopkit izin listesi. Otomatik-commit+push Stop hook'u settings.local.json'dadir ve korunur. Opsiyonel loopkit hook'lari (format_edited.py, pre_compact.py) buraya ELLE eklenir; bkz. docs/loopkit_kurulum.md.",
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(python scripts/evaluate.py:*)",
+      "Bash(python scripts/dayaniklilik_testi.py:*)",
+      "Read(*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)"
+    ]
+  }
+}

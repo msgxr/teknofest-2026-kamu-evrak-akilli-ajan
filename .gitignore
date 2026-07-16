@@ -103,3 +103,8 @@ data/processed/geri_bildirim.jsonl
 .claude/settings.local.json
 # Panoyu onizleme icin uretilen tek kullanimlik statik HTML'ler
 data/processed/onizleme_*.html
+
+# loopkit — oturum-ici gecici/yerel dosyalar (commit edilmez)
+claude-decisions.json          # PreCompact hook karar kaydi
+feature_oneri_taslagi.md       # /next oneri taslagi
+.mcp.json                      # yerel/opsiyonel MCP ayari (.mcp.json.ornek paylasilir)
