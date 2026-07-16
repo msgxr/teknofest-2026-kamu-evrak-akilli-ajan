@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 
 # .env dosyasını yükle
@@ -42,8 +42,7 @@ class LLMSettings(BaseSettings):
     timeout_seconds: int = 90
     hf_token: Optional[str] = None
 
-    class Config:
-        env_prefix = "LLM_"
+    model_config = SettingsConfigDict(env_prefix="LLM_")
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -76,8 +75,7 @@ class EmbeddingSettings(BaseSettings):
     rerank_aktif: bool = False
     rerank_model: str = "BAAI/bge-reranker-v2-m3"
 
-    class Config:
-        env_prefix = "EMBEDDING_"
+    model_config = SettingsConfigDict(env_prefix="EMBEDDING_")
 
 
 class ChromaSettings(BaseSettings):
@@ -86,8 +84,7 @@ class ChromaSettings(BaseSettings):
     persist_dir: str = str(PROJECT_ROOT / "data" / "chroma_db")
     collection_name: str = "mevzuat"
 
-    class Config:
-        env_prefix = "CHROMA_"
+    model_config = SettingsConfigDict(env_prefix="CHROMA_")
 
 
 class AppSettings(BaseSettings):
@@ -104,8 +101,7 @@ class AppSettings(BaseSettings):
     templates_dir: str = str(PROJECT_ROOT / "src" / "templates")
     mevzuat_dir: str = str(PROJECT_ROOT / "data" / "raw" / "mevzuat_metinleri")
 
-    class Config:
-        env_prefix = "APP_"
+    model_config = SettingsConfigDict(env_prefix="APP_")
 
 
 class Settings:
